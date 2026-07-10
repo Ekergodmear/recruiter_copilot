@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Telemetry Event",
+  "description": "Normalized telemetry per ADR-000 and Operations Dashboard",
+  "type": "object",
+  "required": ["event_type", "trace_id", "latency_ms", "timestamp"],
+  "properties": {
+    "event_type": {
+      "enum": [
+        "inference_started",
+        "inference_completed",
+        "inference_failed",
+        "knowledge_accepted",
+        "knowledge_rejected",
+        "knowledge_edited",
+        "knowledge_verified",
+        "knowledge_reviewed",
+        "resume_import_completed",
+        "resume_import_failed",
+        "candidate_qualified",
+        "recruiter_feedback"
+      ]
+    },
+    "contract_id": { "type": "string", "pattern": "^KC-[0-9]{3}$" },
+    "trace_id": { "type": "string" },
+    "correlation_id": { "type": "string" },
+    "workspace_id": { "type": "string" },
+    "actor_id": { "type": "string" },
+    "model_id": { "type": "string" },
+    "provider_id": { "type": "string" },
+    "latency_ms": { "type": "number", "minimum": 0 },
+    "tokens_in": { "type": "integer", "minimum": 0 },
+    "tokens_out": { "type": "integer", "minimum": 0 },
+    "cost_usd": { "type": "number", "minimum": 0 },
+    "confidence_avg": { "type": "number", "minimum": 0, "maximum": 1 },
+    "outcome": {
+      "enum": ["accepted", "rejected", "edited", "pending", "failed"]
+    },
+    "edit_delta_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+    "human_override_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+    "ai_acceptance_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+    "verification_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+    "review_completion_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+    "fields_verified": { "type": "integer", "minimum": 0 },
+    "fields_reviewed": { "type": "integer", "minimum": 0 },
+    "review_action": { "type": "string" },
+    "fields_extracted": { "type": "integer", "minimum": 0 },
+    "fields_overridden": { "type": "integer", "minimum": 0 },
+    "candidate_id": { "type": "string" },
+    "field_name": { "type": "string" },
+    "ai_value": { "type": "string" },
+    "human_value": { "type": "string" },
+    "edit_duration_ms": { "type": "number", "minimum": 0 },
+    "parse_time_ms": { "type": "number", "minimum": 0 },
+    "llm_used": { "type": "boolean" },
+    "gap_count": { "type": "integer", "minimum": 0 },
+    "knowledge_object_count": { "type": "integer", "minimum": 0 },
+    "missing_fields": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "ocr_applied": { "type": "boolean" },
+    "ttqc_ms": { "type": "number", "minimum": 0 },
+    "override_reason": { "type": "string" },
+    "feedback_rating": { "enum": ["positive", "negative"] },
+    "error_code": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": [
+              "inference_started",
+              "inference_completed",
+              "inference_failed",
+              "knowledge_accepted",
+              "knowledge_rejected"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": ["contract_id", "model_id", "provider_id"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+﻿Alice Nguyen
+alice.nguyen@example.com
++84 912 345 678
+Skills: java, sql
+6 years of experience

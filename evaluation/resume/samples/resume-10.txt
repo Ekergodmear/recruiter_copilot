@@ -1,0 +1,5 @@
+﻿Henry Bui
+henry.bui@example.com
++84 912 345 678
+Skills: react, node
+6 years of experience

@@ -1,0 +1,26 @@
+{
+  "english": {
+    "knowledge_id": "know_eng_fixture_001",
+    "knowledge_type": "english",
+    "entity_type": "candidate",
+    "entity_id": "candidate_fixture_001",
+    "workspace_id": "ws_fixture",
+    "value": {
+      "level": "B2",
+      "level_numeric": 4,
+      "speaking": "good",
+      "writing": "good",
+      "certifications": []
+    },
+    "confidence": 0.72,
+    "sources": ["Resume"],
+    "last_updated": "2026-07-09T10:00:00.000Z",
+    "version": 1,
+    "trace_id": "trace_fixture_001",
+    "evidence_ref": "resume_fixture_001"
+  },
+  "contract_id": "KC-002",
+  "trace_id": "trace_fixture_001",
+  "extraction_method": "fixture",
+  "executed_at": "2026-07-09T10:00:00.000Z"
+}

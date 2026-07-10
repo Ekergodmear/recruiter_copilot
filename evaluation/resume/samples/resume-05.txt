@@ -1,0 +1,5 @@
+﻿Carol Lee
+carol.lee@example.com
++84 912 345 678
+Skills: typescript, react
+4 years of experience

@@ -1,0 +1,30 @@
+# Sprint 1 feature flags
+# ADR-000 — defaults at project start
+
+version: "1.0"
+sprint: 1
+
+flags:
+  ai.parsing.enabled:
+    default: true
+    description: Resume parsing via KC-001 and KC-002
+
+  ai.truth_engine.enabled:
+    default: false
+    description: Truth resolution runtime — Phase 2
+
+  ai.knowledge_graph.enabled:
+    default: false
+    description: Knowledge graph queries — Phase 3
+
+  ai.semantic_search.enabled:
+    default: false
+    description: Semantic candidate search — Sprint 2+
+
+  ai.duplicate_detection.enabled:
+    default: false
+    description: Duplicate candidate detection — Sprint 2
+
+  ai.matching.enabled:
+    default: false
+    description: Candidate-job matching — Sprint 3

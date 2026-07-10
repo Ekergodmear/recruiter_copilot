@@ -1,0 +1,5 @@
+﻿Bob Tran
+bob.tran@example.com
++84 912 345 678
+Skills: aws, kubernetes
+7 years of experience

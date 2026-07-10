@@ -1,0 +1,30 @@
+{
+  "skills": [
+    {
+      "knowledge_id": "know_skill_fixture_001",
+      "knowledge_type": "skill",
+      "entity_type": "candidate",
+      "entity_id": "candidate_fixture_001",
+      "workspace_id": "ws_fixture",
+      "value": {
+        "skill": "React",
+        "skill_id": "skill_react",
+        "normalized_name": "React",
+        "category": "frontend",
+        "proficiency": "advanced",
+        "years_of_experience": 4,
+        "last_used": "2026-01"
+      },
+      "confidence": 0.87,
+      "sources": ["Resume"],
+      "last_updated": "2026-07-09T10:00:00.000Z",
+      "version": 1,
+      "trace_id": "trace_fixture_001",
+      "evidence_ref": "resume_fixture_001"
+    }
+  ],
+  "contract_id": "KC-001",
+  "trace_id": "trace_fixture_001",
+  "extraction_method": "fixture",
+  "executed_at": "2026-07-09T10:00:00.000Z"
+}

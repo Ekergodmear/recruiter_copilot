@@ -1,0 +1,5 @@
+﻿Jane Doe
+jane.doe@example.com
++84 912 345 678
+Skills: javascript, react
+8 years of experience

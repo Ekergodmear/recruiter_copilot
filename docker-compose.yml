@@ -1,0 +1,40 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      STORAGE_PATH: /app/data/resumes
+      TELEMETRY_PATH: /app/data/telemetry/events.jsonl
+      DEFAULT_WORKSPACE_ID: ws_default
+      FEATURE_FLAGS_FILE: feature-flags/sprint-1.yaml
+      OPERATIONS_DASHBOARD_ENABLED: "true"
+    volumes:
+      - resume_data:/app/data/resumes
+      - telemetry_data:/app/data/telemetry
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: recruiter
+      POSTGRES_PASSWORD: recruiter
+      POSTGRES_DB: recruiter_copilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recruiter -d recruiter_copilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  resume_data:
+  telemetry_data:

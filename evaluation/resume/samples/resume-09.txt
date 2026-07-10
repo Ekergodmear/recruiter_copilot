@@ -1,0 +1,5 @@
+﻿Grace Lam
+grace.lam@example.com
++84 912 345 678
+Skills: javascript, aws
+5 years of experience

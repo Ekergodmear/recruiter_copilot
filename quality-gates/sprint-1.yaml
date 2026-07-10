@@ -1,0 +1,44 @@
+# Sprint 1 Quality Gates
+# ADR-000 Product Success Metrics
+
+version: "1.0"
+sprint: 1
+adr: "ADR-000"
+
+gates:
+  resume_upload:
+    success_rate_min: 0.95
+    failure_rate_max: 0.02
+    e2e_recruiter_seconds_max: 20
+
+  resume_parse:
+    latency_p95_ms_max: 8000
+    knowledge_accuracy_min: 0.90
+    manual_correction_rate_max: 0.15
+
+  evaluation:
+    min_samples: 10          # grow to 100
+    skill_extraction_f1_min: 0.90
+    english_level_accuracy_min: 0.85
+
+  contracts:
+    required: ["KC-001", "KC-002"]
+    schema_validation: true
+
+  telemetry:
+    required_fields:
+      - contract_id
+      - trace_id
+      - latency_ms
+      - outcome
+      - confidence_avg
+
+  feature_flags:
+    ai_parsing_must_be_toggleable: true
+
+ci:
+  block_merge_on_failure: true
+  commands:
+    - "eval:resume"
+    - "test:contracts"
+    - "test:integration:import-resume"

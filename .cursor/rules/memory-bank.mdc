@@ -1,0 +1,47 @@
+---
+description: Recruiter Copilot — FROZEN Memory Bank, Sprint 1 quality-first
+alwaysApply: true
+---
+
+# Memory Bank FROZEN
+
+**Không viết thêm file trong `memory-bank/`.** ADR-000 là tài liệu cuối cùng.
+
+Đọc Memory Bank hiện có khi cần context. **Build code + quality infra.**
+
+## ADR-000 — đọc đầu tiên
+
+Success = recruiter outcomes, không phải `200 OK`.
+
+## AI feature merge rule (bất di bất dịch)
+
+Không merge AI feature nếu thiếu:
+1. **Evaluation dataset** (`evaluation/`)
+2. **Telemetry** (`telemetry/schema.json`)
+3. **Quality gate** (`quality-gates/`)
+
+## Quality infrastructure (repo root)
+
+```
+evaluation/  fixtures/  contracts/  telemetry/  feature-flags/  quality-gates/
+```
+
+## Sprint 1 flags
+
+- `ai.parsing.enabled` ON
+- Truth engine, graph, semantic search OFF
+
+## Sprint 1 KPIs
+
+`quality-gates/sprint-1.yaml` — upload ≥95%, parse p95 <8s, accuracy ≥90%, edit <15%
+
+## Architecture
+
+- v3.1 LOCKED — modular monolith
+- KC-001, KC-002 only for AI in Sprint 1
+- Zero Prompt Rule unchanged
+- LLM = plugin
+
+## Product
+
+**Recruitment Intelligence Platform** — Knowledge = asset, Evaluation = quality protection

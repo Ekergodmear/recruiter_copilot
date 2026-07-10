@@ -1,0 +1,17 @@
+﻿{
+  "version": "1.0",
+  "contract_ids": ["KC-001", "KC-002"],
+  "description": "10 golden resumes for Sprint 1",
+  "samples": [
+    { "id": "resume-01", "input_ref": "samples/resume-01.txt", "expected_ref": "expected/resume-01.json" },
+    { "id": "resume-02", "input_ref": "samples/resume-02.txt", "expected_ref": "expected/resume-02.json" },
+    { "id": "resume-03", "input_ref": "samples/resume-03.txt", "expected_ref": "expected/resume-03.json" },
+    { "id": "resume-04", "input_ref": "samples/resume-04.txt", "expected_ref": "expected/resume-04.json" },
+    { "id": "resume-05", "input_ref": "samples/resume-05.txt", "expected_ref": "expected/resume-05.json" },
+    { "id": "resume-06", "input_ref": "samples/resume-06.txt", "expected_ref": "expected/resume-06.json" },
+    { "id": "resume-07", "input_ref": "samples/resume-07.txt", "expected_ref": "expected/resume-07.json" },
+    { "id": "resume-08", "input_ref": "samples/resume-08.txt", "expected_ref": "expected/resume-08.json" },
+    { "id": "resume-09", "input_ref": "samples/resume-09.txt", "expected_ref": "expected/resume-09.json" },
+    { "id": "resume-10", "input_ref": "samples/resume-10.txt", "expected_ref": "expected/resume-10.json" }
+  ]
+}
