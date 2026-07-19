@@ -2,8 +2,8 @@
 
 | Field             | Value                                                      |
 | ----------------- | ---------------------------------------------------------- |
-| Status            | **SPEC** (PR-1 docs-only)                                  |
-| Baseline          | `main @ 840bdfe` + EPIC-001…009 COMPLETED                  |
+| Status            | **PASS** (Validation PR-3)                                 |
+| Baseline          | `main @ 2c3a027` + EPIC-001…009 COMPLETED                  |
 | Type              | Product EPIC (user value)                                  |
 | Foundation Freeze | Intact                                                     |
 | TECH required     | None                                                       |

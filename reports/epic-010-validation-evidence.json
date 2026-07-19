@@ -1,0 +1,298 @@
+{
+  "epic": "EPIC-010",
+  "title": "Notifications & Collaboration",
+  "generatedAt": "2026-07-19T10:26:32.168Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-010-validate-m9zW1n",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 19,
+    "passed": 19,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-3b",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      },
+      {
+        "ac": "AC-11",
+        "pass": true
+      },
+      {
+        "ac": "AC-12",
+        "pass": true
+      },
+      {
+        "ac": "AC-13",
+        "pass": true
+      }
+    ],
+    "note": "AC-14 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "health-before",
+      "ac": "AC-13",
+      "description": "GET /health ok before validation",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "import",
+      "ac": "AC-12",
+      "description": "Resume Import works for authorized Recruiter",
+      "pass": true,
+      "detail": {
+        "c1": "candidate_6a67e6bbc205"
+      }
+    },
+    {
+      "id": "notification-model-feed",
+      "ac": "AC-1",
+      "description": "Notification feed API returns model envelope for actor",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "unreadCount": 0
+      }
+    },
+    {
+      "id": "feed-api",
+      "ac": "AC-2",
+      "description": "GET /api/v1/notifications returns current actor feed",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "assignment-notification",
+      "ac": "AC-5",
+      "description": "Assignment notification for assignee after successful assign",
+      "pass": true,
+      "detail": {
+        "assignStatus": 200,
+        "types": [
+          "assignment"
+        ]
+      }
+    },
+    {
+      "id": "automation-notification",
+      "ac": "AC-7",
+      "description": "Automation completion notification for executing actor",
+      "pass": true,
+      "detail": {
+        "types": [
+          "automation.completed"
+        ]
+      }
+    },
+    {
+      "id": "workflow-notification",
+      "ac": "AC-6",
+      "description": "Workflow stage-change notification after successful stage move",
+      "pass": true,
+      "detail": {
+        "stageStatus": 200,
+        "types": [
+          "workflow.stage_changed",
+          "assignment"
+        ]
+      }
+    },
+    {
+      "id": "mention-notification",
+      "ac": "AC-8",
+      "description": "Mention notification when note includes @actorId",
+      "pass": true,
+      "detail": {
+        "noteStatus": 201,
+        "types": [
+          "mention",
+          "workflow.stage_changed",
+          "assignment"
+        ]
+      }
+    },
+    {
+      "id": "notification-ordering",
+      "description": "Feed ordered by createdAt descending; read/mark-all must not reorder event sequence",
+      "pass": true,
+      "detail": {
+        "createdAts": [
+          "2026-07-19T10:26:32.155Z",
+          "2026-07-19T10:26:32.139Z",
+          "2026-07-19T10:26:32.112Z"
+        ],
+        "ids": [
+          "notif_f0c4353d13ae",
+          "notif_17cc8c33370d",
+          "notif_42c974b6a81e"
+        ]
+      }
+    },
+    {
+      "id": "mark-read",
+      "ac": "AC-3",
+      "description": "Mark one notification as read",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "readAt": "2026-07-19T10:26:32.157Z"
+      }
+    },
+    {
+      "id": "immutability",
+      "ac": "AC-3b",
+      "description": "Mark read changes only readAt — content/source/createdAt immutable",
+      "pass": true,
+      "detail": {
+        "fingerprintMatch": true,
+        "readAt": "2026-07-19T10:26:32.157Z"
+      }
+    },
+    {
+      "id": "ordering-stable-after-read",
+      "description": "Mark read does not change feed id order",
+      "pass": true,
+      "detail": {
+        "before": [
+          "notif_f0c4353d13ae",
+          "notif_17cc8c33370d",
+          "notif_42c974b6a81e"
+        ],
+        "after": [
+          "notif_f0c4353d13ae",
+          "notif_17cc8c33370d",
+          "notif_42c974b6a81e"
+        ]
+      }
+    },
+    {
+      "id": "mark-all-read",
+      "ac": "AC-4",
+      "description": "Mark all notifications as read for current actor",
+      "pass": true,
+      "detail": {
+        "markAllStatus": 200,
+        "unread": 0
+      }
+    },
+    {
+      "id": "ordering-stable-after-mark-all",
+      "description": "Mark all read does not change feed id order",
+      "pass": true,
+      "detail": {
+        "before": [
+          "notif_f0c4353d13ae",
+          "notif_17cc8c33370d",
+          "notif_42c974b6a81e"
+        ],
+        "after": [
+          "notif_f0c4353d13ae",
+          "notif_17cc8c33370d",
+          "notif_42c974b6a81e"
+        ]
+      }
+    },
+    {
+      "id": "consume-only",
+      "ac": "AC-9",
+      "description": "Notifications only from MVP sources; mention does not execute workflow",
+      "pass": true,
+      "detail": {
+        "types": [
+          "mention",
+          "workflow.stage_changed",
+          "assignment"
+        ],
+        "stage": "Screening"
+      }
+    },
+    {
+      "id": "no-business-rules",
+      "ac": "AC-10",
+      "description": "Matching/Workflow semantics unchanged under Notifications",
+      "pass": true,
+      "detail": {
+        "score": 100
+      }
+    },
+    {
+      "id": "authorization",
+      "description": "AuthorizationService gates notification.read/write; Viewer cannot mention",
+      "pass": true,
+      "detail": {
+        "viewerNote": 403,
+        "ghostFeed": 403,
+        "viewerFeed": 200
+      }
+    },
+    {
+      "id": "regression",
+      "ac": "AC-11",
+      "description": "Authorized happy-path regression (Job/Rel/Match/Analytics/Automation)",
+      "pass": true,
+      "detail": {
+        "job": 201,
+        "rel": 201,
+        "match": 200,
+        "analytics": 200,
+        "automation": 200
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-13",
+      "description": "GET /health still public after notification checks",
+      "pass": true,
+      "detail": {
+        "after": 200,
+        "ghost": 200
+      }
+    }
+  ]
+}
