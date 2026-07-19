@@ -1,0 +1,284 @@
+{
+  "epic": "EPIC-004",
+  "title": "Recruiter Workflow Foundation",
+  "generatedAt": "2026-07-19T07:31:31.494Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-004-validate-YPzWAg",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 13,
+    "passed": 13,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      }
+    ],
+    "note": "AC-11 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "health",
+      "ac": "AC-10",
+      "description": "GET /health returns status ok",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "status": "ok",
+          "sprint": "4",
+          "epic": "EPIC-008",
+          "mode": "founder-alpha",
+          "foundation": "v3.1-frozen",
+          "persistence": "memory",
+          "database": {
+            "configured": false,
+            "connected": null,
+            "dialect": null
+          },
+          "uptimeSeconds": 0,
+          "version": "0.1.0",
+          "buildTimestamp": null,
+          "feature_flags": {
+            "ai.parsing.enabled": true,
+            "ai.truth_engine.enabled": false,
+            "ai.knowledge_graph.enabled": false,
+            "ai.semantic_search.enabled": false,
+            "ai.duplicate_detection.enabled": false,
+            "ai.matching.enabled": false
+          },
+          "operations_dashboard": "/internal/operations-dashboard/ui"
+        }
+      }
+    },
+    {
+      "id": "import",
+      "ac": "AC-9",
+      "description": "Resume Import works (no regression)",
+      "pass": true,
+      "detail": {
+        "c1": "candidate_b2c0d4fa11d4",
+        "c2": "candidate_9b796c27501a"
+      }
+    },
+    {
+      "id": "job-create",
+      "ac": "AC-7",
+      "description": "Job create still works (Job Workspace)",
+      "pass": true,
+      "detail": {
+        "jobId1": "job_3153c076481e",
+        "jobId2": "job_8d43aefa858d"
+      }
+    },
+    {
+      "id": "init",
+      "ac": "AC-1",
+      "description": "New relationship has currentStage=Sourced and exactly 1 history entry",
+      "pass": true,
+      "detail": {
+        "statusCode": 201,
+        "body": {
+          "id": "rel_86b72c91f7aa",
+          "candidateId": "candidate_b2c0d4fa11d4",
+          "jobId": "job_3153c076481e",
+          "status": "Sourced",
+          "currentStage": "Sourced",
+          "stageHistory": [
+            {
+              "previousStage": null,
+              "newStage": "Sourced",
+              "changedAt": "2026-07-19T07:31:31.476Z"
+            }
+          ],
+          "createdAt": "2026-07-19T07:31:31.476Z",
+          "updatedAt": "2026-07-19T07:31:31.476Z",
+          "createdBy": "recruiter_alpha"
+        }
+      }
+    },
+    {
+      "id": "move-stage",
+      "ac": "AC-2",
+      "description": "Recruiter can update current stage (Sourced→Screening→Offer)",
+      "pass": true,
+      "detail": {
+        "afterScreening": "Screening",
+        "afterOffer": "Offer",
+        "historyLen": 3
+      }
+    },
+    {
+      "id": "history-append",
+      "ac": "AC-3",
+      "description": "Every stage change appends history (no overwrite); timestamps ordered",
+      "pass": true,
+      "detail": {
+        "historyLen": 3,
+        "history": [
+          {
+            "previousStage": null,
+            "newStage": "Sourced",
+            "changedAt": "2026-07-19T07:31:31.476Z"
+          },
+          {
+            "previousStage": "Sourced",
+            "newStage": "Screening",
+            "changedAt": "2026-07-19T07:31:31.476Z"
+          },
+          {
+            "previousStage": "Screening",
+            "newStage": "Offer",
+            "changedAt": "2026-07-19T07:31:31.477Z"
+          }
+        ],
+        "timestampsOk": true
+      }
+    },
+    {
+      "id": "current-matches-latest",
+      "ac": "AC-4",
+      "description": "Current stage always matches the latest history entry",
+      "pass": true,
+      "detail": {
+        "currentStage": "Offer",
+        "latestHistory": {
+          "previousStage": "Screening",
+          "newStage": "Offer",
+          "changedAt": "2026-07-19T07:31:31.477Z"
+        }
+      }
+    },
+    {
+      "id": "list-by-stage",
+      "ac": "AC-5",
+      "description": "Relationships can be listed/filtered/grouped by stage",
+      "pass": true,
+      "detail": {
+        "offerCount": 1,
+        "screeningCount": 1,
+        "groupOffer": 1,
+        "groupScreening": 1,
+        "total": 2
+      }
+    },
+    {
+      "id": "invalid-stage",
+      "description": "Invalid stage → 400; history not appended",
+      "pass": true,
+      "detail": {
+        "statusCode": 400,
+        "body": {
+          "error": "INVALID_STAGE",
+          "message": "Invalid stage: NotARealStage"
+        },
+        "historyLenBefore": 3,
+        "historyLenAfter": 3
+      }
+    },
+    {
+      "id": "candidate-workspace",
+      "ac": "AC-6",
+      "description": "Candidate Workspace has no regression",
+      "pass": true,
+      "detail": {
+        "workspace": 200,
+        "list": 200
+      }
+    },
+    {
+      "id": "job-workspace",
+      "ac": "AC-7",
+      "description": "Job Workspace has no regression",
+      "pass": true,
+      "detail": {
+        "get": 200,
+        "list": 200,
+        "source": "manual"
+      }
+    },
+    {
+      "id": "relationship-foundation",
+      "ac": "AC-8",
+      "description": "Relationship Foundation has no regression (list, 409 dup, N:N)",
+      "pass": true,
+      "detail": {
+        "byCand": 200,
+        "byJob": 200,
+        "duplicate": 409,
+        "secondJobRel": 201
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-10",
+      "description": "/health still ok after workflow mutations",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "status": "ok",
+          "sprint": "4",
+          "epic": "EPIC-008",
+          "mode": "founder-alpha",
+          "foundation": "v3.1-frozen",
+          "persistence": "memory",
+          "database": {
+            "configured": false,
+            "connected": null,
+            "dialect": null
+          },
+          "uptimeSeconds": 0,
+          "version": "0.1.0",
+          "buildTimestamp": null,
+          "feature_flags": {
+            "ai.parsing.enabled": true,
+            "ai.truth_engine.enabled": false,
+            "ai.knowledge_graph.enabled": false,
+            "ai.semantic_search.enabled": false,
+            "ai.duplicate_detection.enabled": false,
+            "ai.matching.enabled": false
+          },
+          "operations_dashboard": "/internal/operations-dashboard/ui"
+        }
+      }
+    }
+  ]
+}
