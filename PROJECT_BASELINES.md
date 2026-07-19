@@ -31,10 +31,18 @@ git checkout -b <epic-or-tech>/<short-name>
 Prefer three small PRs per EPIC (or TECH of similar size):
 
 ```text
-EPIC-00X
-├── PR-1  Spec (docs only) — Background, Task, AC, Out of Scope, DoD
-├── PR-2  Implementation — code/tests against the approved spec
-└── PR-3  Validation Report — evidence, metrics, recruiter/ops notes
+EPIC-XXX
+│
+├── PR-1
+│   Spec (docs only) — Background, Task, AC, Out of Scope, DoD
+│
+├── PR-2
+│   Implementation — code/tests against the approved spec
+│
+└── PR-3
+    Validation Report — evidence, metrics, recruiter/ops notes
+        ↓
+      Merge → done
 ```
 
 This separates **design**, **execution**, and **verification**. TECH initiatives that are ops-only may stay as Spec → Implementation when a Validation Report would be redundant (evidence already in the implementation PR).
