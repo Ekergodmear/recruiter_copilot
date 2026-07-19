@@ -22,6 +22,8 @@ import { JobService } from "../modules/job/application/job-service.js";
 import { registerJobRoutes } from "../modules/job/presentation/job-routes.js";
 import { RelationshipService } from "../modules/relationship/application/relationship-service.js";
 import { registerRelationshipRoutes } from "../modules/relationship/presentation/relationship-routes.js";
+import { MatchingService } from "../modules/matching/application/matching-service.js";
+import { registerMatchingRoutes } from "../modules/matching/presentation/matching-routes.js";
 import { RecruitmentService } from "../modules/recruitment/application/recruitment-service.js";
 import { registerRecruitmentRoutes } from "../modules/recruitment/presentation/recruitment-routes.js";
 import {
@@ -66,6 +68,7 @@ export type AppDependencies = {
   resumePreviewService: ResumePreviewService;
   jobService: JobService;
   relationshipService: RelationshipService;
+  matchingService: MatchingService;
   recruitmentService: RecruitmentService;
   knowledgeEvolutionService: KnowledgeEvolutionService;
   candidateInsightService: CandidateInsightService;
@@ -227,6 +230,12 @@ export function createAppDependencies(
     jobRepository,
   });
 
+  const matchingService = new MatchingService({
+    clock,
+    candidateRepository,
+    jobRepository,
+  });
+
   const auditReplayService = new AuditReplayService({
     candidateRepository,
     submissionRepository,
@@ -261,6 +270,7 @@ export function createAppDependencies(
     resumePreviewService,
     jobService,
     relationshipService,
+    matchingService,
     recruitmentService,
     knowledgeEvolutionService,
     candidateInsightService,
@@ -332,6 +342,7 @@ export async function buildApp(deps?: AppDependencies) {
 
   registerJobRoutes(app, resolved.jobService, resolved.clock);
   registerRelationshipRoutes(app, resolved.relationshipService);
+  registerMatchingRoutes(app, resolved.matchingService);
   registerRecruitmentRoutes(app, resolved.recruitmentService);
 
   registerOperationsDashboardRoutes(app, {

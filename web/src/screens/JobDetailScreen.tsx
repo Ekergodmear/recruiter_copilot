@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { JobWorkspacePatch, WorkflowStage } from "../api/types";
+import type { JobWorkspacePatch, MatchingResult, WorkflowStage } from "../api/types";
 import { WORKFLOW_STAGES } from "../api/types";
 import { InsightsPanel } from "../components/InsightsPanel";
 
@@ -17,6 +17,9 @@ export function JobDetailScreen() {
   const [relError, setRelError] = useState<string | null>(null);
   const [stageFilter, setStageFilter] = useState<WorkflowStage | "">("");
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
+  const [matchResult, setMatchResult] = useState<MatchingResult | null>(null);
+  const [matchError, setMatchError] = useState<string | null>(null);
+  const [matchLoadingId, setMatchLoadingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     company: "",
@@ -433,22 +436,44 @@ export function JobDetailScreen() {
                     <Link to={`/candidates/${r.candidateId}`} className="font-medium underline">
                       {r.candidateName ?? r.candidateId}
                     </Link>
-                    <select
-                      value={r.currentStage ?? r.status}
-                      onChange={(e) =>
-                        updateJobRelMutation.mutate({
-                          relId: r.id,
-                          stage: e.target.value as WorkflowStage,
-                        })
-                      }
-                      className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
-                    >
-                      {WORKFLOW_STAGES.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={matchLoadingId === r.id}
+                        className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-medium text-slate-800 disabled:opacity-50"
+                        onClick={async () => {
+                          setMatchError(null);
+                          setMatchLoadingId(r.id);
+                          try {
+                            const result = await api.getMatching(r.candidateId, id);
+                            setMatchResult(result);
+                          } catch (e) {
+                            setMatchResult(null);
+                            setMatchError(e instanceof Error ? e.message : "Match failed");
+                          } finally {
+                            setMatchLoadingId(null);
+                          }
+                        }}
+                      >
+                        {matchLoadingId === r.id ? "Matching…" : "Match"}
+                      </button>
+                      <select
+                        value={r.currentStage ?? r.status}
+                        onChange={(e) =>
+                          updateJobRelMutation.mutate({
+                            relId: r.id,
+                            stage: e.target.value as WorkflowStage,
+                          })
+                        }
+                        className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                      >
+                        {WORKFLOW_STAGES.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -472,6 +497,54 @@ export function JobDetailScreen() {
               ))
             )}
           </ul>
+          {matchError && <p className="text-sm text-red-600">{matchError}</p>}
+          {matchResult && (
+            <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="font-semibold text-slate-900">Matching Result</h3>
+                <p className="text-xs text-slate-500">
+                  Evidence first · Score second · not persisted
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase text-slate-500">Evidence</p>
+                <ul className="mt-1 space-y-1 text-slate-800">
+                  <li>Matched skills: {matchResult.evidence.matchedSkills.join(", ") || "—"}</li>
+                  <li>Missing skills: {matchResult.evidence.missingSkills.join(", ") || "—"}</li>
+                  <li>
+                    Experience: {matchResult.evidence.experience.status} (
+                    {matchResult.evidence.experience.actualYears ?? "?"} /{" "}
+                    {matchResult.evidence.experience.requiredYears ?? "?"} yrs)
+                  </li>
+                  <li>
+                    English: {matchResult.evidence.english.status} (
+                    {matchResult.evidence.english.actual} vs {matchResult.evidence.english.required}
+                    )
+                  </li>
+                  <li>
+                    Salary: {matchResult.evidence.salary.status} (
+                    {matchResult.evidence.salary.expectedSalary ?? "?"} vs{" "}
+                    {matchResult.evidence.salary.jobSalaryMin ?? "?"}-
+                    {matchResult.evidence.salary.jobSalaryMax ?? "?"}{" "}
+                    {matchResult.evidence.salary.currency})
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase text-slate-500">
+                  Overall Match Score (from evidence)
+                </p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">
+                  {matchResult.overallMatchScore}
+                </p>
+                <p className="text-xs text-slate-500">
+                  Breakdown: skills {matchResult.scoreBreakdown.skills} · experience{" "}
+                  {matchResult.scoreBreakdown.experience} · english{" "}
+                  {matchResult.scoreBreakdown.english} · salary {matchResult.scoreBreakdown.salary}
+                </p>
+              </div>
+            </section>
+          )}
         </div>
       )}
 
