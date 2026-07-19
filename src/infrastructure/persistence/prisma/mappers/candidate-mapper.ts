@@ -8,6 +8,10 @@ import {
 } from "../../../../modules/candidate/domain/candidate/candidate-status.js";
 import { CandidateRecord } from "../../../../modules/candidate/domain/candidate/candidate-record.js";
 import {
+  emptyCandidateWorkspace,
+  type CandidateWorkspace,
+} from "../../../../modules/candidate/domain/candidate/candidate-workspace.js";
+import {
   VerifiedKnowledge,
   type EditableFieldName,
   type FieldKnowledge,
@@ -19,6 +23,8 @@ type ProfileJson = {
   summary: string;
   skills: { skillId: string; normalizedName: string; confidence: number }[];
   englishLevel: string;
+  /** EPIC-001 — optional additive bag; absent on older rows */
+  workspace?: Partial<CandidateWorkspace> | null;
 };
 
 type KnowledgeJson = {
@@ -27,6 +33,23 @@ type KnowledgeJson = {
   readyAt: string | null;
   importTraceId: string;
 };
+
+function workspaceFromProfile(
+  profileData: ProfileJson,
+  fallbackUpdatedAt: string,
+): CandidateWorkspace {
+  const base = emptyCandidateWorkspace(fallbackUpdatedAt);
+  const w = profileData.workspace;
+  if (!w) return base;
+  return {
+    salary: w.salary ?? base.salary,
+    note: w.note ?? base.note,
+    currentTitle: w.currentTitle ?? base.currentTitle,
+    company: w.company ?? base.company,
+    education: w.education ?? base.education,
+    updatedAt: w.updatedAt ?? base.updatedAt,
+  };
+}
 
 export function candidateRecordToRow(record: CandidateRecord): {
   id: string;
@@ -50,6 +73,7 @@ export function candidateRecordToRow(record: CandidateRecord): {
       confidence: s.confidence,
     })),
     englishLevel: record.candidate.profile.englishLevel,
+    workspace: record.workspace,
   };
   const knowledge: KnowledgeJson = {
     fields: record.knowledge.fields,
@@ -105,5 +129,6 @@ export function rowToCandidateRecord(row: CandidateRecordRow): CandidateRecord {
     resumeVersion: row.resumeVersion,
     resumeId: row.resumeId,
     identity,
+    workspace: workspaceFromProfile(profileData, knowledgeData.uploadedAt),
   });
 }

@@ -2,10 +2,10 @@
 
 Stable Git milestones for Recruiter Copilot (Founder Alpha).
 
-| Tag | Commit (approx.) | Meaning |
-|-----|------------------|---------|
-| `founder-alpha-1` | `7f978e9` | Founder Alpha **runtime** baseline — product EPICs + Docker/Postgres/Prisma deploy |
-| `founder-alpha-2` | `a6f9222` | Founder Alpha + **production operations** baseline — TECH-006 (backup, deploy/rollback, runbook, monitoring, hardening) |
+| Tag               | Commit (approx.) | Meaning                                                                                                                 |
+| ----------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `founder-alpha-1` | `7f978e9`        | Founder Alpha **runtime** baseline — product EPICs + Docker/Postgres/Prisma deploy                                      |
+| `founder-alpha-2` | `a6f9222`        | Founder Alpha + **production operations** baseline — TECH-006 (backup, deploy/rollback, runbook, monitoring, hardening) |
 
 ## Rule
 
