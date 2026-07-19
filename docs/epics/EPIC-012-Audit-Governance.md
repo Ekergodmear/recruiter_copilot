@@ -195,7 +195,8 @@ Deny-by-default remains.
 3. Every recorded entry must include `actorId` + `occurredAt` + `action` + `outcome`.  
 4. Producers emit after capability outcomes (consume-only).  
 5. Query is read-only and AuthZ-gated.  
-6. No SIEM export product, retention console, or legal-hold workflow in MVP.  
+6. **Audit completeness:** each MVP in-scope state-changing outcome produces **exactly one** Audit Record (no missing log, no duplicate for the same outcome).  
+7. No SIEM export product, retention console, or legal-hold workflow in MVP.  
 
 ---
 
@@ -209,6 +210,7 @@ Deny-by-default remains.
 | **AC-4**  | Automation outcomes produce audit records (linked to ActionResult when present). |
 | **AC-5**  | Integration execute outcomes produce audit records.                       |
 | **AC-6**  | Workflow stage change and/or Assignment produce audit records.            |
+| **AC-6b** | Audit completeness — each MVP in-scope state-changing outcome produces exactly one Audit Record (no missing, no duplicate). |
 | **AC-7**  | Audit records are immutable via API (no update/delete).                   |
 | **AC-8**  | Authorization via `audit.read` (and producer write path) on AuthorizationService. |
 | **AC-9**  | Audit never executes business actions (record-only).                      |

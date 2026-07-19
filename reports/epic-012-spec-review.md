@@ -27,6 +27,7 @@ After Integrations, the platform can change state through many authorized paths.
 | Central AuditService + query API                               | **Adopt**                                            |
 | Producers: Automation, Integrations, Workflow/Assignment       | **Adopt**                                            |
 | AuthZ `audit.read` (+ internal record path)                    | **Adopt**                                            |
+| **AC-6b Audit Completeness** (exactly one record per outcome)  | **Adopt** — no missing / no duplicate logs           |
 
 Architecture fit:
 
