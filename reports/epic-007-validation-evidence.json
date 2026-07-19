@@ -1,0 +1,298 @@
+{
+  "epic": "EPIC-007",
+  "title": "Analytics & Insights",
+  "generatedAt": "2026-07-19T08:45:29.769Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-007-validate-XKT5VT",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 19,
+    "passed": 19,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-1b",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      },
+      {
+        "ac": "AC-11",
+        "pass": true
+      },
+      {
+        "ac": "AC-12",
+        "pass": true
+      },
+      {
+        "ac": "AC-13",
+        "pass": true
+      },
+      {
+        "ac": "AC-14",
+        "pass": true
+      },
+      {
+        "ac": "AC-15",
+        "pass": true
+      }
+    ],
+    "note": "AC-16 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "health",
+      "ac": "AC-15",
+      "description": "GET /health returns status ok",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "import",
+      "ac": "AC-14",
+      "description": "Resume Import works (no regression)",
+      "pass": true,
+      "detail": {
+        "c1": "candidate_1daa95e91ab5"
+      }
+    },
+    {
+      "id": "stage-distribution",
+      "ac": "AC-1",
+      "description": "Stage Distribution returns counts by currentStage",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "total": 1,
+        "screening": {
+          "stage": "Screening",
+          "count": 1,
+          "relationshipIds": [
+            "rel_85d296b3c75a"
+          ]
+        }
+      }
+    },
+    {
+      "id": "traceability",
+      "ac": "AC-1b",
+      "description": "Metrics include relationshipIds and Matching Result items",
+      "pass": true,
+      "detail": {
+        "screeningIds": [
+          "rel_85d296b3c75a"
+        ],
+        "matchItems": [
+          {
+            "relationshipId": "rel_85d296b3c75a",
+            "candidateId": "candidate_1daa95e91ab5",
+            "jobId": "job_05486b865233",
+            "overallMatchScore": 80,
+            "computedAt": "2026-07-19T08:45:29.761Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "funnel",
+      "ac": "AC-2",
+      "description": "Funnel / Stage Conversion derived from Stage History",
+      "pass": true,
+      "detail": {
+        "transitions": 2,
+        "conversions": 6
+      }
+    },
+    {
+      "id": "counts",
+      "ac": "AC-3",
+      "description": "Candidate / Job / Relationship counts available",
+      "pass": true,
+      "detail": {
+        "counts": {
+          "candidates": 1,
+          "jobs": 1,
+          "relationships": 1
+        }
+      }
+    },
+    {
+      "id": "match-on-demand",
+      "ac": "AC-4",
+      "description": "Match Score Distribution uses EPIC-005 on-demand (score equals Matching GET)",
+      "pass": true,
+      "detail": {
+        "source": "matching_on_demand",
+        "matchItem": {
+          "relationshipId": "rel_85d296b3c75a",
+          "candidateId": "candidate_1daa95e91ab5",
+          "jobId": "job_05486b865233",
+          "overallMatchScore": 80,
+          "computedAt": "2026-07-19T08:45:29.761Z"
+        },
+        "matchingGetScore": 80
+      }
+    },
+    {
+      "id": "job-snapshot",
+      "ac": "AC-5",
+      "description": "Job Pipeline Snapshot returns stage + match overview",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "scope": "job",
+        "total": 1
+      }
+    },
+    {
+      "id": "time-to-stage",
+      "ac": "AC-6",
+      "description": "Time-to-stage uses history timestamps; null when not computable",
+      "pass": true,
+      "detail": {
+        "withSamples": 1,
+        "emptyNullOk": true
+      }
+    },
+    {
+      "id": "read-only",
+      "ac": "AC-7",
+      "description": "Analytics queries do not mutate Candidate/Job/Relationship/Workflow/Matching",
+      "pass": true,
+      "detail": {
+        "candidateUnchanged": true,
+        "jobUnchanged": true,
+        "workflowUnchanged": true,
+        "matchingUnchanged": true
+      }
+    },
+    {
+      "id": "candidate-workspace",
+      "ac": "AC-8",
+      "description": "Candidate Workspace no regression",
+      "pass": true,
+      "detail": {
+        "list": 200,
+        "get": 200
+      }
+    },
+    {
+      "id": "job-workspace",
+      "ac": "AC-9",
+      "description": "Job Workspace no regression",
+      "pass": true,
+      "detail": {
+        "list": 200,
+        "get": 200
+      }
+    },
+    {
+      "id": "relationship-foundation",
+      "ac": "AC-10",
+      "description": "Relationship Foundation no regression (list + duplicate 409)",
+      "pass": true,
+      "detail": {
+        "list": 200,
+        "dup": 409
+      }
+    },
+    {
+      "id": "workflow-foundation",
+      "ac": "AC-11",
+      "description": "Workflow Foundation no regression (stage + history intact)",
+      "pass": true,
+      "detail": {
+        "currentStage": "Screening",
+        "historyLen": 2
+      }
+    },
+    {
+      "id": "matching-foundation",
+      "ac": "AC-12",
+      "description": "Matching Foundation no regression",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "score": 80
+      }
+    },
+    {
+      "id": "copilot-regression",
+      "ac": "AC-13",
+      "description": "AI Recruiter Copilot no regression",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "consistency-repeat",
+      "description": "Two consecutive analytics calls yield identical metrics (excluding generatedAt / computedAt)",
+      "pass": true,
+      "detail": {
+        "stable": true,
+        "generatedAt1": "2026-07-19T08:45:29.762Z",
+        "generatedAt2": "2026-07-19T08:45:29.762Z"
+      }
+    },
+    {
+      "id": "consistency-stage-sum",
+      "description": "Sum of stage distribution counts equals stageDistribution.total / relationships",
+      "pass": true,
+      "detail": {
+        "stageSum": 1,
+        "total": 1,
+        "relationships": 1
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-15",
+      "description": "GET /health still ok after analytics",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    }
+  ]
+}
