@@ -9,3 +9,4 @@ coverage/
 data/
 backups/*
 !backups/.gitkeep
+deploy-history/
