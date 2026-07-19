@@ -84,6 +84,18 @@ Every Analytics response must make clear that figures are **derived snapshots**:
 
 Recruiters must not confuse Analytics with a warehouse, forecast, or decision engine.
 
+### Analytics Traceability
+
+Every Analytics metric must be **traceable** to the underlying capability data that produced it.
+
+Examples:
+
+- Stage distribution → relationship IDs counted in each stage  
+- Funnel / conversion → relationship IDs and Stage History entries used  
+- Match Score distribution → Matching Results computed at query time (candidateId, jobId, score)
+
+Analytics is an aggregation layer, not a black box.
+
 ---
 
 ## Business Language (Ubiquitous Language)
@@ -188,6 +200,7 @@ A simple Analytics / Insights view (or Job-scoped panel) showing MVP metrics. No
 | ID        | Criterion                                                                 |
 | --------- | ------------------------------------------------------------------------- |
 | **AC-1**  | Stage Distribution returns counts by `currentStage` (global and/or by Job). |
+| **AC-1b** | Analytics Traceability — each metric includes (or links to) the underlying capability records that produced it (e.g. relationship IDs per stage; Matching Results used for score buckets). |
 | **AC-2**  | Workflow Funnel / Stage Conversion is derived from Stage History.         |
 | **AC-3**  | Candidate / Relationship counts are available (incl. per Job).            |
 | **AC-4**  | Match Score Distribution uses EPIC-005 Matching at query time (no parallel score engine). |
@@ -273,12 +286,12 @@ No new TECH ticket. Prefer in-process aggregation over new infrastructure.
 
 EPIC-007 is done when:
 
-- AC-1…AC-16 **PASS**  
+- AC-1…AC-16 (+ AC-1b Traceability) **PASS**  
 - Regressions on EPIC-001…006 + Resume Import: **NONE**  
 - `GET /health` **PASS**  
 - `pnpm run ci` **PASS**  
 - Validation Report completed (PR-3) with evidence and clear **PASS / FAIL**  
-- Documented confirmation: Analytics did not own/recalculate Matching business rules; queries were read-only  
+- Documented confirmation: Analytics did not own/recalculate Matching business rules; queries were read-only; metrics were traceable to capability data  
 
 ---
 

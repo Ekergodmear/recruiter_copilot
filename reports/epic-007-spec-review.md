@@ -25,6 +25,7 @@ Six capabilities exist. The remaining operational gap is a **read model**: pipel
 | AI Insights as Analytics MVP                                   | **Reject** — Copilot owns narrative; Analytics owns aggregates |
 | **Analytics consumes capabilities; does not own business rules** | **Adopt** — locked governing principle            |
 | Query-time Matching for score distribution                     | **Adopt** — honest with EPIC-005 non-persistence     |
+| **Analytics Traceability** (AC-1b)                             | **Adopt** — metrics trace to relationships / Matching Results |
 
 Aligns with: Evidence over Opinion; consumer layers (Copilot, Analytics) never own business rules.
 
