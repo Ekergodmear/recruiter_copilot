@@ -67,22 +67,24 @@ MVP stays small; vision stays clear.
 - Light validation only
 - Non-`manual` sources documented only
 - Concurrent edit: last-write-wins acceptable (same Alpha posture as EPIC-001)
+- `source` immutable after create (TL note — added to Spec)
 
 ---
 
 ## Gate decision
 
-| Gate                        | Result                     |
-| --------------------------- | -------------------------- |
-| Product value clear         | PASS                       |
-| AC testable                 | PASS                       |
-| Out of Scope explicit       | PASS                       |
-| No TECH dependency          | PASS                       |
-| Definition of Done          | PASS                       |
-| Not a super-EPIC            | PASS                       |
-| Ready for Implementation PR | **YES** (after Spec merge) |
+| Gate                          | Result                     |
+| ----------------------------- | -------------------------- |
+| Product value clear           | PASS                       |
+| AC testable                   | PASS                       |
+| Out of Scope explicit         | PASS                       |
+| No TECH dependency            | PASS                       |
+| Definition of Done            | PASS                       |
+| Source immutability clarified | PASS (added)               |
+| Not a super-EPIC              | PASS                       |
+| Ready for Implementation PR   | **YES** (after Spec merge) |
 
-**TL action:** Approve & merge this Spec PR, then open Implementation PR against merged Spec.
+**TL decision (2026-07-19):** ✅ **APPROVED** — merge Spec, then open Implementation PR (scope locked to Spec).
 
 ---
 

@@ -128,6 +128,9 @@ Every Job **must** have a `source`.
 | `import`            | Document only                          |
 | future integrations | Document only                          |
 
+In EPIC-002, `Job.source` is assigned at creation time and is **not editable**.  
+Future EPICs introducing imports or integrations may create Jobs with different sources; editing `source` remains out of scope.
+
 ---
 
 ## Business Rules
@@ -136,6 +139,7 @@ Every Job **must** have a `source`.
 2. Candidate and Job are **independent** in this EPIC.
 3. This EPIC **does not** build Candidate ↔ Job relationship UX/product (that is EPIC-003).
 4. Existing recruitment/submission paths on `main` must not be broken; this EPIC must not expand them into Matching / Pipeline product work.
+5. **Source is immutable after creation in MVP** — set once at create; Edit Job must not change `source`.
 
 ---
 
