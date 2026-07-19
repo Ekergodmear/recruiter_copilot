@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { JobWorkspacePatch, RelationshipStatus } from "../api/types";
+import type { JobWorkspacePatch, WorkflowStage } from "../api/types";
+import { WORKFLOW_STAGES } from "../api/types";
 import { InsightsPanel } from "../components/InsightsPanel";
 
 type Tab = "overview" | "relationships" | "requirements" | "candidates" | "pipeline" | "timeline";
@@ -13,8 +14,9 @@ export function JobDetailScreen() {
   const [editing, setEditing] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [candIdInput, setCandIdInput] = useState("");
-  const [relStatus, setRelStatus] = useState<RelationshipStatus>("Sourced");
   const [relError, setRelError] = useState<string | null>(null);
+  const [stageFilter, setStageFilter] = useState<WorkflowStage | "">("");
+  const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     company: "",
@@ -65,8 +67,8 @@ export function JobDetailScreen() {
   });
 
   const { data: jobRels, refetch: refetchJobRels } = useQuery({
-    queryKey: ["job-relationships", id],
-    queryFn: () => api.listJobRelationships(id),
+    queryKey: ["job-relationships", id, stageFilter],
+    queryFn: () => api.listJobRelationships(id, stageFilter ? { stage: stageFilter } : undefined),
     enabled: Boolean(id) && tab === "relationships",
   });
 
@@ -81,7 +83,6 @@ export function JobDetailScreen() {
       api.createRelationship({
         candidateId: candIdInput,
         jobId: id,
-        status: relStatus,
       }),
     onSuccess: async () => {
       setRelError(null);
@@ -93,8 +94,8 @@ export function JobDetailScreen() {
   });
 
   const updateJobRelMutation = useMutation({
-    mutationFn: ({ relId, status }: { relId: string; status: RelationshipStatus }) =>
-      api.updateRelationshipStatus(relId, status),
+    mutationFn: ({ relId, stage }: { relId: string; stage: WorkflowStage }) =>
+      api.updateRelationshipStage(relId, stage),
     onSuccess: async () => {
       await refetchJobRels();
     },
@@ -375,7 +376,7 @@ export function JobDetailScreen() {
           <section className="rounded-xl border border-slate-200 bg-white p-4">
             <h2 className="text-sm font-semibold text-slate-900">Relate a Candidate</h2>
             <p className="mt-1 text-xs text-slate-500">
-              Association only — not matching or ranking.
+              Association only — not matching. Starts at Current Stage <strong>Sourced</strong>.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <select
@@ -390,15 +391,6 @@ export function JobDetailScreen() {
                   </option>
                 ))}
               </select>
-              <select
-                value={relStatus}
-                onChange={(e) => setRelStatus(e.target.value as RelationshipStatus)}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              >
-                <option value="Sourced">Sourced</option>
-                <option value="Applied">Applied</option>
-                <option value="Screening">Screening</option>
-              </select>
               <button
                 type="button"
                 disabled={!candIdInput || createJobRelMutation.isPending}
@@ -410,6 +402,24 @@ export function JobDetailScreen() {
             </div>
             {relError && <p className="mt-2 text-sm text-red-600">{relError}</p>}
           </section>
+          <section className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3">
+            <label className="text-xs font-medium text-slate-600" htmlFor="stage-filter">
+              Filter by Current Stage
+            </label>
+            <select
+              id="stage-filter"
+              value={stageFilter}
+              onChange={(e) => setStageFilter(e.target.value as WorkflowStage | "")}
+              className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+            >
+              <option value="">All stages</option>
+              {WORKFLOW_STAGES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </section>
           <ul className="space-y-2">
             {(jobRels?.items ?? []).length === 0 ? (
               <li className="text-sm text-slate-500">No candidates related yet.</li>
@@ -417,25 +427,47 @@ export function JobDetailScreen() {
               jobRels!.items.map((r) => (
                 <li
                   key={r.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+                  className="space-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
                 >
-                  <Link to={`/candidates/${r.candidateId}`} className="font-medium underline">
-                    {r.candidateName ?? r.candidateId}
-                  </Link>
-                  <select
-                    value={r.status}
-                    onChange={(e) =>
-                      updateJobRelMutation.mutate({
-                        relId: r.id,
-                        status: e.target.value as RelationshipStatus,
-                      })
-                    }
-                    className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Link to={`/candidates/${r.candidateId}`} className="font-medium underline">
+                      {r.candidateName ?? r.candidateId}
+                    </Link>
+                    <select
+                      value={r.currentStage ?? r.status}
+                      onChange={(e) =>
+                        updateJobRelMutation.mutate({
+                          relId: r.id,
+                          stage: e.target.value as WorkflowStage,
+                        })
+                      }
+                      className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                    >
+                      {WORKFLOW_STAGES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-xs text-slate-600 underline"
+                    onClick={() => setExpandedHistory((cur) => (cur === r.id ? null : r.id))}
                   >
-                    <option value="Sourced">Sourced</option>
-                    <option value="Applied">Applied</option>
-                    <option value="Screening">Screening</option>
-                  </select>
+                    {expandedHistory === r.id ? "Hide" : "Show"} stage history (
+                    {(r.stageHistory ?? []).length})
+                  </button>
+                  {expandedHistory === r.id && (
+                    <ol className="list-decimal space-y-1 pl-4 text-xs text-slate-600">
+                      {(r.stageHistory ?? []).map((h, i) => (
+                        <li key={`${r.id}-${i}`}>
+                          {h.previousStage ?? "—"} → {h.newStage} ·{" "}
+                          {new Date(h.changedAt).toLocaleString()}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
                 </li>
               ))
             )}

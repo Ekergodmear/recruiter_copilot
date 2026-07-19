@@ -59,6 +59,8 @@ describe("EPIC-003 CandidateJobRelationship API", () => {
     });
     expect(created.statusCode).toBe(201);
     expect(created.json().status).toBe("Sourced");
+    expect(created.json().currentStage).toBe("Sourced");
+    expect(created.json().stageHistory).toHaveLength(1);
     const relId = created.json().id as string;
 
     const dup = await app.inject({
@@ -100,6 +102,8 @@ describe("EPIC-003 CandidateJobRelationship API", () => {
     });
     expect(patched.statusCode).toBe(200);
     expect(patched.json().status).toBe("Screening");
+    expect(patched.json().currentStage).toBe("Screening");
+    expect(patched.json().stageHistory.length).toBeGreaterThanOrEqual(2);
 
     // Workspace + Job + Import regression smokes
     const ws = await app.inject({ method: "GET", url: `/api/v1/candidates/${c1}` });

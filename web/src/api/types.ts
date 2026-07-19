@@ -170,13 +170,47 @@ export type JobWorkspacePatch = {
   notes?: string;
 };
 
+/** EPIC-003 subset — still accepted on create/PATCH for compatibility. */
 export type RelationshipStatus = "Sourced" | "Applied" | "Screening";
+
+/** EPIC-004 default workflow stages. */
+export type WorkflowStage =
+  | "Sourced"
+  | "Applied"
+  | "Screening"
+  | "Technical Interview"
+  | "Hiring Manager Interview"
+  | "Offer"
+  | "Hired"
+  | "Rejected"
+  | "Withdrawn";
+
+export const WORKFLOW_STAGES: WorkflowStage[] = [
+  "Sourced",
+  "Applied",
+  "Screening",
+  "Technical Interview",
+  "Hiring Manager Interview",
+  "Offer",
+  "Hired",
+  "Rejected",
+  "Withdrawn",
+];
+
+export type StageHistoryEntry = {
+  previousStage: WorkflowStage | null;
+  newStage: WorkflowStage;
+  changedAt: string;
+};
 
 export type CandidateJobRelationship = {
   id: string;
   candidateId: string;
   jobId: string;
-  status: RelationshipStatus;
+  /** EPIC-003 alias — equals currentStage */
+  status: WorkflowStage;
+  currentStage: WorkflowStage;
+  stageHistory: StageHistoryEntry[];
   createdAt: string;
   updatedAt: string;
   createdBy: string;

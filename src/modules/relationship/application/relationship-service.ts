@@ -4,9 +4,11 @@ import { CandidateId } from "../../candidate/domain/candidate/candidate-id.js";
 import type { CandidateRepository } from "../../candidate/infrastructure/persistence/candidate-repository.js";
 import type { JobRepository } from "../../job/infrastructure/job-repository.js";
 import {
-  RELATIONSHIP_STATUSES,
+  WORKFLOW_STAGES,
+  isWorkflowStage,
   type CandidateJobRelationship,
-  type RelationshipStatus,
+  type StageHistoryEntry,
+  type WorkflowStage,
 } from "../domain/types.js";
 import type { RelationshipRepository } from "../infrastructure/relationship-repository.js";
 
@@ -20,6 +22,13 @@ export class RelationshipServiceError extends Error {
   }
 }
 
+function assertStage(stage: string): WorkflowStage {
+  if (!isWorkflowStage(stage)) {
+    throw new RelationshipServiceError("INVALID_STAGE", `Invalid stage: ${stage}`);
+  }
+  return stage;
+}
+
 export class RelationshipService {
   constructor(
     private readonly deps: {
@@ -31,16 +40,18 @@ export class RelationshipService {
     },
   ) {}
 
+  /**
+   * Create relationship with Workflow init:
+   * Current Stage = Sourced (or optional initial stage for EPIC-003 compat) + first history entry.
+   */
   async create(params: {
     candidateId: string;
     jobId: string;
-    status?: RelationshipStatus;
+    /** EPIC-003 compat — optional initial stage; default Sourced. */
+    status?: string;
     actorId: string;
   }): Promise<CandidateJobRelationship> {
-    const status = params.status ?? "Sourced";
-    if (!RELATIONSHIP_STATUSES.includes(status)) {
-      throw new RelationshipServiceError("INVALID_STATUS", `Invalid status: ${status}`);
-    }
+    const initialStage = assertStage(params.status ?? "Sourced");
 
     const candidate = await this.deps.candidateRepository.findById(
       CandidateId.create(params.candidateId),
@@ -66,11 +77,18 @@ export class RelationshipService {
     }
 
     const now = this.deps.clock.nowIso();
+    const initHistory: StageHistoryEntry = {
+      previousStage: null,
+      newStage: initialStage,
+      changedAt: now,
+    };
     const relationship: CandidateJobRelationship = {
       id: this.deps.idGenerator.generateId("rel"),
       candidateId: params.candidateId,
       jobId: params.jobId,
-      status,
+      status: initialStage,
+      currentStage: initialStage,
+      stageHistory: [initHistory],
       createdAt: now,
       updatedAt: now,
       createdBy: params.actorId,
@@ -79,24 +97,45 @@ export class RelationshipService {
     return relationship;
   }
 
-  async updateStatus(params: {
-    id: string;
-    status: RelationshipStatus;
-  }): Promise<CandidateJobRelationship> {
-    if (!RELATIONSHIP_STATUSES.includes(params.status)) {
-      throw new RelationshipServiceError("INVALID_STATUS", `Invalid status: ${params.status}`);
-    }
+  /** EPIC-003 compat — updates current stage (any valid workflow stage) + appends history. */
+  async updateStatus(params: { id: string; status: string }): Promise<CandidateJobRelationship> {
+    return this.moveStage({ id: params.id, stage: params.status });
+  }
+
+  /** EPIC-004 — move Current Stage; append-only history; no transition matrix. */
+  async moveStage(params: { id: string; stage: string }): Promise<CandidateJobRelationship> {
+    const nextStage = assertStage(params.stage);
     const current = await this.deps.relationshipRepository.findById(params.id);
     if (!current) {
       throw new RelationshipServiceError("NOT_FOUND", "Relationship not found");
     }
+    if (current.currentStage === nextStage) {
+      return current;
+    }
+
+    const now = this.deps.clock.nowIso();
+    const entry: StageHistoryEntry = {
+      previousStage: current.currentStage,
+      newStage: nextStage,
+      changedAt: now,
+    };
     const next: CandidateJobRelationship = {
       ...current,
-      status: params.status,
-      updatedAt: this.deps.clock.nowIso(),
+      status: nextStage,
+      currentStage: nextStage,
+      stageHistory: [...current.stageHistory, entry],
+      updatedAt: now,
     };
     await this.deps.relationshipRepository.save(next);
     return next;
+  }
+
+  async getById(id: string): Promise<CandidateJobRelationship> {
+    const current = await this.deps.relationshipRepository.findById(id);
+    if (!current) {
+      throw new RelationshipServiceError("NOT_FOUND", "Relationship not found");
+    }
+    return current;
   }
 
   async listByCandidate(candidateId: string) {
@@ -120,13 +159,21 @@ export class RelationshipService {
     return { items: enriched, total: enriched.length };
   }
 
-  async listByJob(jobId: string) {
+  async listByJob(jobId: string, options?: { stage?: string; groupByStage?: boolean }) {
     const job = await this.deps.jobRepository.findById(jobId);
     if (!job || job.deletedAt) {
       throw new RelationshipServiceError("JOB_NOT_FOUND", "Job not found");
     }
 
-    const items = await this.deps.relationshipRepository.findByJobId(jobId);
+    if (options?.stage !== undefined) {
+      assertStage(options.stage);
+    }
+
+    let items = await this.deps.relationshipRepository.findByJobId(jobId);
+    if (options?.stage) {
+      items = items.filter((r) => r.currentStage === options.stage);
+    }
+
     const enriched = await Promise.all(
       items.map(async (r) => {
         const record = await this.deps.candidateRepository.findById(
@@ -138,6 +185,19 @@ export class RelationshipService {
         };
       }),
     );
+
+    if (options?.groupByStage) {
+      const groups: Record<string, typeof enriched> = {};
+      for (const stage of WORKFLOW_STAGES) {
+        groups[stage] = [];
+      }
+      for (const item of enriched) {
+        const bucket = groups[item.currentStage] ?? (groups[item.currentStage] = []);
+        bucket.push(item);
+      }
+      return { groups, total: enriched.length, stages: WORKFLOW_STAGES };
+    }
+
     return { items: enriched, total: enriched.length };
   }
 }

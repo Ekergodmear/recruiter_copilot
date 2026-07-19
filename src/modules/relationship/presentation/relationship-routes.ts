@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { pickAllowedFields, SecurityError } from "../../../shared/security/index.js";
-import { RELATIONSHIP_STATUSES, type RelationshipStatus } from "../domain/types.js";
+import { isWorkflowStage } from "../domain/types.js";
 import {
   RelationshipService,
   RelationshipServiceError,
@@ -24,7 +24,7 @@ export function registerRelationshipRoutes(
           message: "candidateId and jobId are required",
         });
       }
-      if (body.status && !RELATIONSHIP_STATUSES.includes(body.status as RelationshipStatus)) {
+      if (body.status && !isWorkflowStage(body.status)) {
         return reply.status(400).send({
           error: "INVALID_STATUS",
           message: `Invalid status: ${body.status}`,
@@ -33,7 +33,7 @@ export function registerRelationshipRoutes(
       const created = await relationshipService.create({
         candidateId: body.candidateId.trim(),
         jobId: body.jobId.trim(),
-        status: body.status as RelationshipStatus | undefined,
+        status: body.status,
         actorId,
       });
       return reply.status(201).send(created);
@@ -42,26 +42,37 @@ export function registerRelationshipRoutes(
     }
   });
 
+  app.get("/api/v1/relationships/:id", async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      return await relationshipService.getById(id);
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
+
   app.patch("/api/v1/relationships/:id", async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
-      const body = pickAllowedFields<{ status?: string }>(request.body, ["status"]);
-      if (!body.status) {
+      const body = pickAllowedFields<{ status?: string; stage?: string }>(request.body, [
+        "status",
+        "stage",
+      ]);
+      const next = body.stage ?? body.status;
+      if (!next) {
         return reply.status(400).send({
           error: "INVALID_BODY",
-          message: "status is required",
+          message: "stage or status is required",
         });
       }
-      if (!RELATIONSHIP_STATUSES.includes(body.status as RelationshipStatus)) {
+      if (!isWorkflowStage(next)) {
         return reply.status(400).send({
-          error: "INVALID_STATUS",
-          message: `Invalid status: ${body.status}`,
+          error: "INVALID_STAGE",
+          message: `Invalid stage: ${next}`,
         });
       }
-      return await relationshipService.updateStatus({
-        id,
-        status: body.status as RelationshipStatus,
-      });
+      // Prefer UL `stage`; `status` remains EPIC-003 compat alias.
+      return await relationshipService.moveStage({ id, stage: next });
     } catch (error) {
       return sendError(reply, error);
     }
@@ -79,7 +90,17 @@ export function registerRelationshipRoutes(
   app.get("/api/v1/jobs/:id/relationships", async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
-      return await relationshipService.listByJob(id);
+      const query = request.query as { stage?: string; groupBy?: string };
+      if (query.stage && !isWorkflowStage(query.stage)) {
+        return reply.status(400).send({
+          error: "INVALID_STAGE",
+          message: `Invalid stage: ${query.stage}`,
+        });
+      }
+      return await relationshipService.listByJob(id, {
+        stage: query.stage,
+        groupByStage: query.groupBy === "stage",
+      });
     } catch (error) {
       return sendError(reply, error);
     }
