@@ -27,8 +27,12 @@ export class GeminiReasoningProvider implements ReasoningProvider {
       throw new Error(health.reason ?? "Gemini provider unavailable");
     }
 
+    // Stub until live Gemini wiring — still returns suggestion via plugin contract.
     return {
-      result: { task: input.task },
+      result: {
+        task: input.task,
+        suggestion: `Gemini stub suggestion for ${input.task}. Ground answers in the provided context evidence only.`,
+      },
       providerId: this.providerId,
       confidence: 0.7,
     };
