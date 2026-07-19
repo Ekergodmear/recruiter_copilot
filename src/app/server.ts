@@ -26,6 +26,8 @@ import { MatchingService } from "../modules/matching/application/matching-servic
 import { registerMatchingRoutes } from "../modules/matching/presentation/matching-routes.js";
 import { CopilotService } from "../modules/copilot/application/copilot-service.js";
 import { registerCopilotRoutes } from "../modules/copilot/presentation/copilot-routes.js";
+import { AnalyticsService } from "../modules/analytics/application/analytics-service.js";
+import { registerAnalyticsRoutes } from "../modules/analytics/presentation/analytics-routes.js";
 import { RecruitmentService } from "../modules/recruitment/application/recruitment-service.js";
 import { registerRecruitmentRoutes } from "../modules/recruitment/presentation/recruitment-routes.js";
 import {
@@ -72,6 +74,7 @@ export type AppDependencies = {
   relationshipService: RelationshipService;
   matchingService: MatchingService;
   copilotService: CopilotService;
+  analyticsService: AnalyticsService;
   recruitmentService: RecruitmentService;
   knowledgeEvolutionService: KnowledgeEvolutionService;
   candidateInsightService: CandidateInsightService;
@@ -250,6 +253,14 @@ export function createAppDependencies(
     workspaceId: config.defaultWorkspaceId,
   });
 
+  const analyticsService = new AnalyticsService({
+    clock,
+    candidateRepository,
+    jobRepository,
+    relationshipRepository,
+    matchingService,
+  });
+
   const auditReplayService = new AuditReplayService({
     candidateRepository,
     submissionRepository,
@@ -286,6 +297,7 @@ export function createAppDependencies(
     relationshipService,
     matchingService,
     copilotService,
+    analyticsService,
     recruitmentService,
     knowledgeEvolutionService,
     candidateInsightService,
@@ -359,6 +371,7 @@ export async function buildApp(deps?: AppDependencies) {
   registerRelationshipRoutes(app, resolved.relationshipService);
   registerMatchingRoutes(app, resolved.matchingService);
   registerCopilotRoutes(app, resolved.copilotService);
+  registerAnalyticsRoutes(app, resolved.analyticsService);
   registerRecruitmentRoutes(app, resolved.recruitmentService);
 
   registerOperationsDashboardRoutes(app, {

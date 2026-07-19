@@ -33,4 +33,10 @@ export class InMemoryRelationshipRepository implements RelationshipRepository {
       .filter((r) => r.jobId === jobId)
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
+
+  async findAll(): Promise<CandidateJobRelationship[]> {
+    return [...this.store.values()].sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
+  }
 }

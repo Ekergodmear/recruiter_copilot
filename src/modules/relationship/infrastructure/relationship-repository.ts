@@ -9,4 +9,6 @@ export interface RelationshipRepository {
   ): Promise<CandidateJobRelationship | null>;
   findByCandidateId(candidateId: string): Promise<CandidateJobRelationship[]>;
   findByJobId(jobId: string): Promise<CandidateJobRelationship[]>;
+  /** EPIC-007 Analytics — list all relationships (read). */
+  findAll(): Promise<CandidateJobRelationship[]>;
 }

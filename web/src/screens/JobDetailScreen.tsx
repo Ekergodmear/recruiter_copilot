@@ -10,8 +10,16 @@ import type {
 } from "../api/types";
 import { WORKFLOW_STAGES } from "../api/types";
 import { InsightsPanel } from "../components/InsightsPanel";
+import { JobAnalyticsPanel } from "./AnalyticsScreen";
 
-type Tab = "overview" | "relationships" | "requirements" | "candidates" | "pipeline" | "timeline";
+type Tab =
+  | "overview"
+  | "relationships"
+  | "requirements"
+  | "candidates"
+  | "pipeline"
+  | "analytics"
+  | "timeline";
 
 export function JobDetailScreen() {
   const { id = "" } = useParams();
@@ -164,6 +172,7 @@ export function JobDetailScreen() {
     { id: "requirements", label: "Requirements" },
     { id: "candidates", label: "Candidates" },
     { id: "pipeline", label: "Pipeline" },
+    { id: "analytics", label: "Analytics" },
     { id: "timeline", label: "Timeline" },
   ];
 
@@ -728,6 +737,8 @@ export function JobDetailScreen() {
           </div>
         </div>
       )}
+
+      {tab === "analytics" && id && <JobAnalyticsPanel jobId={id} />}
 
       {tab === "pipeline" && (
         <div className="space-y-6">
