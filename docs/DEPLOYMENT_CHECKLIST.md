@@ -109,7 +109,23 @@ Postgres password is applied only on first volume init — restore scripts recre
 
 ---
 
-## 6. Incident runbook
+## 6. Monitoring
+
+Lightweight checks (no Prometheus/Grafana): **[OPERATIONS_MONITORING.md](./OPERATIONS_MONITORING.md)** (TECH-006 WP-2).
+
+```powershell
+.\scripts\ops\monitor.ps1
+```
+
+```bash
+./scripts/ops/monitor.sh
+```
+
+Exit codes: `0` ok · `1` warn · `2` critical. On critical → runbook SOPs.
+
+---
+
+## 7. Incident runbook
 
 Step-by-step SOPs: **[OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md)** (TECH-006 WP-4).
 
@@ -126,7 +142,7 @@ Always finish with the runbook **After every fix** checklist.
 
 ---
 
-## 7. Troubleshooting (short)
+## 8. Troubleshooting (short)
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
@@ -145,7 +161,7 @@ docker inspect --format '{{.State.Health.Status}}' aiheadhunter-api-1
 
 ---
 
-## 8. Verification steps
+## 9. Verification steps
 
 - [ ] `docker compose ps` → `api` and `postgres` both **healthy**
 - [ ] `curl http://localhost:3000/health` → `"status":"ok"`
@@ -158,7 +174,7 @@ docker inspect --format '{{.State.Health.Status}}' aiheadhunter-api-1
 
 ---
 
-## 9. Security reminders
+## 10. Security reminders
 
 - Never ship with `POSTGRES_PASSWORD=CHANGE_ME_BEFORE_PRODUCTION`. Set a strong secret before first volume init.
 - Keep `OPERATIONS_DASHBOARD_ENABLED=false` on public hosts.

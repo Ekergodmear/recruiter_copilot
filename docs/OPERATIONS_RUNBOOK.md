@@ -8,6 +8,23 @@ Founder Alpha — **incident SOPs** for a tired operator. Step-by-step. No new p
 
 **Env file:** `.env.production` (use `docker compose --env-file .env.production …` everywhere below).
 
+**Monitoring (non-incident):** [OPERATIONS_MONITORING.md](./OPERATIONS_MONITORING.md)
+
+---
+
+## Incident severity (priority only — not ITIL)
+
+Use when several issues appear at once. Pick the highest severity first.
+
+| Severity | Meaning | Examples |
+|----------|---------|----------|
+| **P1** | Service down for recruiters | API crash loop, `/health` down, DB unreachable, public URL + local API both down |
+| **P2** | Recovery capacity broken | Backup failing repeatedly, cannot restore, disk critically full |
+| **P3** | Degraded / rising risk | Disk > 80%, backup older than RPO (24h), Tunnel down but local API ok |
+| **P4** | Hygiene / debt | Deprecation warnings, stale images, non-urgent log noise |
+
+P1/P2 → follow SOPs below immediately. P3 → schedule same day. P4 → next maintenance window.
+
 ---
 
 ## After every fix — verification checklist
