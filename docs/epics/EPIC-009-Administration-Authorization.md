@@ -2,8 +2,8 @@
 
 | Field             | Value                                                      |
 | ----------------- | ---------------------------------------------------------- |
-| Status            | **SPEC** (PR-1 docs-only)                                  |
-| Baseline          | `main @ ca129dc` + EPIC-001…008 COMPLETED                  |
+| Status            | **PASS** (Validation PR-3)                                 |
+| Baseline          | `main @ b12ebfe` + EPIC-001…008 COMPLETED                  |
 | Type              | Platform EPIC (foundation hardening)                       |
 | Foundation Freeze | Intact                                                     |
 | TECH required     | None                                                       |
