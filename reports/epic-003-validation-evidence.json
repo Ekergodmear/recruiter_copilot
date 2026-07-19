@@ -1,0 +1,262 @@
+{
+  "epic": "EPIC-003",
+  "title": "Candidate ↔ Job Relationship Foundation",
+  "generatedAt": "2026-07-19T06:31:28.862Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-003-validate-yixBm7",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 13,
+    "passed": 13,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      }
+    ],
+    "note": "AC-10 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "health",
+      "ac": "AC-9",
+      "description": "GET /health returns status ok",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "status": "ok",
+          "sprint": "4",
+          "epic": "EPIC-008",
+          "mode": "founder-alpha",
+          "foundation": "v3.1-frozen",
+          "persistence": "memory",
+          "database": {
+            "configured": false,
+            "connected": null,
+            "dialect": null
+          },
+          "uptimeSeconds": 0,
+          "version": "0.1.0",
+          "buildTimestamp": null,
+          "feature_flags": {
+            "ai.parsing.enabled": true,
+            "ai.truth_engine.enabled": false,
+            "ai.knowledge_graph.enabled": false,
+            "ai.semantic_search.enabled": false,
+            "ai.duplicate_detection.enabled": false,
+            "ai.matching.enabled": false
+          },
+          "operations_dashboard": "/internal/operations-dashboard/ui"
+        }
+      }
+    },
+    {
+      "id": "import",
+      "ac": "AC-8",
+      "description": "Resume Import works (no regression)",
+      "pass": true,
+      "detail": {
+        "c1": "candidate_99a06c14ae8c",
+        "c2": "candidate_4637294cf4f6"
+      }
+    },
+    {
+      "id": "job-create",
+      "ac": "AC-7",
+      "description": "Job create still works (Job Workspace)",
+      "pass": true,
+      "detail": {
+        "jobId1": "job_aac565002be0",
+        "jobId2": "job_f5198cb88233"
+      }
+    },
+    {
+      "id": "create",
+      "ac": "AC-1",
+      "description": "Relationship can be created",
+      "pass": true,
+      "detail": {
+        "statusCode": 201,
+        "body": {
+          "id": "rel_c5a7d38eed2e",
+          "candidateId": "candidate_99a06c14ae8c",
+          "jobId": "job_aac565002be0",
+          "status": "Sourced",
+          "createdAt": "2026-07-19T06:31:28.845Z",
+          "updatedAt": "2026-07-19T06:31:28.845Z",
+          "createdBy": "recruiter_alpha"
+        }
+      }
+    },
+    {
+      "id": "edge-404",
+      "description": "Create with missing Candidate or Job → 404",
+      "pass": true,
+      "detail": {
+        "missingCand": 404,
+        "missingJob": 404
+      }
+    },
+    {
+      "id": "uniqueness",
+      "ac": "AC-5",
+      "description": "Duplicate (candidate, job) → 409; no extra row",
+      "pass": true,
+      "detail": {
+        "statusCode": 409,
+        "body": {
+          "error": "DUPLICATE_RELATIONSHIP",
+          "message": "A relationship already exists for this candidate and job"
+        },
+        "countForJob1": 1
+      }
+    },
+    {
+      "id": "list-candidate",
+      "ac": "AC-2",
+      "description": "Relationship appears under Candidate",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "total": 2
+      }
+    },
+    {
+      "id": "list-job",
+      "ac": "AC-3",
+      "description": "Relationship appears under Job",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "total": 2
+      }
+    },
+    {
+      "id": "nn",
+      "ac": "AC-5",
+      "description": "N:N — one candidate→many jobs; one job→many candidates",
+      "pass": true,
+      "detail": {
+        "candidateJobs": 2,
+        "jobCandidates": 2
+      }
+    },
+    {
+      "id": "status",
+      "ac": "AC-4",
+      "description": "Status updates Sourced→Applied→Screening persist",
+      "pass": true,
+      "detail": {
+        "toApplied": {
+          "id": "rel_c5a7d38eed2e",
+          "candidateId": "candidate_99a06c14ae8c",
+          "jobId": "job_aac565002be0",
+          "status": "Applied",
+          "createdAt": "2026-07-19T06:31:28.845Z",
+          "updatedAt": "2026-07-19T06:31:28.851Z",
+          "createdBy": "recruiter_alpha"
+        },
+        "toScreening": {
+          "id": "rel_c5a7d38eed2e",
+          "candidateId": "candidate_99a06c14ae8c",
+          "jobId": "job_aac565002be0",
+          "status": "Screening",
+          "createdAt": "2026-07-19T06:31:28.845Z",
+          "updatedAt": "2026-07-19T06:31:28.851Z",
+          "createdBy": "recruiter_alpha"
+        },
+        "reloadedStatus": "Screening"
+      }
+    },
+    {
+      "id": "candidate-workspace",
+      "ac": "AC-6",
+      "description": "Candidate Workspace has no regression",
+      "pass": true,
+      "detail": {
+        "workspace": 200,
+        "list": 200,
+        "name": "E003 Cand One"
+      }
+    },
+    {
+      "id": "job-workspace",
+      "ac": "AC-7",
+      "description": "Job Workspace has no regression",
+      "pass": true,
+      "detail": {
+        "get": 200,
+        "list": 200,
+        "source": "manual"
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-9",
+      "description": "/health still ok after relationship mutations",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "status": "ok",
+          "sprint": "4",
+          "epic": "EPIC-008",
+          "mode": "founder-alpha",
+          "foundation": "v3.1-frozen",
+          "persistence": "memory",
+          "database": {
+            "configured": false,
+            "connected": null,
+            "dialect": null
+          },
+          "uptimeSeconds": 0,
+          "version": "0.1.0",
+          "buildTimestamp": null,
+          "feature_flags": {
+            "ai.parsing.enabled": true,
+            "ai.truth_engine.enabled": false,
+            "ai.knowledge_graph.enabled": false,
+            "ai.semantic_search.enabled": false,
+            "ai.duplicate_detection.enabled": false,
+            "ai.matching.enabled": false
+          },
+          "operations_dashboard": "/internal/operations-dashboard/ui"
+        }
+      }
+    }
+  ]
+}
