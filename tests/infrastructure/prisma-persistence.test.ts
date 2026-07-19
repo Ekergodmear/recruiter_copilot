@@ -14,9 +14,7 @@ describe("Prisma persistence (integration)", () => {
     await disconnectPrisma();
   });
 
-  it(
-    "persists candidate import across repository reads",
-    async () => {
+  it("persists candidate import across repository reads", async () => {
     const root = mkdtempSync(join(tmpdir(), "prisma-it-"));
     mkdirSync(join(root, "db"), { recursive: true });
     const dbPath = join(root, "db", "it.db").replace(/\\/g, "/");
@@ -61,7 +59,5 @@ describe("Prisma persistence (integration)", () => {
 
     const integrity = await deps.dataIntegrityChecker.check();
     expect(integrity.errorCount).toBe(0);
-  },
-    20_000,
-  );
+  }, 20_000);
 });
