@@ -60,6 +60,10 @@ Implementation must extend existing paths; must not break Import Resume (AC-6) o
 
 ---
 
+## Definition of Done (added per TL review)
+
+Spec now includes DoD: AC-1…AC-7 PASS, no import regression, `/health` PASS, `pnpm run ci` PASS, Validation Report completed.
+
 ## Gate decision
 
 | Gate | Result |
@@ -68,9 +72,10 @@ Implementation must extend existing paths; must not break Import Resume (AC-6) o
 | AC testable | PASS |
 | Out of Scope explicit | PASS |
 | No TECH dependency | PASS |
+| Definition of Done | PASS (added) |
 | Ready for Implementation PR | **YES** (after Spec merge) |
 
-**TL action:** Approve & merge this Spec PR, then open Implementation PR against merged Spec.
+**TL decision (2026-07-19):** ✅ **APPROVED** — merge Spec, then open Implementation PR (scope locked to Spec).
 
 ---
 

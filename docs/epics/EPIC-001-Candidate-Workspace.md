@@ -192,6 +192,18 @@ No new TECH ticket.
 
 ---
 
+## Definition of Done
+
+EPIC-001 is done when:
+
+- AC-1…AC-7 **PASS**
+- Existing resume import regression: **NONE**
+- `GET /health` **PASS**
+- `pnpm run ci` **PASS**
+- Validation Report completed (PR-3) with evidence and clear **PASS / FAIL**
+
+---
+
 ## Implementation constraints (for PR-2)
 
 - Branch from `main` @ `founder-alpha-2` lineage.  
