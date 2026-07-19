@@ -38,6 +38,9 @@ import { registerAuthorizationGate } from "../modules/authorization/presentation
 import { NotificationService } from "../modules/notification/application/notification-service.js";
 import { FileNotificationRepository } from "../modules/notification/infrastructure/notification-repository.js";
 import { registerNotificationRoutes } from "../modules/notification/presentation/notification-routes.js";
+import { IntegrationService } from "../modules/integration/application/integration-service.js";
+import { InMemoryIntegrationRepository } from "../modules/integration/infrastructure/integration-repository.js";
+import { registerIntegrationRoutes } from "../modules/integration/presentation/integration-routes.js";
 import { RecruitmentService } from "../modules/recruitment/application/recruitment-service.js";
 import { join } from "node:path";
 import { registerRecruitmentRoutes } from "../modules/recruitment/presentation/recruitment-routes.js";
@@ -89,6 +92,7 @@ export type AppDependencies = {
   automationService: AutomationService;
   authorizationService: AuthorizationService;
   notificationService: NotificationService;
+  integrationService: IntegrationService;
   recruitmentService: RecruitmentService;
   knowledgeEvolutionService: KnowledgeEvolutionService;
   candidateInsightService: CandidateInsightService;
@@ -301,6 +305,14 @@ export function createAppDependencies(
     notificationService,
   });
 
+  const integrationService = new IntegrationService({
+    clock,
+    idGenerator,
+    repository: new InMemoryIntegrationRepository(),
+    jobService,
+    authorizationService,
+  });
+
   const auditReplayService = new AuditReplayService({
     candidateRepository,
     submissionRepository,
@@ -341,6 +353,7 @@ export function createAppDependencies(
     automationService,
     authorizationService,
     notificationService,
+    integrationService,
     recruitmentService,
     knowledgeEvolutionService,
     candidateInsightService,
@@ -418,6 +431,7 @@ export async function buildApp(deps?: AppDependencies) {
   registerAnalyticsRoutes(app, resolved.analyticsService);
   registerAutomationRoutes(app, resolved.automationService);
   registerNotificationRoutes(app, resolved.notificationService);
+  registerIntegrationRoutes(app, resolved.integrationService);
   registerRecruitmentRoutes(app, resolved.recruitmentService);
 
   registerOperationsDashboardRoutes(app, {
