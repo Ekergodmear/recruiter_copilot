@@ -18,7 +18,16 @@ import {
 import type { ResumePreviewService } from "../application/resume-preview-service.js";
 import type { CandidateRecord } from "../domain/candidate/candidate-record.js";
 import { toCandidateReviewView } from "../presentation/candidate-review-view.js";
-import { filterCandidateList, toCandidateListItem } from "../presentation/candidate-list-view.js";
+import {
+  filterCandidateList,
+  sortCandidateList,
+  toCandidateListItem,
+  type CandidateListSort,
+} from "../presentation/candidate-list-view.js";
+import {
+  toCandidateWorkspaceView,
+  type UpdateWorkspaceCommand,
+} from "../presentation/candidate-workspace-view.js";
 import type { KnowledgeEvolutionService } from "../../knowledge/application/knowledge-evolution-service.js";
 import { computeReviewPriority } from "../domain/knowledge/review-priority.js";
 import { CandidateIdentityService } from "./identity/candidate-identity-service.js";
@@ -84,10 +93,68 @@ export class CandidateEditService {
     return toCandidateReviewView(record, resume, duplicates);
   }
 
-  async listCandidates(params: { ready?: boolean; q?: string }) {
+  async listCandidates(params: { ready?: boolean; q?: string; sort?: CandidateListSort }) {
     const records = await this.deps.candidateRepository.findAll();
-    const items = filterCandidateList(records.map(toCandidateListItem), params);
+    const filtered = filterCandidateList(records.map(toCandidateListItem), params);
+    const items = sortCandidateList(filtered, params.sort ?? "updated");
     return { items, total: items.length };
+  }
+
+  async getWorkspace(candidateId: string) {
+    const record = await this.findRecord(candidateId);
+    return toCandidateWorkspaceView(record);
+  }
+
+  /**
+   * EPIC-001 workspace edit — last-write-wins.
+   * Allowed: name, phone, email, salary, note. Does not touch raw resume.
+   */
+  async updateWorkspace(command: UpdateWorkspaceCommand) {
+    const name = command.name !== undefined ? command.name.trim() : undefined;
+    if (name !== undefined && name.length === 0) {
+      throw new CandidateEditError("INVALID_BODY", "name must not be empty");
+    }
+    if (command.email !== undefined && command.email.trim() !== "") {
+      const email = command.email.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new CandidateEditError("INVALID_BODY", "email format is invalid");
+      }
+    }
+
+    let record = await this.findRecord(command.candidateId);
+    const nextName = name ?? record.candidate.profile.name;
+    const nextEmail =
+      command.email !== undefined ? command.email.trim() || null : (record.identity?.email ?? null);
+    const nextPhone =
+      command.phone !== undefined ? command.phone.trim() || null : (record.identity?.phone ?? null);
+
+    if (name !== undefined) {
+      record = record.withName(nextName);
+    }
+
+    const parsedName = record.identity?.parsedName ?? {
+      value: nextName,
+      confidence: 1,
+      source: "heuristic" as const,
+    };
+    record = record.withIdentity(
+      this.identityService.buildIdentity({
+        name: nextName,
+        email: nextEmail,
+        phone: nextPhone,
+        parsedName: { ...parsedName, value: nextName },
+      }),
+    );
+
+    const updatedAt = this.deps.clock.nowIso();
+    record = record.withWorkspace({
+      salary: command.salary !== undefined ? command.salary : record.workspace.salary,
+      note: command.note !== undefined ? command.note : record.workspace.note,
+      updatedAt,
+    });
+
+    await this.deps.candidateRepository.save(record);
+    return toCandidateWorkspaceView(record);
   }
 
   async reviewKnowledge(command: KnowledgeReviewCommand) {

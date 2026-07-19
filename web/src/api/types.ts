@@ -32,6 +32,40 @@ export type CandidateListItem = {
   readyAt: string | null;
   skillsPreview: string;
   english: string;
+  currentTitle: string;
+  company: string;
+  experience: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CandidateWorkspace = {
+  candidateId: string;
+  name: string;
+  phone: string;
+  email: string;
+  currentTitle: string;
+  company: string;
+  skills: string;
+  experience: string;
+  education: string;
+  english: string;
+  salary: string;
+  note: string;
+  summary: string;
+  ready: boolean;
+  createdAt: string;
+  updatedAt: string;
+  uploadedAt: string;
+};
+
+export type CandidateWorkspacePatch = {
+  name?: string;
+  phone?: string;
+  email?: string;
+  salary?: string;
+  note?: string;
 };
 
 export type FieldDiffRow = {

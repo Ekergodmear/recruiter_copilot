@@ -1,5 +1,7 @@
 import type { CandidateRecord } from "../domain/candidate/candidate-record.js";
 
+export type CandidateListSort = "updated" | "created";
+
 export type CandidateListItem = {
   candidateId: string;
   name: string;
@@ -8,6 +10,13 @@ export type CandidateListItem = {
   readyAt: string | null;
   skillsPreview: string;
   english: string;
+  /** EPIC-001 list columns — may be empty when not on profile */
+  currentTitle: string;
+  company: string;
+  experience: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export function toCandidateListItem(record: CandidateRecord): CandidateListItem {
@@ -20,6 +29,12 @@ export function toCandidateListItem(record: CandidateRecord): CandidateListItem 
     readyAt: knowledge.readyAt,
     skillsPreview: knowledge.currentValue("skills").slice(0, 80),
     english: knowledge.currentValue("english"),
+    currentTitle: record.workspace.currentTitle,
+    company: record.workspace.company,
+    experience: knowledge.currentValue("years_of_experience"),
+    email: record.identity?.email ?? "",
+    createdAt: record.candidate.createdAt,
+    updatedAt: record.workspace.updatedAt || knowledge.uploadedAt,
   };
 }
 
@@ -35,12 +50,18 @@ export function filterCandidateList(
   }
   const q = params.q?.trim().toLowerCase();
   if (q) {
+    // EPIC-001: search by name and email (not semantic)
     result = result.filter(
-      (i) =>
-        i.name.toLowerCase().includes(q) ||
-        i.skillsPreview.toLowerCase().includes(q) ||
-        i.english.toLowerCase().includes(q),
+      (i) => i.name.toLowerCase().includes(q) || i.email.toLowerCase().includes(q),
     );
   }
   return result;
+}
+
+export function sortCandidateList(
+  items: CandidateListItem[],
+  sort: CandidateListSort = "updated",
+): CandidateListItem[] {
+  const key = sort === "created" ? "createdAt" : "updatedAt";
+  return [...items].sort((a, b) => new Date(b[key]).getTime() - new Date(a[key]).getTime());
 }

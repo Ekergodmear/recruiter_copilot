@@ -3,6 +3,11 @@ import type { VerifiedKnowledge } from "../knowledge/verified-knowledge.js";
 import { CandidateProfile } from "../candidate/candidate-profile.js";
 import { parseSkills } from "../knowledge/verified-knowledge.js";
 import type { CandidateIdentity } from "../identity/types.js";
+import {
+  emptyCandidateWorkspace,
+  mergeCandidateWorkspace,
+  type CandidateWorkspace,
+} from "./candidate-workspace.js";
 
 export class CandidateRecord {
   private constructor(
@@ -11,6 +16,7 @@ export class CandidateRecord {
     readonly resumeVersion: number,
     readonly resumeId: string,
     readonly identity: CandidateIdentity | null,
+    readonly workspace: CandidateWorkspace,
   ) {}
 
   static create(params: {
@@ -19,6 +25,7 @@ export class CandidateRecord {
     resumeVersion: number;
     resumeId: string;
     identity?: CandidateIdentity | null;
+    workspace?: CandidateWorkspace | null;
   }): CandidateRecord {
     return new CandidateRecord(
       params.candidate,
@@ -26,6 +33,7 @@ export class CandidateRecord {
       params.resumeVersion,
       params.resumeId,
       params.identity ?? null,
+      params.workspace ?? emptyCandidateWorkspace(params.knowledge.uploadedAt),
     );
   }
 
@@ -35,9 +43,10 @@ export class CandidateRecord {
 
   withKnowledge(knowledge: VerifiedKnowledge): CandidateRecord {
     const profile = this.toDisplayProfile(knowledge);
-    const updatedCandidate = Candidate.create({
+    const updatedCandidate = Candidate.restore({
       id: this.candidate.id,
       workspaceId: this.candidate.workspaceId,
+      status: this.candidate.status,
       profile,
       createdAt: this.candidate.createdAt,
     });
@@ -47,6 +56,7 @@ export class CandidateRecord {
       this.resumeVersion,
       this.resumeId,
       this.identity,
+      this.workspace,
     );
   }
 
@@ -57,6 +67,37 @@ export class CandidateRecord {
       this.resumeVersion,
       this.resumeId,
       identity,
+      this.workspace,
+    );
+  }
+
+  withName(name: string): CandidateRecord {
+    const profile = this.candidate.profile.withOverrides({ name });
+    const updatedCandidate = Candidate.restore({
+      id: this.candidate.id,
+      workspaceId: this.candidate.workspaceId,
+      status: this.candidate.status,
+      profile,
+      createdAt: this.candidate.createdAt,
+    });
+    return new CandidateRecord(
+      updatedCandidate,
+      this.knowledge,
+      this.resumeVersion,
+      this.resumeId,
+      this.identity,
+      this.workspace,
+    );
+  }
+
+  withWorkspace(patch: Partial<CandidateWorkspace>): CandidateRecord {
+    return new CandidateRecord(
+      this.candidate,
+      this.knowledge,
+      this.resumeVersion,
+      this.resumeId,
+      this.identity,
+      mergeCandidateWorkspace(this.workspace, patch),
     );
   }
 

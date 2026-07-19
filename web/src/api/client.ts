@@ -2,6 +2,8 @@ import type {
   CandidateInsightsResponse,
   CandidateListItem,
   CandidateReview,
+  CandidateWorkspace,
+  CandidateWorkspacePatch,
   ImportResult,
   InsightScreen,
   InsightsResponse,
@@ -32,14 +34,29 @@ async function parseJson<T>(resPromise: Promise<Response>): Promise<T> {
 }
 
 export const api = {
-  listCandidates(params?: { ready?: boolean; q?: string }) {
+  listCandidates(params?: { ready?: boolean; q?: string; sort?: "updated" | "created" }) {
     const sp = new URLSearchParams();
     if (params?.ready === true) sp.set("ready", "true");
     if (params?.ready === false) sp.set("ready", "false");
     if (params?.q) sp.set("q", params.q);
+    if (params?.sort) sp.set("sort", params.sort);
     const qs = sp.toString();
     return parseJson<{ items: CandidateListItem[] }>(
       fetch(`/api/v1/candidates${qs ? `?${qs}` : ""}`),
+    );
+  },
+
+  getWorkspace(id: string) {
+    return parseJson<CandidateWorkspace>(fetch(`/api/v1/candidates/${id}`));
+  },
+
+  updateWorkspace(id: string, body: CandidateWorkspacePatch) {
+    return parseJson<CandidateWorkspace>(
+      fetch(`/api/v1/candidates/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
     );
   },
 

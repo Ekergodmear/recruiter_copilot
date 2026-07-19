@@ -37,11 +37,81 @@ export function registerCandidateRoutes(
   maxFileSizeBytes = 10 * 1024 * 1024,
 ): void {
   app.get("/api/v1/candidates", async (request) => {
-    const query = request.query as { ready?: string; q?: string };
+    const query = request.query as { ready?: string; q?: string; sort?: string };
     let ready: boolean | undefined;
     if (query.ready === "true") ready = true;
     if (query.ready === "false") ready = false;
-    return editService.listCandidates({ ready, q: query.q });
+    const sort = query.sort === "created" || query.sort === "updated" ? query.sort : "updated";
+    return editService.listCandidates({ ready, q: query.q, sort });
+  });
+
+  app.get("/api/v1/candidates/:id", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    // Avoid shadowing nested routes that share the :id segment incorrectly — Fastify
+    // matches more specific paths first when registered earlier; keep this after list.
+    if (id === "import-resume") {
+      return reply.status(404).send({ error: "NOT_FOUND", message: "Not found" });
+    }
+    setRequestCandidateId(id);
+    try {
+      return await editService.getWorkspace(id);
+    } catch (error) {
+      if (error instanceof CandidateEditError && error.code === "NOT_FOUND") {
+        return reply.status(404).send({ error: error.code, message: error.message });
+      }
+      throw error;
+    }
+  });
+
+  app.patch("/api/v1/candidates/:id", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    let body: {
+      name?: string;
+      phone?: string;
+      email?: string;
+      salary?: string;
+      note?: string;
+    };
+    try {
+      body = pickAllowedFields(request.body, ["name", "phone", "email", "salary", "note"]);
+    } catch (error) {
+      if (error instanceof SecurityError) {
+        return reply.status(error.statusCode).send({ error: error.code, message: error.message });
+      }
+      throw error;
+    }
+
+    if (
+      body.name === undefined &&
+      body.phone === undefined &&
+      body.email === undefined &&
+      body.salary === undefined &&
+      body.note === undefined
+    ) {
+      return reply.status(400).send({
+        error: "INVALID_BODY",
+        message: "at least one of name, phone, email, salary, note is required",
+      });
+    }
+
+    setRequestCandidateId(id);
+    try {
+      return await editService.updateWorkspace({
+        candidateId: id,
+        actorId: "recruiter_alpha",
+        name: body.name,
+        phone: body.phone,
+        email: body.email,
+        salary: body.salary,
+        note: body.note,
+      });
+    } catch (error) {
+      if (error instanceof CandidateEditError) {
+        const status = error.code === "NOT_FOUND" ? 404 : 400;
+        return reply.status(status).send({ error: error.code, message: error.message });
+      }
+      throw error;
+    }
   });
 
   app.post("/api/v1/candidates/import-resume", async (request, reply) => {
