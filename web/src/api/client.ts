@@ -14,6 +14,7 @@ import type {
   MatchingResult,
   CopilotResponse,
   AnalyticsSnapshot,
+  ActionResult,
   JobReview,
   JobSubmission,
   JobWorkspacePatch,
@@ -340,6 +341,54 @@ export const api = {
 
   getJobAnalytics(jobId: string) {
     return parseJson<AnalyticsSnapshot>(fetch(`/api/v1/analytics/jobs/${jobId}`));
+  },
+
+  /** EPIC-008 — confirmed Automation actions (mutate with Action Result). */
+  automationStageMove(body: {
+    relationshipId: string;
+    targetStage: WorkflowStage;
+    actorId: string;
+    confirmed: true;
+  }) {
+    return parseJson<ActionResult>(
+      fetch("/api/v1/automation/stage-move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
+  },
+
+  automationSendOutreach(body: {
+    relationshipId: string;
+    draftBody: string;
+    actorId: string;
+    confirmed: true;
+    to?: string;
+    subject?: string;
+  }) {
+    return parseJson<ActionResult>(
+      fetch("/api/v1/automation/send-outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
+  },
+
+  automationAssign(body: {
+    relationshipId: string;
+    assigneeId: string;
+    actorId: string;
+    confirmed: true;
+  }) {
+    return parseJson<ActionResult>(
+      fetch("/api/v1/automation/assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
   },
 
   getJobSubmissions(id: string) {

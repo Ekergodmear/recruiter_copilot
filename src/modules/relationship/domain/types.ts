@@ -52,6 +52,8 @@ export type CandidateJobRelationship = {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+  /** EPIC-008 — assigned recruiter identity (optional). */
+  assigneeId: string | null;
 };
 
 export function isWorkflowStage(value: string): value is WorkflowStage {

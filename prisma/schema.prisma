@@ -95,7 +95,7 @@ model Submission {
 /// EPIC-003 — Relationship Intelligence (neutral UL; not Application)
 /// EPIC-004 — Workflow: currentStage + append-only stageHistory (JSON)
 model CandidateJobRelationship {
-  id           String @id
+  id           String  @id
   candidateId  String
   jobId        String
   /// EPIC-003 compat — always equals currentStage
@@ -106,12 +106,15 @@ model CandidateJobRelationship {
   createdAt    String
   updatedAt    String
   createdBy    String
+  /// EPIC-008 — assigned recruiter identity (optional)
+  assigneeId   String?
 
   @@unique([candidateId, jobId])
   @@index([jobId])
   @@index([candidateId])
   @@index([currentStage])
   @@index([updatedAt])
+  @@index([assigneeId])
 }
 
 model Interview {

@@ -214,10 +214,24 @@ export type CandidateJobRelationship = {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+  /** EPIC-008 — assigned recruiter identity */
+  assigneeId: string | null;
   jobTitle?: string;
   jobCompany?: string;
   jobStatus?: string | null;
   candidateName?: string;
+};
+
+/** EPIC-008 — Automation Action Result (attributable execution). */
+export type ActionResult = {
+  actionId: string;
+  actionType: "stage_move" | "send_outreach" | "assign";
+  actorId: string;
+  executedAt: string;
+  success: boolean;
+  error: { code: string; message: string } | null;
+  target: Record<string, string | undefined>;
+  noop?: boolean;
 };
 
 export type JobReview = {

@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type {
+  ActionResult,
   CopilotResponse,
   JobWorkspacePatch,
   MatchingResult,
@@ -11,6 +12,8 @@ import type {
 import { WORKFLOW_STAGES } from "../api/types";
 import { InsightsPanel } from "../components/InsightsPanel";
 import { JobAnalyticsPanel } from "./AnalyticsScreen";
+
+const AUTOMATION_ACTOR = "recruiter_alpha";
 
 type Tab =
   | "overview"
@@ -37,6 +40,9 @@ export function JobDetailScreen() {
   const [copilot, setCopilot] = useState<CopilotResponse | null>(null);
   const [copilotError, setCopilotError] = useState<string | null>(null);
   const [copilotBusy, setCopilotBusy] = useState(false);
+  const [pendingStage, setPendingStage] = useState<Record<string, WorkflowStage>>({});
+  const [automationMsg, setAutomationMsg] = useState<string | null>(null);
+  const [automationBusy, setAutomationBusy] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     company: "",
@@ -111,14 +117,6 @@ export function JobDetailScreen() {
       await queryClient.invalidateQueries({ queryKey: ["candidate-relationships"] });
     },
     onError: (e: Error) => setRelError(e.message),
-  });
-
-  const updateJobRelMutation = useMutation({
-    mutationFn: ({ relId, stage }: { relId: string; stage: WorkflowStage }) =>
-      api.updateRelationshipStage(relId, stage),
-    onSuccess: async () => {
-      await refetchJobRels();
-    },
   });
 
   const { data: matches } = useQuery({
@@ -477,12 +475,12 @@ export function JobDetailScreen() {
                         {matchLoadingId === r.id ? "Matching…" : "Match"}
                       </button>
                       <select
-                        value={r.currentStage ?? r.status}
+                        value={pendingStage[r.id] ?? r.currentStage ?? r.status}
                         onChange={(e) =>
-                          updateJobRelMutation.mutate({
-                            relId: r.id,
-                            stage: e.target.value as WorkflowStage,
-                          })
+                          setPendingStage((prev) => ({
+                            ...prev,
+                            [r.id]: e.target.value as WorkflowStage,
+                          }))
                         }
                         className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
                       >
@@ -492,8 +490,125 @@ export function JobDetailScreen() {
                           </option>
                         ))}
                       </select>
+                      <button
+                        type="button"
+                        disabled={automationBusy === r.id}
+                        className="rounded-lg bg-slate-900 px-2 py-1 text-xs font-medium text-white disabled:opacity-50"
+                        onClick={async () => {
+                          const target = pendingStage[r.id] ?? r.currentStage;
+                          if (
+                            !window.confirm(
+                              `Confirm Automation: move to "${target}"? (attributable Action Result)`,
+                            )
+                          ) {
+                            return;
+                          }
+                          setAutomationMsg(null);
+                          setAutomationBusy(r.id);
+                          try {
+                            const result: ActionResult = await api.automationStageMove({
+                              relationshipId: r.id,
+                              targetStage: target,
+                              actorId: AUTOMATION_ACTOR,
+                              confirmed: true,
+                            });
+                            setAutomationMsg(
+                              result.success
+                                ? `Stage move OK${result.noop ? " (no-op)" : ""} · ${result.actionId}`
+                                : `Stage move failed: ${result.error?.message}`,
+                            );
+                            await queryClient.invalidateQueries({
+                              queryKey: ["job-relationships", id],
+                            });
+                          } catch (e) {
+                            setAutomationMsg(e instanceof Error ? e.message : "Automation failed");
+                          } finally {
+                            setAutomationBusy(null);
+                          }
+                        }}
+                      >
+                        Confirm move
+                      </button>
+                      <button
+                        type="button"
+                        disabled={automationBusy === r.id}
+                        className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-medium disabled:opacity-50"
+                        onClick={async () => {
+                          const assigneeId = window.prompt(
+                            "Assign to recruiter id (e.g. recruiter_beta)",
+                            r.assigneeId ?? "recruiter_beta",
+                          );
+                          if (!assigneeId?.trim()) return;
+                          if (!window.confirm(`Confirm Automation: assign to ${assigneeId}?`)) {
+                            return;
+                          }
+                          setAutomationMsg(null);
+                          setAutomationBusy(r.id);
+                          try {
+                            const result = await api.automationAssign({
+                              relationshipId: r.id,
+                              assigneeId: assigneeId.trim(),
+                              actorId: AUTOMATION_ACTOR,
+                              confirmed: true,
+                            });
+                            setAutomationMsg(
+                              result.success
+                                ? `Assign OK${result.noop ? " (no-op)" : ""} · ${result.actionId}`
+                                : `Assign failed: ${result.error?.message}`,
+                            );
+                            await queryClient.invalidateQueries({
+                              queryKey: ["job-relationships", id],
+                            });
+                          } catch (e) {
+                            setAutomationMsg(e instanceof Error ? e.message : "Assign failed");
+                          } finally {
+                            setAutomationBusy(null);
+                          }
+                        }}
+                      >
+                        Assign
+                      </button>
+                      <button
+                        type="button"
+                        disabled={automationBusy === r.id}
+                        className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-medium disabled:opacity-50"
+                        onClick={async () => {
+                          if (
+                            !window.confirm(
+                              "Confirm Automation: send outreach from Copilot draft? (mock adapter in CI)",
+                            )
+                          ) {
+                            return;
+                          }
+                          setAutomationMsg(null);
+                          setAutomationBusy(r.id);
+                          try {
+                            const draft = await api.copilotDraftOutreach(r.candidateId, id);
+                            const result = await api.automationSendOutreach({
+                              relationshipId: r.id,
+                              draftBody: draft.aiSuggestion,
+                              actorId: AUTOMATION_ACTOR,
+                              confirmed: true,
+                            });
+                            setAutomationMsg(
+                              result.success
+                                ? `Send OK · ${result.actionId}`
+                                : `Send failed: ${result.error?.message}`,
+                            );
+                          } catch (e) {
+                            setAutomationMsg(e instanceof Error ? e.message : "Send failed");
+                          } finally {
+                            setAutomationBusy(null);
+                          }
+                        }}
+                      >
+                        Send draft
+                      </button>
                     </div>
                   </div>
+                  {r.assigneeId && (
+                    <p className="text-xs text-slate-500">Assignee: {r.assigneeId}</p>
+                  )}
                   <button
                     type="button"
                     className="text-xs text-slate-600 underline"
@@ -516,6 +631,7 @@ export function JobDetailScreen() {
               ))
             )}
           </ul>
+          {automationMsg && <p className="text-sm text-slate-700">{automationMsg}</p>}
           {matchError && <p className="text-sm text-red-600">{matchError}</p>}
           {matchResult && (
             <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-sm">
