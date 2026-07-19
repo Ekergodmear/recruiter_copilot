@@ -56,6 +56,15 @@ Deliver production operations capability in **five independent work packages**.
 
 > If the VPS dies today, we can restore the system in a reasonable time.
 
+**Targets (Founder Alpha — directional, not contractual SLA)**
+
+| Metric | Target | Meaning |
+|--------|--------|---------|
+| **RTO** | ≤ 30 minutes | Time from “decide to restore” until `/health` ok + app usable |
+| **RPO** | ≤ 24 hours | Max acceptable data loss (= backup cadence; daily backup meets this) |
+
+Example: VPS dies at 15:00; last backup 02:00; restore done 15:20 → RTO 20m (pass), RPO 13h (pass if daily backups).
+
 **Includes**
 
 - PostgreSQL backup script (local / Compose; e.g. `pg_dump`)

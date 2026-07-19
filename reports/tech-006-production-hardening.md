@@ -29,8 +29,8 @@ GitHub Release UI: **not required** for Alpha (annotated tag sufficient).
 
 | PR | Content | Status |
 |----|---------|--------|
-| PR-1 | Docs only (this spec + tracker) | In flight |
-| PR-2 | WP-1 Backup & Restore (+ Recovery Drill) | Blocked on PR-1 |
+| PR-1 | Docs only (this spec + tracker) | **Merged** (#2) |
+| PR-2 | WP-1 Backup & Restore (+ Recovery Drill) | In flight |
 | PR-3 | WP-3 Deployment / Rollback | Blocked on WP-1 |
 | PR-4 | WP-4 Operations Runbook | Blocked on WP-3 |
 | PR-5 | WP-2 Operations Monitoring | Blocked on WP-4 |
@@ -42,7 +42,7 @@ GitHub Release UI: **not required** for Alpha (annotated tag sufficient).
 
 | WP | Name | Status |
 |----|------|--------|
-| 1 | Backup & Restore | Pending (after docs merge) |
+| 1 | Backup & Restore | Drill PASS — see `reports/tech-006-wp1-backup-restore.md` |
 | 2 | Operations (logs / disk / health) | Pending |
 | 3 | Deployment (update / rollback) | Pending |
 | 4 | Operations Runbook | Pending |
@@ -51,6 +51,11 @@ GitHub Release UI: **not required** for Alpha (annotated tag sufficient).
 ### WP-1 north star
 
 > If the VPS dies today, we can restore the system in a reasonable time.
+
+| Target | Value |
+|--------|-------|
+| RTO | ≤ 30 minutes |
+| RPO | ≤ 24 hours |
 
 Must include a **Recovery Drill**: backup → wipe DB → restore → `/health` ok → app usable → data intact. Evidence required.
 
