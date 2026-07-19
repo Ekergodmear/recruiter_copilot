@@ -4,11 +4,11 @@ Recruitment Intelligence Platform — **Foundation v3.1 frozen**.
 
 ## Start here
 
+- [PROJECT_BASELINES.md](./PROJECT_BASELINES.md) — tags `founder-alpha-1` / `founder-alpha-2`; branch from here
 - [docs/MANIFESTO.md](./docs/MANIFESTO.md) — founding principles (read before code)
 - [docs/FOUNDATION-FROZEN.md](./docs/FOUNDATION-FROZEN.md) — v1.0 frozen; Alpha evidence only
 - [docs/founder-questions.md](./docs/founder-questions.md) — 10 questions before each Sprint
 - [PLAYBOOK.md](./PLAYBOOK.md) — how the team works
-- [sprints/sprint-0.5.md](./sprints/sprint-0.5.md) — current sprint
 - [memory-bank/](./memory-bank/) — product spec (read-only)
 
 ## Quick start
