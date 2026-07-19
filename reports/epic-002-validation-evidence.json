@@ -1,0 +1,326 @@
+{
+  "epic": "EPIC-002",
+  "title": "Job Intelligence Foundation",
+  "generatedAt": "2026-07-19T06:00:36.762Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-002-validate-ZjPh41",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 14,
+    "passed": 14,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      }
+    ],
+    "note": "AC-11 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "health",
+      "ac": "AC-10",
+      "description": "GET /health returns status ok",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "status": "ok",
+          "sprint": "4",
+          "epic": "EPIC-008",
+          "mode": "founder-alpha",
+          "foundation": "v3.1-frozen",
+          "persistence": "memory",
+          "database": {
+            "configured": false,
+            "connected": null,
+            "dialect": null
+          },
+          "uptimeSeconds": 0,
+          "version": "0.1.0",
+          "buildTimestamp": null,
+          "feature_flags": {
+            "ai.parsing.enabled": true,
+            "ai.truth_engine.enabled": false,
+            "ai.knowledge_graph.enabled": false,
+            "ai.semantic_search.enabled": false,
+            "ai.duplicate_detection.enabled": false,
+            "ai.matching.enabled": false
+          },
+          "operations_dashboard": "/internal/operations-dashboard/ui"
+        }
+      }
+    },
+    {
+      "id": "create-manual",
+      "ac": "AC-3",
+      "description": "Create Job (manual) works without sending source",
+      "pass": true,
+      "detail": {
+        "statusCode": 201,
+        "id": "job_bcb8065dd4e9"
+      }
+    },
+    {
+      "id": "source-default",
+      "ac": "AC-7",
+      "description": "Create without source → system assigns manual",
+      "pass": true,
+      "detail": {
+        "source": "manual"
+      }
+    },
+    {
+      "id": "list",
+      "ac": "AC-1",
+      "description": "Job List returns MVP columns",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "sample": {
+          "id": "job_bcb8065dd4e9",
+          "title": "Validate Platform Engineer",
+          "company": "Validate Co",
+          "status": "Open",
+          "location": "Remote",
+          "employmentType": "full_time",
+          "source": "manual",
+          "ready": true,
+          "submissionCount": 0,
+          "placementCount": 0,
+          "candidates": 0,
+          "createdAt": "2026-07-19T06:00:36.525Z",
+          "updatedAt": "2026-07-19T06:00:36.525Z"
+        }
+      }
+    },
+    {
+      "id": "detail",
+      "ac": "AC-2",
+      "description": "Job Detail payload has intelligence sections fields",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "keys": [
+          "id",
+          "workspaceId",
+          "title",
+          "company",
+          "department",
+          "employmentType",
+          "location",
+          "salaryMin",
+          "salaryMax",
+          "currency",
+          "experienceYears",
+          "englishRequirement",
+          "skills",
+          "description",
+          "responsibilities",
+          "requirements",
+          "benefits",
+          "status",
+          "ready",
+          "submissionCount",
+          "placementCount",
+          "deletedAt",
+          "createdAt",
+          "updatedAt",
+          "createdBy",
+          "rawJdText",
+          "source",
+          "notes"
+        ],
+        "source": "manual",
+        "notes": "initial note"
+      }
+    },
+    {
+      "id": "edit",
+      "ac": "AC-4",
+      "description": "Edit + Save allowed fields",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "id": "job_bcb8065dd4e9",
+          "workspaceId": "ws_epic002_validate",
+          "title": "Validate Platform Engineer II",
+          "company": "Validate Co Intl",
+          "department": "",
+          "employmentType": "contract",
+          "location": "HCM",
+          "salaryMin": 2000,
+          "salaryMax": 3000,
+          "currency": "USD",
+          "experienceYears": null,
+          "englishRequirement": "",
+          "skills": [],
+          "description": "Build recruiter platform",
+          "responsibilities": "",
+          "requirements": "TypeScript",
+          "benefits": "Remote",
+          "status": "Paused",
+          "ready": true,
+          "submissionCount": 0,
+          "placementCount": 0,
+          "deletedAt": null,
+          "createdAt": "2026-07-19T06:00:36.525Z",
+          "updatedAt": "2026-07-19T06:00:36.530Z",
+          "createdBy": "recruiter_alpha",
+          "rawJdText": "",
+          "source": "manual",
+          "notes": "updated note"
+        }
+      }
+    },
+    {
+      "id": "persist",
+      "ac": "AC-4",
+      "description": "Edits remain after reload; metadata source unchanged",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "source": "manual",
+        "createdAt": "2026-07-19T06:00:36.525Z",
+        "updatedAt": "2026-07-19T06:00:36.530Z"
+      }
+    },
+    {
+      "id": "source-immutable",
+      "ac": "AC-7",
+      "description": "PATCH source → 400 and data unchanged",
+      "pass": true,
+      "detail": {
+        "statusCode": 400,
+        "body": {
+          "error": "UNEXPECTED_FIELD",
+          "message": "Unexpected field(s): source"
+        },
+        "sourceAfter": "manual"
+      }
+    },
+    {
+      "id": "search",
+      "ac": "AC-5",
+      "description": "Search by title and company; empty → []",
+      "pass": true,
+      "detail": {
+        "byTitle": 1,
+        "byCompany": 1,
+        "empty": 0
+      }
+    },
+    {
+      "id": "sort",
+      "ac": "AC-6",
+      "description": "Sort by updated/created works",
+      "pass": true,
+      "detail": {
+        "updatedFirst": "job_bcb8065dd4e9",
+        "createdFirst": "job_3da698114fec"
+      }
+    },
+    {
+      "id": "candidate-workspace",
+      "ac": "AC-8",
+      "description": "Candidate Workspace list API still responds",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "total": 0
+      }
+    },
+    {
+      "id": "import-resume",
+      "ac": "AC-9",
+      "description": "Resume Import has no regression",
+      "pass": true,
+      "detail": {
+        "statusCode": 201,
+        "candidateId": "candidate_3edd1f253890"
+      }
+    },
+    {
+      "id": "candidate-detail",
+      "ac": "AC-8",
+      "description": "Candidate Detail workspace still works after import",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "name": "Epic002 Cand"
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-10",
+      "description": "/health still ok after Job + Candidate mutations",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "status": "ok",
+          "sprint": "4",
+          "epic": "EPIC-008",
+          "mode": "founder-alpha",
+          "foundation": "v3.1-frozen",
+          "persistence": "memory",
+          "database": {
+            "configured": false,
+            "connected": null,
+            "dialect": null
+          },
+          "uptimeSeconds": 0,
+          "version": "0.1.0",
+          "buildTimestamp": null,
+          "feature_flags": {
+            "ai.parsing.enabled": true,
+            "ai.truth_engine.enabled": false,
+            "ai.knowledge_graph.enabled": false,
+            "ai.semantic_search.enabled": false,
+            "ai.duplicate_detection.enabled": false,
+            "ai.matching.enabled": false
+          },
+          "operations_dashboard": "/internal/operations-dashboard/ui"
+        }
+      }
+    }
+  ]
+}
