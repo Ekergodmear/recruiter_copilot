@@ -11,6 +11,7 @@ import {
   type WorkflowStage,
 } from "../domain/types.js";
 import type { RelationshipRepository } from "../infrastructure/relationship-repository.js";
+import type { NotificationService } from "../../notification/application/notification-service.js";
 
 export class RelationshipServiceError extends Error {
   constructor(
@@ -37,6 +38,8 @@ export class RelationshipService {
       relationshipRepository: RelationshipRepository;
       candidateRepository: CandidateRepository;
       jobRepository: JobRepository;
+      /** EPIC-010 — optional fan-out; Notifications never execute domain rules. */
+      notificationService?: NotificationService;
     },
   ) {}
 
@@ -102,6 +105,7 @@ export class RelationshipService {
   async assign(params: {
     id: string;
     assigneeId: string;
+    actorId?: string;
   }): Promise<{ relationship: CandidateJobRelationship; changed: boolean }> {
     const current = await this.deps.relationshipRepository.findById(params.id);
     if (!current) {
@@ -121,6 +125,13 @@ export class RelationshipService {
       updatedAt: now,
     };
     await this.deps.relationshipRepository.save(next);
+    await this.deps.notificationService?.onAssignment({
+      assigneeId,
+      relationshipId: next.id,
+      candidateId: next.candidateId,
+      jobId: next.jobId,
+      actorId: params.actorId,
+    });
     return { relationship: next, changed: true };
   }
 
@@ -130,7 +141,11 @@ export class RelationshipService {
   }
 
   /** EPIC-004 — move Current Stage; append-only history; no transition matrix. */
-  async moveStage(params: { id: string; stage: string }): Promise<CandidateJobRelationship> {
+  async moveStage(params: {
+    id: string;
+    stage: string;
+    actorId?: string;
+  }): Promise<CandidateJobRelationship> {
     const nextStage = assertStage(params.stage);
     const current = await this.deps.relationshipRepository.findById(params.id);
     if (!current) {
@@ -141,8 +156,9 @@ export class RelationshipService {
     }
 
     const now = this.deps.clock.nowIso();
+    const previousStage = current.currentStage;
     const entry: StageHistoryEntry = {
-      previousStage: current.currentStage,
+      previousStage,
       newStage: nextStage,
       changedAt: now,
     };
@@ -154,6 +170,15 @@ export class RelationshipService {
       updatedAt: now,
     };
     await this.deps.relationshipRepository.save(next);
+    await this.deps.notificationService?.onStageChanged({
+      relationshipId: next.id,
+      candidateId: next.candidateId,
+      jobId: next.jobId,
+      previousStage,
+      newStage: nextStage,
+      assigneeId: next.assigneeId,
+      actorId: params.actorId,
+    });
     return next;
   }
 

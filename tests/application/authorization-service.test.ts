@@ -14,6 +14,8 @@ describe("EPIC-009 AuthorizationService", () => {
   it("allows Viewer to read but denies automation and writes", () => {
     expect(authz.authorize("viewer_alpha", "analytics.read").allowed).toBe(true);
     expect(authz.authorize("viewer_alpha", "copilot.use").allowed).toBe(true);
+    expect(authz.authorize("viewer_alpha", "notification.read").allowed).toBe(true);
+    expect(authz.authorize("viewer_alpha", "notification.write").allowed).toBe(false);
     expect(authz.authorize("viewer_alpha", "automation.execute").allowed).toBe(false);
     expect(authz.authorize("viewer_alpha", "candidate.write").allowed).toBe(false);
   });

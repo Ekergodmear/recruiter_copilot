@@ -1,6 +1,7 @@
 import type { Clock } from "../../../shared/clock/index.js";
 import type { IdGenerator } from "../../../shared/id-generator/index.js";
 import type { AuthorizationService } from "../../authorization/application/authorization-service.js";
+import type { NotificationService } from "../../notification/application/notification-service.js";
 import {
   RelationshipService,
   RelationshipServiceError,
@@ -40,6 +41,8 @@ export class AutomationService {
       emailSendAdapter: EmailSendAdapter;
       /** EPIC-009 — no local role matrix; policy via AuthorizationService. */
       authorizationService: AuthorizationService;
+      /** EPIC-010 — fan-out automation.completed only; never owned by Notifications. */
+      notificationService?: NotificationService;
     },
   ) {}
 
@@ -64,6 +67,7 @@ export class AutomationService {
       const after = await this.deps.relationshipService.moveStage({
         id: params.relationshipId,
         stage: params.targetStage,
+        actorId,
       });
       const noop =
         after.currentStage === before.currentStage &&
@@ -165,6 +169,7 @@ export class AutomationService {
       const { relationship, changed } = await this.deps.relationshipService.assign({
         id: params.relationshipId,
         assigneeId: params.assigneeId,
+        actorId,
       });
       return this.ok(
         "assign",
@@ -223,6 +228,7 @@ export class AutomationService {
       noop,
     };
     await this.deps.actionResultRepository.append(result);
+    await this.deps.notificationService?.onAutomationCompleted(result);
     return result;
   }
 
