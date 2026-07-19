@@ -29,6 +29,7 @@ This is a **product consumer EPIC**, not a delivery-channel product and not a ru
 | **Notifications inform users; users decide**                   | **Adopt** — locked                                   |
 | In-app feed + read/unread + thin `@actorId` mentions           | **Adopt**                                            |
 | Authorization via EPIC-009 (`notification.read` / `.write`)    | **Adopt**                                            |
+| **AC-3b Notification immutability** (read state only)          | **Adopt** — content/source/`createdAt` frozen        |
 
 Architecture fit:
 

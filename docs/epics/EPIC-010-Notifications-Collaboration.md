@@ -199,10 +199,11 @@ Reuse EPIC-009 actor resolution (`x-actor-id` → body → query → default `re
 2. Notifications are created **only** from declared source outcomes or mention writes.  
 3. A recipient sees **only** their own notifications.  
 4. Mark read / mark all read change inbox state only — not Candidate/Job/Relationship domain fields.  
-5. Mention parsing is deterministic against known actors; unknown `@token` does not create a notification.  
-6. Authorization gates all notification (and mention-create) APIs.  
-7. No email / push / Slack / Teams / SMS / webhook delivery in MVP.  
-8. No notification rules engine, digest, or scheduler.  
+5. **Notification immutability:** after create, only read state (`readAt`) may change; type, title/body, source, recipient, and `createdAt` are immutable.  
+6. Mention parsing is deterministic against known actors; unknown `@token` does not create a notification.  
+7. Authorization gates all notification (and mention-create) APIs.  
+8. No email / push / Slack / Teams / SMS / webhook delivery in MVP.  
+9. No notification rules engine, digest, or scheduler.  
 
 ---
 
@@ -213,6 +214,7 @@ Reuse EPIC-009 actor resolution (`x-actor-id` → body → query → default `re
 | **AC-1**  | Notification model exists (id, recipient, type, read state, source, timestamps). |
 | **AC-2**  | Notification Feed — `GET /api/v1/notifications` returns current actor’s items (unread + read distinguishable). |
 | **AC-3**  | Mark one notification as read.                                            |
+| **AC-3b** | Notification immutability — mark read / unread changes only read state; content, source, recipient, and `createdAt` must not be modified. |
 | **AC-4**  | Mark all notifications as read for current actor.                         |
 | **AC-5**  | Assignment notification created for assignee after successful assign.     |
 | **AC-6**  | Workflow stage-change notification created after successful stage move.   |
@@ -295,9 +297,9 @@ No new TECH ticket for this EPIC. **TECH-007** (CI/formatting) remains a **separ
 
 EPIC-010 is done when:
 
-- AC-1…AC-14 **PASS**  
+- AC-1…AC-14 (+ AC-3b immutability) **PASS**  
 - Regressions for authorized happy-paths on EPIC-001…009: **NONE**  
-- Confirmed: Notifications did not execute actions or own Workflow/Matching rules  
+- Confirmed: Notifications did not execute actions or own Workflow/Matching rules; read/unread does not mutate notification content  
 - `GET /health` **PASS** (still public)  
 - `pnpm run ci` **PASS**  
 - Validation Report completed (PR-3) with feed / read / source / mention evidence  
