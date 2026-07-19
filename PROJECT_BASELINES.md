@@ -26,6 +26,29 @@ git checkout -b <epic-or-tech>/<short-name>
 4. Spec → Acceptance Criteria → Out of Scope → then code.
 5. Foundation Freeze remains intact unless Alpha evidence forces a Founder decision.
 
+## EPIC PR lifecycle (post–Founder Alpha)
+
+Prefer three small PRs per EPIC (or TECH of similar size):
+
+```text
+EPIC-XXX
+│
+├── PR-1
+│   Spec (docs only) — Background, Task, AC, Out of Scope, DoD
+│
+├── PR-2
+│   Implementation — code/tests against the approved spec
+│
+└── PR-3
+    Validation Report — evidence, metrics, recruiter/ops notes
+        ↓
+      Merge → done
+```
+
+This separates **design**, **execution**, and **verification**. TECH initiatives that are ops-only may stay as Spec → Implementation when a Validation Report would be redundant (evidence already in the implementation PR).
+
+**Product first:** after TECH-006, prefer user-value EPICs over further infrastructure unless product work is blocked.
+
 ## Related
 
 - Ops: [docs/PRODUCTION.md](./docs/PRODUCTION.md)
