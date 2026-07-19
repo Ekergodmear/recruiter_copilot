@@ -189,6 +189,7 @@ If needed for Alpha: a tiny read of “current actor role/permissions” or conf
 5. Viewer cannot mutate or run Automation.  
 6. Deny leaves no partial domain side effects.  
 7. No multi-tenant isolation in MVP — single workspace assumption remains.  
+8. **Deny-by-default:** if a permission (or action) is unknown / not declared in the fixed policy, AuthorizationService **DENY**s — it must never silently Allow.  
 
 ---
 
@@ -202,6 +203,7 @@ If needed for Alpha: a tiny read of “current actor role/permissions” or conf
 | **AC-4**  | Policy evaluation is deterministic for actor + permission.                |
 | **AC-5**  | ALLOW path: permitted actor proceeds to capability.                       |
 | **AC-6**  | DENY path: forbidden actor receives clear error; no domain mutation.      |
+| **AC-6b** | Deny-by-default — unknown / undeclared permission or action is DENY, never silent Allow. |
 | **AC-7**  | Automation uses AuthorizationService (no local role matrix).              |
 | **AC-8**  | Analytics and Copilot APIs are protected by AuthorizationService.         |
 | **AC-9**  | Core Read APIs (Candidate/Job/Relationship/Matching) are protected.       |
@@ -274,12 +276,12 @@ No new TECH ticket. Prefer in-process AuthorizationService + config actor→role
 
 EPIC-009 is done when:
 
-- AC-1…AC-15 **PASS**  
+- AC-1…AC-15 (+ AC-6b Deny-by-default) **PASS**  
 - Regressions for authorized happy-paths on EPIC-001…008: **NONE**  
 - `GET /health` **PASS** (still public)  
 - `pnpm run ci` **PASS**  
 - Validation Report completed (PR-3) with Allow/Deny evidence  
-- Documented confirmation: Authorization did not own Matching/Workflow business rules  
+- Documented confirmation: Authorization did not own Matching/Workflow business rules; unknown permissions deny by default  
 
 ---
 

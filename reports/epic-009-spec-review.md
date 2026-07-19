@@ -26,6 +26,7 @@ This is a **foundation-hardening** EPIC, not a feature dump.
 | ABAC                                                           | **Reject** — RBAC fixed map only                     |
 | Authorization owns Workflow/Matching rules                     | **Reject** — governs execution only                  |
 | **Authorization governs execution; does not own business rules** | **Adopt** — locked                                 |
+| **Deny-by-default (AC-6b)**                                    | **Adopt** — unknown permission → DENY                |
 | Fixed Admin / Recruiter / Viewer + AuthorizationService        | **Adopt**                                            |
 | Wire Automation + Copilot + Analytics + core R/W APIs          | **Adopt**                                            |
 
