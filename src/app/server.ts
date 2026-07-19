@@ -41,6 +41,9 @@ import { registerNotificationRoutes } from "../modules/notification/presentation
 import { IntegrationService } from "../modules/integration/application/integration-service.js";
 import { InMemoryIntegrationRepository } from "../modules/integration/infrastructure/integration-repository.js";
 import { registerIntegrationRoutes } from "../modules/integration/presentation/integration-routes.js";
+import { AuditService } from "../modules/audit/application/audit-service.js";
+import { FileAuditRepository } from "../modules/audit/infrastructure/audit-repository.js";
+import { registerAuditRoutes } from "../modules/audit/presentation/audit-routes.js";
 import { RecruitmentService } from "../modules/recruitment/application/recruitment-service.js";
 import { join } from "node:path";
 import { registerRecruitmentRoutes } from "../modules/recruitment/presentation/recruitment-routes.js";
@@ -93,6 +96,7 @@ export type AppDependencies = {
   authorizationService: AuthorizationService;
   notificationService: NotificationService;
   integrationService: IntegrationService;
+  auditService: AuditService;
   recruitmentService: RecruitmentService;
   knowledgeEvolutionService: KnowledgeEvolutionService;
   candidateInsightService: CandidateInsightService;
@@ -258,6 +262,13 @@ export function createAppDependencies(
     actors: actorRegistry,
   });
 
+  const auditService = new AuditService({
+    clock,
+    idGenerator,
+    repository: new FileAuditRepository(join(config.storagePath, "audit-log.jsonl")),
+    authorizationService,
+  });
+
   const relationshipService = new RelationshipService({
     clock,
     idGenerator,
@@ -265,6 +276,7 @@ export function createAppDependencies(
     candidateRepository,
     jobRepository,
     notificationService,
+    auditService,
   });
 
   const matchingService = new MatchingService({
@@ -303,6 +315,7 @@ export function createAppDependencies(
     emailSendAdapter: new MockEmailSendAdapter(),
     authorizationService,
     notificationService,
+    auditService,
   });
 
   const integrationService = new IntegrationService({
@@ -311,6 +324,7 @@ export function createAppDependencies(
     repository: new InMemoryIntegrationRepository(),
     jobService,
     authorizationService,
+    auditService,
   });
 
   const auditReplayService = new AuditReplayService({
@@ -354,6 +368,7 @@ export function createAppDependencies(
     authorizationService,
     notificationService,
     integrationService,
+    auditService,
     recruitmentService,
     knowledgeEvolutionService,
     candidateInsightService,
@@ -432,6 +447,7 @@ export async function buildApp(deps?: AppDependencies) {
   registerAutomationRoutes(app, resolved.automationService);
   registerNotificationRoutes(app, resolved.notificationService);
   registerIntegrationRoutes(app, resolved.integrationService);
+  registerAuditRoutes(app, resolved.auditService);
   registerRecruitmentRoutes(app, resolved.recruitmentService);
 
   registerOperationsDashboardRoutes(app, {

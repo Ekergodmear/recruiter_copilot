@@ -1,6 +1,7 @@
 import type { Clock } from "../../../shared/clock/index.js";
 import type { IdGenerator } from "../../../shared/id-generator/index.js";
 import type { AuthorizationService } from "../../authorization/application/authorization-service.js";
+import type { AuditService } from "../../audit/application/audit-service.js";
 import { JobService, JobServiceError } from "../../job/application/job-service.js";
 import type { JobStatus } from "../../job/domain/types.js";
 import { parseJobCsv } from "./csv-codec.js";
@@ -41,6 +42,8 @@ export class IntegrationService {
       repository: IntegrationRepository;
       jobService: JobService;
       authorizationService: AuthorizationService;
+      /** EPIC-012 — one audit record per execute outcome. */
+      auditService?: AuditService;
       providers?: Map<string, IntegrationProvider>;
     },
   ) {
@@ -168,12 +171,14 @@ export class IntegrationService {
         });
         createdIds.push(job.id);
       }
-      return {
+      const result: ExecuteResult = {
         provider: record.provider,
         direction: "import",
         success: true,
         createdIds,
       };
+      await this.recordExecuteAudit(params.actorId, record.integrationId, result);
+      return result;
     } catch (err) {
       // AC-7b — rollback partial creates via Application Service softDelete
       for (const id of [...createdIds].reverse()) {
@@ -186,13 +191,15 @@ export class IntegrationService {
       const message =
         err instanceof JobServiceError || err instanceof Error ? err.message : "Import failed";
       const code = err instanceof JobServiceError ? err.code : "IMPORT_FAILED";
-      return {
+      const result: ExecuteResult = {
         provider: record.provider,
         direction: "import",
         success: false,
         createdIds: [],
         error: { code, message },
       };
+      await this.recordExecuteAudit(params.actorId, record.integrationId, result);
+      return result;
     }
   }
 
@@ -225,13 +232,33 @@ export class IntegrationService {
     const format = params.format === "json" || record.provider === "webhook" ? "json" : "csv";
     const exportedPayload =
       format === "json" ? provider.buildExportJson(rows) : provider.buildExportCsv(rows);
-    return {
+    const result: ExecuteResult = {
       provider: record.provider,
       direction: "export",
       success: true,
       createdIds: [],
       exportedPayload,
     };
+    await this.recordExecuteAudit(params.actorId, record.integrationId, result);
+    return result;
+  }
+
+  private async recordExecuteAudit(
+    actorId: string,
+    integrationId: string,
+    result: ExecuteResult,
+  ): Promise<void> {
+    await this.deps.auditService?.record({
+      actorId,
+      action: `integration.${result.direction}.execute`,
+      source: "integration",
+      outcome: result.success ? "success" : "failure",
+      target: { integrationId },
+      summary: result.success
+        ? `Integration ${result.direction} via ${result.provider}`
+        : `Integration ${result.direction} failed via ${result.provider}`,
+      error: result.error ?? null,
+    });
   }
 
   private async loadExportRows(): Promise<JobImportRow[]> {

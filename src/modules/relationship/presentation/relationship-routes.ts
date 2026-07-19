@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { pickAllowedFields, SecurityError } from "../../../shared/security/index.js";
+import { resolveActorId } from "../../authorization/presentation/resolve-actor.js";
 import { isWorkflowStage } from "../domain/types.js";
 import {
   RelationshipService,
@@ -72,7 +73,8 @@ export function registerRelationshipRoutes(
         });
       }
       // Prefer UL `stage`; `status` remains EPIC-003 compat alias.
-      return await relationshipService.moveStage({ id, stage: next });
+      const actorId = resolveActorId(request);
+      return await relationshipService.moveStage({ id, stage: next, actorId });
     } catch (error) {
       return sendError(reply, error);
     }

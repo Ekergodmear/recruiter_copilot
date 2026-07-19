@@ -12,6 +12,7 @@ import {
 } from "../domain/types.js";
 import type { RelationshipRepository } from "../infrastructure/relationship-repository.js";
 import type { NotificationService } from "../../notification/application/notification-service.js";
+import type { AuditService } from "../../audit/application/audit-service.js";
 
 export class RelationshipServiceError extends Error {
   constructor(
@@ -40,6 +41,8 @@ export class RelationshipService {
       jobRepository: JobRepository;
       /** EPIC-010 — optional fan-out; Notifications never execute domain rules. */
       notificationService?: NotificationService;
+      /** EPIC-012 — optional audit; suppress when Automation will record once. */
+      auditService?: AuditService;
     },
   ) {}
 
@@ -106,6 +109,8 @@ export class RelationshipService {
     id: string;
     assigneeId: string;
     actorId?: string;
+    /** When true, caller (e.g. Automation) records the single Audit entry. */
+    suppressAudit?: boolean;
   }): Promise<{ relationship: CandidateJobRelationship; changed: boolean }> {
     const current = await this.deps.relationshipRepository.findById(params.id);
     if (!current) {
@@ -132,6 +137,21 @@ export class RelationshipService {
       jobId: next.jobId,
       actorId: params.actorId,
     });
+    if (!params.suppressAudit && params.actorId) {
+      await this.deps.auditService?.record({
+        actorId: params.actorId,
+        action: "relationship.assign",
+        source: "relationship",
+        outcome: "success",
+        target: {
+          relationshipId: next.id,
+          candidateId: next.candidateId,
+          jobId: next.jobId,
+          assigneeId,
+        },
+        summary: `Assigned relationship ${next.id} to ${assigneeId}`,
+      });
+    }
     return { relationship: next, changed: true };
   }
 
@@ -145,6 +165,8 @@ export class RelationshipService {
     id: string;
     stage: string;
     actorId?: string;
+    /** When true, caller (e.g. Automation) records the single Audit entry. */
+    suppressAudit?: boolean;
   }): Promise<CandidateJobRelationship> {
     const nextStage = assertStage(params.stage);
     const current = await this.deps.relationshipRepository.findById(params.id);
@@ -179,6 +201,21 @@ export class RelationshipService {
       assigneeId: next.assigneeId,
       actorId: params.actorId,
     });
+    if (!params.suppressAudit && params.actorId) {
+      await this.deps.auditService?.record({
+        actorId: params.actorId,
+        action: "workflow.stage_changed",
+        source: "workflow",
+        outcome: "success",
+        target: {
+          relationshipId: next.id,
+          candidateId: next.candidateId,
+          jobId: next.jobId,
+          stage: nextStage,
+        },
+        summary: `Stage ${previousStage} → ${nextStage}`,
+      });
+    }
     return next;
   }
 
