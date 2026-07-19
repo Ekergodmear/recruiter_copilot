@@ -70,6 +70,26 @@ Consequences:
 - Copilot **must not** recalculate Match Score, invent missing evidence, or mutate Workflow/Relationship.
 - When Matching Evidence and narrative conflict, **Matching Evidence wins** (recruiter trusts the deterministic layer).
 
+### Copilot Transparency
+
+Every AI-generated response must clearly distinguish:
+
+1. **Factual information** derived from platform data (e.g. Matching Evidence, Candidate/Job fields)
+2. **Generated suggestions** written by the LLM (narrative, draft text, question wording)
+
+Example shape (illustrative):
+
+```text
+Evidence (platform)
+Matched Skills: Java, Spring
+English: B2
+------------------
+AI Suggestion
+The candidate appears suitable because…
+```
+
+This supports **Evidence over Opinion**: recruiters must never confuse LLM wording with source-of-truth data.
+
 ---
 
 ## Business Language (Ubiquitous Language)
