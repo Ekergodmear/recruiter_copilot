@@ -30,6 +30,7 @@ function toRow(r: CandidateJobRelationship) {
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     createdBy: r.createdBy,
+    assigneeId: r.assigneeId,
   };
 }
 
@@ -43,6 +44,7 @@ function toDomain(row: {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+  assigneeId?: string | null;
 }): CandidateJobRelationship {
   const currentStage = (row.currentStage || row.status) as WorkflowStage;
   return {
@@ -55,6 +57,7 @@ function toDomain(row: {
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     createdBy: row.createdBy,
+    assigneeId: row.assigneeId ?? null,
   };
 }
 

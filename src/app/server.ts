@@ -28,7 +28,12 @@ import { CopilotService } from "../modules/copilot/application/copilot-service.j
 import { registerCopilotRoutes } from "../modules/copilot/presentation/copilot-routes.js";
 import { AnalyticsService } from "../modules/analytics/application/analytics-service.js";
 import { registerAnalyticsRoutes } from "../modules/analytics/presentation/analytics-routes.js";
+import { AutomationService } from "../modules/automation/application/automation-service.js";
+import { registerAutomationRoutes } from "../modules/automation/presentation/automation-routes.js";
+import { FileActionResultRepository } from "../modules/automation/infrastructure/action-result-repository.js";
+import { MockEmailSendAdapter } from "../modules/automation/infrastructure/email-send-adapter.js";
 import { RecruitmentService } from "../modules/recruitment/application/recruitment-service.js";
+import { join } from "node:path";
 import { registerRecruitmentRoutes } from "../modules/recruitment/presentation/recruitment-routes.js";
 import {
   KnowledgeEvolutionService,
@@ -75,6 +80,7 @@ export type AppDependencies = {
   matchingService: MatchingService;
   copilotService: CopilotService;
   analyticsService: AnalyticsService;
+  automationService: AutomationService;
   recruitmentService: RecruitmentService;
   knowledgeEvolutionService: KnowledgeEvolutionService;
   candidateInsightService: CandidateInsightService;
@@ -261,6 +267,17 @@ export function createAppDependencies(
     matchingService,
   });
 
+  const automationService = new AutomationService({
+    clock,
+    idGenerator,
+    relationshipService,
+    relationshipRepository,
+    actionResultRepository: new FileActionResultRepository(
+      join(config.storagePath, "automation-actions.jsonl"),
+    ),
+    emailSendAdapter: new MockEmailSendAdapter(),
+  });
+
   const auditReplayService = new AuditReplayService({
     candidateRepository,
     submissionRepository,
@@ -298,6 +315,7 @@ export function createAppDependencies(
     matchingService,
     copilotService,
     analyticsService,
+    automationService,
     recruitmentService,
     knowledgeEvolutionService,
     candidateInsightService,
@@ -372,6 +390,7 @@ export async function buildApp(deps?: AppDependencies) {
   registerMatchingRoutes(app, resolved.matchingService);
   registerCopilotRoutes(app, resolved.copilotService);
   registerAnalyticsRoutes(app, resolved.analyticsService);
+  registerAutomationRoutes(app, resolved.automationService);
   registerRecruitmentRoutes(app, resolved.recruitmentService);
 
   registerOperationsDashboardRoutes(app, {

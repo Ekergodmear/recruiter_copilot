@@ -92,9 +92,36 @@ export class RelationshipService {
       createdAt: now,
       updatedAt: now,
       createdBy: params.actorId,
+      assigneeId: null,
     };
     await this.deps.relationshipRepository.save(relationship);
     return relationship;
+  }
+
+  /** EPIC-008 — assign recruiter; same assignee is a no-op success. */
+  async assign(params: {
+    id: string;
+    assigneeId: string;
+  }): Promise<{ relationship: CandidateJobRelationship; changed: boolean }> {
+    const current = await this.deps.relationshipRepository.findById(params.id);
+    if (!current) {
+      throw new RelationshipServiceError("NOT_FOUND", "Relationship not found");
+    }
+    const assigneeId = params.assigneeId.trim();
+    if (!assigneeId) {
+      throw new RelationshipServiceError("INVALID_ASSIGNEE", "assigneeId is required");
+    }
+    if (current.assigneeId === assigneeId) {
+      return { relationship: current, changed: false };
+    }
+    const now = this.deps.clock.nowIso();
+    const next: CandidateJobRelationship = {
+      ...current,
+      assigneeId,
+      updatedAt: now,
+    };
+    await this.deps.relationshipRepository.save(next);
+    return { relationship: next, changed: true };
   }
 
   /** EPIC-003 compat — updates current stage (any valid workflow stage) + appends history. */
