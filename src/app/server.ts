@@ -35,6 +35,9 @@ import { MockEmailSendAdapter } from "../modules/automation/infrastructure/email
 import { ActorRegistry } from "../modules/authorization/application/actor-registry.js";
 import { AuthorizationService } from "../modules/authorization/application/authorization-service.js";
 import { registerAuthorizationGate } from "../modules/authorization/presentation/authorization-gate.js";
+import { NotificationService } from "../modules/notification/application/notification-service.js";
+import { FileNotificationRepository } from "../modules/notification/infrastructure/notification-repository.js";
+import { registerNotificationRoutes } from "../modules/notification/presentation/notification-routes.js";
 import { RecruitmentService } from "../modules/recruitment/application/recruitment-service.js";
 import { join } from "node:path";
 import { registerRecruitmentRoutes } from "../modules/recruitment/presentation/recruitment-routes.js";
@@ -85,6 +88,7 @@ export type AppDependencies = {
   analyticsService: AnalyticsService;
   automationService: AutomationService;
   authorizationService: AuthorizationService;
+  notificationService: NotificationService;
   recruitmentService: RecruitmentService;
   knowledgeEvolutionService: KnowledgeEvolutionService;
   candidateInsightService: CandidateInsightService;
@@ -238,12 +242,25 @@ export function createAppDependencies(
       recruitmentService.onSubmissionCreated(submission, actorId),
   });
 
+  const actorRegistry = new ActorRegistry();
+  const authorizationService = new AuthorizationService(actorRegistry);
+  const notificationService = new NotificationService({
+    clock,
+    idGenerator,
+    repository: new FileNotificationRepository(
+      join(config.storagePath, "notifications.jsonl"),
+      join(config.storagePath, "collaboration-notes.jsonl"),
+    ),
+    actors: actorRegistry,
+  });
+
   const relationshipService = new RelationshipService({
     clock,
     idGenerator,
     relationshipRepository,
     candidateRepository,
     jobRepository,
+    notificationService,
   });
 
   const matchingService = new MatchingService({
@@ -271,8 +288,6 @@ export function createAppDependencies(
     matchingService,
   });
 
-  const authorizationService = new AuthorizationService(new ActorRegistry());
-
   const automationService = new AutomationService({
     clock,
     idGenerator,
@@ -283,6 +298,7 @@ export function createAppDependencies(
     ),
     emailSendAdapter: new MockEmailSendAdapter(),
     authorizationService,
+    notificationService,
   });
 
   const auditReplayService = new AuditReplayService({
@@ -324,6 +340,7 @@ export function createAppDependencies(
     analyticsService,
     automationService,
     authorizationService,
+    notificationService,
     recruitmentService,
     knowledgeEvolutionService,
     candidateInsightService,
@@ -400,6 +417,7 @@ export async function buildApp(deps?: AppDependencies) {
   registerCopilotRoutes(app, resolved.copilotService);
   registerAnalyticsRoutes(app, resolved.analyticsService);
   registerAutomationRoutes(app, resolved.automationService);
+  registerNotificationRoutes(app, resolved.notificationService);
   registerRecruitmentRoutes(app, resolved.recruitmentService);
 
   registerOperationsDashboardRoutes(app, {

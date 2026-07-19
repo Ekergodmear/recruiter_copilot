@@ -75,6 +75,13 @@ export const AUTHORIZED_ROUTES: RouteRule[] = [
   { method: "POST", path: "/api/v1/automation/stage-move", permission: "automation.execute" },
   { method: "POST", path: "/api/v1/automation/send-outreach", permission: "automation.execute" },
   { method: "POST", path: "/api/v1/automation/assign", permission: "automation.execute" },
+
+  // Notifications / Collaboration (EPIC-010)
+  // Mark-read gated by notification.read so Viewer can clear inbox; mention-create needs write.
+  { method: "GET", path: "/api/v1/notifications", permission: "notification.read" },
+  { method: "POST", path: "/api/v1/notifications/:id/read", permission: "notification.read" },
+  { method: "POST", path: "/api/v1/notifications/read-all", permission: "notification.read" },
+  { method: "POST", path: "/api/v1/collaboration/notes", permission: "notification.write" },
 ];
 
 function pathToRegex(path: string): RegExp {
