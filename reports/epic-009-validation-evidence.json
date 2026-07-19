@@ -1,0 +1,262 @@
+{
+  "epic": "EPIC-009",
+  "title": "Administration & Authorization",
+  "generatedAt": "2026-07-19T09:40:10.811Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-009-validate-FmWwO1",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 17,
+    "passed": 17,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-6b",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      },
+      {
+        "ac": "AC-11",
+        "pass": true
+      },
+      {
+        "ac": "AC-12",
+        "pass": true
+      },
+      {
+        "ac": "AC-13",
+        "pass": true
+      },
+      {
+        "ac": "AC-14",
+        "pass": true
+      }
+    ],
+    "note": "AC-15 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "role-model",
+      "ac": "AC-1",
+      "description": "Role model exists: Admin, Recruiter, Viewer",
+      "pass": true,
+      "detail": {
+        "roles": [
+          "Admin",
+          "Recruiter",
+          "Viewer"
+        ]
+      }
+    },
+    {
+      "id": "permission-model",
+      "ac": "AC-2",
+      "description": "Fixed MVP permission set present",
+      "pass": true,
+      "detail": {
+        "permissionCount": 12
+      }
+    },
+    {
+      "id": "authorization-service",
+      "ac": "AC-3",
+      "description": "AuthorizationService.authorize exists and evaluates",
+      "pass": true,
+      "detail": {
+        "type": "AuthorizationService"
+      }
+    },
+    {
+      "id": "policy-deterministic",
+      "ac": "AC-4",
+      "description": "Policy evaluation deterministic for actor + permission",
+      "pass": true,
+      "detail": {
+        "recruiterAllow": true,
+        "viewerWrite": false,
+        "unknown": false
+      }
+    },
+    {
+      "id": "policy-consistency",
+      "description": "Policy consistency — same actor/action always same result; Admin/Viewer/unknown matrix",
+      "pass": true,
+      "detail": {
+        "recruiterAutomation": true,
+        "adminManage": true,
+        "viewerWrite": false,
+        "unknownCode": "UNKNOWN_PERMISSION"
+      }
+    },
+    {
+      "id": "health-public",
+      "ac": "AC-14",
+      "description": "GET /health always public (ok regardless of actor)",
+      "pass": true,
+      "detail": {
+        "noActor": 200,
+        "viewer": 200,
+        "ghost": 200
+      }
+    },
+    {
+      "id": "import",
+      "ac": "AC-13",
+      "description": "Resume Import works for authorized Recruiter",
+      "pass": true,
+      "detail": {
+        "c1": "candidate_2ed55d25a5b6"
+      }
+    },
+    {
+      "id": "allow-path",
+      "ac": "AC-5",
+      "description": "ALLOW path — Recruiter proceeds to create Job",
+      "pass": true,
+      "detail": {
+        "statusCode": 201,
+        "jobId": "job_2fb4442d0863"
+      }
+    },
+    {
+      "id": "deny-path",
+      "ac": "AC-6",
+      "description": "DENY Viewer write — 403 and no domain mutation",
+      "pass": true,
+      "detail": {
+        "statusCode": 403,
+        "error": {
+          "error": {
+            "code": "FORBIDDEN",
+            "message": "Role Viewer cannot candidate.write"
+          }
+        },
+        "nameUnchanged": true
+      }
+    },
+    {
+      "id": "deny-by-default",
+      "ac": "AC-6b",
+      "description": "Unknown permission DENY (never silent Allow)",
+      "pass": true,
+      "detail": {
+        "code": "UNKNOWN_PERMISSION"
+      }
+    },
+    {
+      "id": "automation-authz",
+      "ac": "AC-7",
+      "description": "Automation gated by AuthorizationService (Viewer deny, Recruiter allow)",
+      "pass": true,
+      "detail": {
+        "viewer": 403,
+        "recruiter": 200
+      }
+    },
+    {
+      "id": "copilot-analytics",
+      "ac": "AC-8",
+      "description": "Analytics and Copilot protected (Viewer allow, unknown actor deny)",
+      "pass": true,
+      "detail": {
+        "viewerAnalytics": 200,
+        "ghostAnalytics": 403,
+        "viewerCopilot": 200,
+        "ghostCopilot": 403
+      }
+    },
+    {
+      "id": "read-protection",
+      "ac": "AC-9",
+      "description": "Core Read APIs protected (unknown actor 403; Recruiter Matching OK)",
+      "pass": true,
+      "detail": {
+        "ghostCand": 403,
+        "ghostJob": 403,
+        "ghostMatch": 403,
+        "recruiterMatch": 200
+      }
+    },
+    {
+      "id": "mutation-protection",
+      "ac": "AC-10",
+      "description": "Core Mutation APIs protected for Viewer",
+      "pass": true,
+      "detail": {
+        "viewerJobWrite": 403,
+        "viewerRelWrite": 403
+      }
+    },
+    {
+      "id": "no-business-rules-moved",
+      "ac": "AC-11",
+      "description": "Matching/Workflow semantics unchanged under Authorization",
+      "pass": true,
+      "detail": {
+        "matchScore": 100,
+        "stage": "Screening"
+      }
+    },
+    {
+      "id": "regression-authorized",
+      "ac": "AC-12",
+      "description": "Authorized happy-path regression (Candidate/Job/Rel/Match/Analytics/Automation)",
+      "pass": true,
+      "detail": {
+        "job": 201,
+        "rel": 201,
+        "match": 200,
+        "automation": 200,
+        "analytics": 200
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-14",
+      "description": "GET /health still ok after authorization checks",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    }
+  ]
+}
