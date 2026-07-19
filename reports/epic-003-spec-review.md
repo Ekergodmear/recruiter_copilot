@@ -72,9 +72,10 @@ EPIC-003 Relationship Intelligence
 
 ## Risks accepted for Alpha
 
-- Duplicate `(candidateId, jobId)` → reject or clear no-op
+- Duplicate `(candidateId, jobId)` → **409** (uniqueness rule clarified)
 - Mapping vs existing Submission statuses — document; keep MVP set small
 - Concurrent edits — last-write-wins acceptable
+- Historical / re-application relationships — out of scope
 
 ---
 
@@ -87,11 +88,12 @@ EPIC-003 Relationship Intelligence
 | AC testable                            | PASS                       |
 | Out of Scope explicit                  | PASS                       |
 | Pure relationship (no Matching fields) | PASS                       |
+| Uniqueness rule (1 per pair)           | PASS (added)               |
 | No TECH dependency                     | PASS                       |
 | Definition of Done                     | PASS                       |
 | Ready for Implementation PR            | **YES** (after Spec merge) |
 
-**TL action:** Approve & merge this Spec PR, then open Implementation PR against merged Spec.
+**TL decision (2026-07-19):** ✅ **APPROVED** — merge Spec, then open Implementation PR (scope locked to Spec).
 
 ---
 

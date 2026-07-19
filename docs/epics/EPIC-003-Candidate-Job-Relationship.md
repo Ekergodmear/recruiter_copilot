@@ -129,7 +129,7 @@ Keep the Relationship layer **pure**.
 1. **N:N** — one Candidate may relate to many Jobs; one Job may relate to many Candidates.
 2. Relationship is a first-class record of recruiter action; it does **not** imply suitability.
 3. Candidate and Job remain independent aggregates; Relationship depends on both existing.
-4. Duplicate relationship for the same `(candidateId, jobId)` pair: reject or no-op with clear error (Implementation documents chosen behavior).
+4. **Uniqueness (MVP):** a Candidate and a Job may have **at most one** `CandidateJobRelationship`. Creating a duplicate for the same `(candidateId, jobId)` pair must fail with a clear error (e.g. 409). Historical / repeated relationships (re-application history) are out of scope.
 5. Deleting Candidate or Job follows **existing** business rules; this EPIC does not invent cascade product policy.
 6. Existing Submission / pipeline UI paths must not regress; this EPIC must not expand them into Pipeline Kanban or Matching product work.
 
