@@ -1,12 +1,12 @@
 # EPIC-001 — Candidate Workspace
 
-| Field | Value |
-|-------|-------|
-| Status | **SPEC** (PR-1 docs-only) |
-| Baseline | `founder-alpha-2` |
-| Type | Product EPIC (user value) |
-| Foundation Freeze | Intact |
-| TECH required | None |
+| Field             | Value                                           |
+| ----------------- | ----------------------------------------------- |
+| Status            | **PASS** (Spec #10 → Impl #11 → Validation #12) |
+| Baseline          | `founder-alpha-2`                               |
+| Type              | Product EPIC (user value)                       |
+| Foundation Freeze | Intact                                          |
+| TECH required     | None                                            |
 
 ---
 
@@ -62,14 +62,14 @@ Route: recruiter-facing list (evolve existing `/candidates` as needed).
 
 Display columns / fields:
 
-| Field | Notes |
-|-------|--------|
-| Name | Required |
-| Current Title | From structured profile / knowledge |
-| Company | Current or latest |
-| Experience | Years or summary string already on profile |
-| English | Level / note |
-| Updated At | Last profile update time |
+| Field         | Notes                                      |
+| ------------- | ------------------------------------------ |
+| Name          | Required                                   |
+| Current Title | From structured profile / knowledge        |
+| Company       | Current or latest                          |
+| Experience    | Years or summary string already on profile |
+| English       | Level / note                               |
+| Updated At    | Last profile update time                   |
 
 Empty / loading / error states required.
 
@@ -77,13 +77,13 @@ Empty / loading / error states required.
 
 Structured sections (read):
 
-- Basic Info  
-- Skills  
-- Experience  
-- Education  
-- English  
-- Salary  
-- Notes  
+- Basic Info
+- Skills
+- Experience
+- Education
+- English
+- Salary
+- Notes
 
 May reuse existing review/knowledge data where it already maps; **must** present as a workspace profile, not only “continue review”.
 
@@ -91,11 +91,11 @@ May reuse existing review/knowledge data where it already maps; **must** present
 
 Recruiter may edit and save:
 
-- name  
-- phone  
-- email  
-- salary  
-- note  
+- name
+- phone
+- email
+- salary
+- note
 
 **Must not** edit raw resume file/content.
 
@@ -107,29 +107,29 @@ Changes saved via existing Prisma persistence path (Candidate repository). Reloa
 
 Filter list by:
 
-- name  
-- email  
+- name
+- email
 
 **Not** semantic search.
 
 ### Sort
 
-- `updated` (default recommended)  
-- `created`  
+- `updated` (default recommended)
+- `created`
 
 ---
 
 ## Acceptance Criteria
 
-| ID | Criterion |
-|----|-----------|
+| ID       | Criterion                                                                                                |
+| -------- | -------------------------------------------------------------------------------------------------------- |
 | **AC-1** | Candidate List is available and shows the MVP columns above (or documented mapping if a field is empty). |
-| **AC-2** | Clicking a row opens Candidate Detail. |
-| **AC-3** | Recruiter can edit the allowed fields (name, phone, email, salary, note). |
-| **AC-4** | After save + full page reload, edits remain (Prisma persist). |
-| **AC-5** | Search by name and email returns matching candidates. |
-| **AC-6** | Import Resume flow unchanged (no regression in import → parse → review path). |
-| **AC-7** | `GET /health` still returns `"status":"ok"` (no deployability regression). |
+| **AC-2** | Clicking a row opens Candidate Detail.                                                                   |
+| **AC-3** | Recruiter can edit the allowed fields (name, phone, email, salary, note).                                |
+| **AC-4** | After save + full page reload, edits remain (Prisma persist).                                            |
+| **AC-5** | Search by name and email returns matching candidates.                                                    |
+| **AC-6** | Import Resume flow unchanged (no regression in import → parse → review path).                            |
+| **AC-7** | `GET /health` still returns `"status":"ok"` (no deployability regression).                               |
 
 Concurrent edit: **last-write-wins** acceptable for Alpha (document in Implementation notes).
 
@@ -137,27 +137,27 @@ Concurrent edit: **last-write-wins** acceptable for Alpha (document in Implement
 
 ## Out of Scope
 
-- AI features / Copilot  
-- Matching / Ranking  
-- Semantic search  
-- Duplicate detection UX changes (existing banners may remain as-is)  
-- Timeline / Kanban / Pipeline  
-- Comments / Attachments / Collaboration  
-- Permissions / RBAC  
-- Audit log  
-- Domain redesign / Memory Bank changes  
-- New TECH / infra  
+- AI features / Copilot
+- Matching / Ranking
+- Semantic search
+- Duplicate detection UX changes (existing banners may remain as-is)
+- Timeline / Kanban / Pipeline
+- Comments / Attachments / Collaboration
+- Permissions / RBAC
+- Audit log
+- Domain redesign / Memory Bank changes
+- New TECH / infra
 
 ---
 
 ## Dependencies
 
-| Dependency | Status |
-|------------|--------|
-| Founder Alpha / `founder-alpha-2` | Required |
-| Prisma + Candidate repository | Required |
-| Import Resume | Required — must not break |
-| Web SPA (`web/`) | Required for UI |
+| Dependency                        | Status                    |
+| --------------------------------- | ------------------------- |
+| Founder Alpha / `founder-alpha-2` | Required                  |
+| Prisma + Candidate repository     | Required                  |
+| Import Resume                     | Required — must not break |
+| Web SPA (`web/`)                  | Required for UI           |
 
 No new TECH ticket.
 
@@ -165,30 +165,30 @@ No new TECH ticket.
 
 ## Risks
 
-| Risk | Mitigation |
-|------|------------|
-| UI state vs server truth | Prefer server refetch after save; React Query invalidate |
-| Concurrent edits | Last-write-wins; no locking in MVP |
-| Input validation | Reuse / extend existing request validation; reject invalid email/phone formats lightly |
-| Field mapping gaps (title/company) | Spec allows empty display; Implementation documents source fields |
+| Risk                               | Mitigation                                                                             |
+| ---------------------------------- | -------------------------------------------------------------------------------------- |
+| UI state vs server truth           | Prefer server refetch after save; React Query invalidate                               |
+| Concurrent edits                   | Last-write-wins; no locking in MVP                                                     |
+| Input validation                   | Reuse / extend existing request validation; reject invalid email/phone formats lightly |
+| Field mapping gaps (title/company) | Spec allows empty display; Implementation documents source fields                      |
 
 ---
 
 ## Success Metrics
 
-- Recruiter can open a profile after import without opening the PDF for basic fields.  
-- Edit + save succeeds and survives reload.  
-- Time from “Import Resume” to “candidate usable in workspace” is shorter than PDF/Excel round-trips (qualitative Alpha metric).  
+- Recruiter can open a profile after import without opening the PDF for basic fields.
+- Edit + save succeeds and survives reload.
+- Time from “Import Resume” to “candidate usable in workspace” is shorter than PDF/Excel round-trips (qualitative Alpha metric).
 
 ---
 
 ## Deliverables (lifecycle)
 
-| PR | Content |
-|----|---------|
+| PR              | Content                                                       |
+| --------------- | ------------------------------------------------------------- |
 | **PR-1 (this)** | Spec only — this document + `reports/epic-001-spec-review.md` |
-| **PR-2** | Implementation — list, detail, edit, search, sort, persist |
-| **PR-3** | Validation Report — AC checklist, runtime evidence, PASS/FAIL |
+| **PR-2**        | Implementation — list, detail, edit, search, sort, persist    |
+| **PR-3**        | Validation Report — AC checklist, runtime evidence, PASS/FAIL |
 
 ---
 
@@ -206,7 +206,7 @@ EPIC-001 is done when:
 
 ## Implementation constraints (for PR-2)
 
-- Branch from `main` @ `founder-alpha-2` lineage.  
-- Prefer extending existing APIs/screens over new architecture.  
-- No Domain philosophy changes; additive DTO/API fields only if required by AC.  
-- Keep `main` deployable; CI green.  
+- Branch from `main` @ `founder-alpha-2` lineage.
+- Prefer extending existing APIs/screens over new architecture.
+- No Domain philosophy changes; additive DTO/API fields only if required by AC.
+- Keep `main` deployable; CI green.
