@@ -31,8 +31,10 @@ export function registerJobRoutes(
       q?: string;
       company?: string;
       location?: string;
+      sort?: string;
     };
-    return jobService.list(query);
+    const sort = query.sort === "created" || query.sort === "updated" ? query.sort : "updated";
+    return jobService.list({ ...query, sort });
   });
 
   app.post("/api/v1/jobs", async (request, reply) => {
@@ -64,12 +66,62 @@ export function registerJobRoutes(
         }
       }
 
-      const body = pickAllowedFields<{ text?: string; company?: string }>(request.body, [
+      const body = pickAllowedFields<{
+        text?: string;
+        company?: string;
+        title?: string;
+        location?: string;
+        employmentType?: string;
+        salaryMin?: number | null;
+        salaryMax?: number | null;
+        currency?: string;
+        status?: string;
+        notes?: string;
+        description?: string;
+        requirements?: string;
+        benefits?: string;
+      }>(request.body, [
         "text",
         "company",
+        "title",
+        "location",
+        "employmentType",
+        "salaryMin",
+        "salaryMax",
+        "currency",
+        "status",
+        "notes",
+        "description",
+        "requirements",
+        "benefits",
       ]);
+
+      // EPIC-002 manual create: title + company without JD text
+      if (body?.title?.trim() && !body?.text?.trim()) {
+        const job = await jobService.createManual({
+          actorId,
+          title: body.title,
+          company: body.company ?? "",
+          location: body.location,
+          employmentType: body.employmentType as
+            "full_time" | "part_time" | "contract" | "internship" | "other" | undefined,
+          salaryMin: body.salaryMin,
+          salaryMax: body.salaryMax,
+          currency: body.currency,
+          status: body.status as "Draft" | "Open" | "Paused" | "Closed" | "Filled" | undefined,
+          notes: body.notes,
+          description: body.description,
+          requirements: body.requirements,
+          benefits: body.benefits,
+        });
+        return reply.status(201).send(job);
+      }
+
       if (!body?.text?.trim()) {
-        return reply.status(400).send({ error: "TEXT_REQUIRED", message: "text or file required" });
+        return reply.status(400).send({
+          error: "TEXT_REQUIRED",
+          message: "text, file, or manual title+company required",
+        });
       }
       const job = await jobService.createFromText({
         text: body.text,
@@ -94,7 +146,34 @@ export function registerJobRoutes(
   app.patch("/api/v1/jobs/:id", async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
-      return await jobService.update(id, request.body as Record<string, unknown>);
+      let body: Record<string, unknown>;
+      try {
+        body = pickAllowedFields(request.body, [
+          "title",
+          "company",
+          "location",
+          "employmentType",
+          "salaryMin",
+          "salaryMax",
+          "currency",
+          "status",
+          "notes",
+          "description",
+          "responsibilities",
+          "requirements",
+          "benefits",
+          "department",
+          "experienceYears",
+          "englishRequirement",
+          "skills",
+        ]);
+      } catch (error) {
+        if (error instanceof SecurityError) {
+          return reply.status(error.statusCode).send({ error: error.code, message: error.message });
+        }
+        throw error;
+      }
+      return await jobService.update(id, body);
     } catch (error) {
       return sendJobError(reply, error);
     }

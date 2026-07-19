@@ -70,6 +70,8 @@ describe("rule matching", () => {
       updatedAt: new Date().toISOString(),
       createdBy: "recruiter",
       rawJdText: "",
+      source: "manual",
+      notes: "",
     };
 
     const knowledge = VerifiedKnowledge.fromImport({

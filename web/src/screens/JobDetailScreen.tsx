@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
+import type { JobWorkspacePatch } from "../api/types";
 import { InsightsPanel } from "../components/InsightsPanel";
 
 type Tab = "overview" | "requirements" | "candidates" | "pipeline" | "timeline";
@@ -9,12 +10,55 @@ type Tab = "overview" | "requirements" | "candidates" | "pipeline" | "timeline";
 export function JobDetailScreen() {
   const { id = "" } = useParams();
   const [tab, setTab] = useState<Tab>("overview");
+  const [editing, setEditing] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    title: "",
+    company: "",
+    location: "",
+    employmentType: "full_time",
+    salaryMin: "",
+    salaryMax: "",
+    currency: "USD",
+    status: "Draft",
+    notes: "",
+  });
   const queryClient = useQueryClient();
 
-  const { data: job, isLoading, error } = useQuery({
+  const {
+    data: job,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["job", id],
     queryFn: () => api.getJob(id),
     enabled: Boolean(id),
+  });
+
+  useEffect(() => {
+    if (!job) return;
+    setForm({
+      title: job.title,
+      company: job.company,
+      location: job.location ?? "",
+      employmentType: job.employmentType || "full_time",
+      salaryMin: job.salaryMin == null ? "" : String(job.salaryMin),
+      salaryMax: job.salaryMax == null ? "" : String(job.salaryMax),
+      currency: job.currency || "USD",
+      status: job.status,
+      notes: job.notes ?? "",
+    });
+  }, [job]);
+
+  const saveMutation = useMutation({
+    mutationFn: (body: JobWorkspacePatch) => api.updateJob(id, body),
+    onSuccess: async () => {
+      setSaveError(null);
+      setEditing(false);
+      await queryClient.invalidateQueries({ queryKey: ["job", id] });
+      await queryClient.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onError: (e: Error) => setSaveError(e.message),
   });
 
   const { data: matches } = useQuery({
@@ -57,7 +101,9 @@ export function JobDetailScreen() {
 
   if (isLoading) return <div className="p-8 text-sm text-slate-500">Loading job…</div>;
   if (error || !job) {
-    return <div className="p-8 text-sm text-red-600">{(error as Error)?.message ?? "Not found"}</div>;
+    return (
+      <div className="p-8 text-sm text-red-600">{(error as Error)?.message ?? "Not found"}</div>
+    );
   }
 
   const tabs: { id: Tab; label: string }[] = [
@@ -78,7 +124,7 @@ export function JobDetailScreen() {
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">{job.title}</h1>
             <p className="text-sm text-slate-500">
-              {job.company} · {job.location || "—"} · {job.status}
+              {job.company} · {job.location || "—"} · {job.status} · source {job.source}
               {!job.ready && (
                 <Link to={`/jobs/${id}/review`} className="ml-2 underline">
                   Continue review
@@ -86,9 +132,23 @@ export function JobDetailScreen() {
               )}
             </p>
           </div>
-          <p className="text-sm text-slate-500">
-            {job.submissionCount} submitted · {job.placementCount ?? 0} placed
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-slate-500">
+              {job.submissionCount} submitted · {job.placementCount ?? 0} placed
+            </p>
+            {tab === "overview" && !editing && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSaveError(null);
+                  setEditing(true);
+                }}
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+              >
+                Edit
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -111,28 +171,164 @@ export function JobDetailScreen() {
         ))}
       </div>
 
-      {tab === "overview" && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Info label="Title" value={job.title} />
-          <Info label="Company" value={job.company} />
-          <Info label="Location" value={job.location || "—"} />
-          <Info label="Status" value={job.status} />
-          <Info
-            label="Salary"
-            value={
-              job.salaryMin == null && job.salaryMax == null
-                ? "—"
-                : `${job.currency} ${job.salaryMin ?? "?"} – ${job.salaryMax ?? "?"}`
-            }
-          />
-          <Info label="English" value={job.englishRequirement || "—"} />
-          <Info
-            label="Experience"
-            value={job.experienceYears == null ? "—" : `${job.experienceYears} years`}
-          />
-          <Info label="Skills" value={job.skills.join(", ") || "—"} />
-        </div>
-      )}
+      {tab === "overview" &&
+        (editing ? (
+          <form
+            className="max-w-xl space-y-3 rounded-xl border border-slate-200 bg-white p-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveMutation.mutate({
+                title: form.title,
+                company: form.company,
+                location: form.location,
+                employmentType: form.employmentType,
+                salaryMin: form.salaryMin === "" ? null : Number(form.salaryMin),
+                salaryMax: form.salaryMax === "" ? null : Number(form.salaryMax),
+                currency: form.currency,
+                status: form.status,
+                notes: form.notes,
+              });
+            }}
+          >
+            <p className="text-sm text-slate-500">
+              Edit allowed fields only. Source ({job.source}) is not editable.
+            </p>
+            {(
+              [
+                ["title", "Title"],
+                ["company", "Company"],
+                ["location", "Location"],
+                ["currency", "Currency"],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className="block text-sm">
+                <span className="text-slate-600">{label}</span>
+                <input
+                  value={form[key]}
+                  onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                  required={key === "title" || key === "company"}
+                />
+              </label>
+            ))}
+            <label className="block text-sm">
+              <span className="text-slate-600">Employment type</span>
+              <select
+                value={form.employmentType}
+                onChange={(e) => setForm((f) => ({ ...f, employmentType: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              >
+                <option value="full_time">full_time</option>
+                <option value="part_time">part_time</option>
+                <option value="contract">contract</option>
+                <option value="internship">internship</option>
+                <option value="other">other</option>
+              </select>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block text-sm">
+                <span className="text-slate-600">Salary min</span>
+                <input
+                  value={form.salaryMin}
+                  onChange={(e) => setForm((f) => ({ ...f, salaryMin: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="text-slate-600">Salary max</span>
+                <input
+                  value={form.salaryMax}
+                  onChange={(e) => setForm((f) => ({ ...f, salaryMax: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+            </div>
+            <label className="block text-sm">
+              <span className="text-slate-600">Status</span>
+              <select
+                value={form.status}
+                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              >
+                <option value="Draft">Draft</option>
+                <option value="Open">Open</option>
+                <option value="Paused">Paused</option>
+                <option value="Closed">Closed</option>
+                <option value="Filled">Filled</option>
+              </select>
+            </label>
+            <label className="block text-sm">
+              <span className="text-slate-600">Notes</span>
+              <textarea
+                value={form.notes}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                rows={4}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </label>
+            {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={saveMutation.isPending}
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {saveMutation.isPending ? "Saving…" : "Save"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(false);
+                  setSaveError(null);
+                }}
+                className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Section title="Basic">
+                <Info label="Title" value={job.title} />
+                <Info label="Company" value={job.company} />
+                <Info label="Location" value={job.location || "—"} />
+                <Info label="Employment type" value={job.employmentType || "—"} />
+                <Info label="Status" value={job.status} />
+              </Section>
+              <Section title="Salary">
+                <Info
+                  label="Range"
+                  value={
+                    job.salaryMin == null && job.salaryMax == null
+                      ? "—"
+                      : `${job.currency} ${job.salaryMin ?? "?"} – ${job.salaryMax ?? "?"}`
+                  }
+                />
+              </Section>
+              <Section title="Description">
+                <Info label="Description" value={job.description || "—"} />
+              </Section>
+              <Section title="Requirements">
+                <Info label="Requirements" value={job.requirements || "—"} />
+                <Info label="Skills" value={job.skills.join(", ") || "—"} />
+              </Section>
+              <Section title="Benefits">
+                <Info label="Benefits" value={job.benefits || "—"} />
+              </Section>
+              <Section title="Notes">
+                <Info label="Notes" value={job.notes || "—"} />
+              </Section>
+              <Section title="Metadata">
+                <Info label="Source" value={job.source} />
+                <Info label="Created" value={new Date(job.createdAt).toLocaleString()} />
+                <Info label="Updated" value={new Date(job.updatedAt).toLocaleString()} />
+                <Info label="Job ID" value={job.id} />
+              </Section>
+            </div>
+          </div>
+        ))}
 
       {tab === "requirements" && (
         <div className="space-y-4">
@@ -309,11 +505,20 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white p-4">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h2>
+      <div className="mt-3 space-y-3">{children}</div>
+    </section>
+  );
+}
+
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+    <div>
       <p className="text-xs font-semibold uppercase text-slate-500">{label}</p>
-      <p className="mt-1 text-sm text-slate-900">{value}</p>
+      <p className="mt-1 whitespace-pre-wrap text-sm text-slate-900">{value}</p>
     </div>
   );
 }
