@@ -113,6 +113,10 @@ export const AUTHORIZED_ROUTES: RouteRule[] = [
     path: "/api/v1/integrations/:id/export/execute",
     permission: "integration.execute",
   },
+
+  // Audit (EPIC-012) — read-only query; no public write routes
+  { method: "GET", path: "/api/v1/audit", permission: "audit.read" },
+  { method: "GET", path: "/api/v1/audit/:id", permission: "audit.read" },
 ];
 
 function pathToRegex(path: string): RegExp {

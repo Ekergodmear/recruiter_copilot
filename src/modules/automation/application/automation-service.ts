@@ -2,6 +2,7 @@ import type { Clock } from "../../../shared/clock/index.js";
 import type { IdGenerator } from "../../../shared/id-generator/index.js";
 import type { AuthorizationService } from "../../authorization/application/authorization-service.js";
 import type { NotificationService } from "../../notification/application/notification-service.js";
+import type { AuditService } from "../../audit/application/audit-service.js";
 import {
   RelationshipService,
   RelationshipServiceError,
@@ -43,6 +44,8 @@ export class AutomationService {
       authorizationService: AuthorizationService;
       /** EPIC-010 — fan-out automation.completed only; never owned by Notifications. */
       notificationService?: NotificationService;
+      /** EPIC-012 — record ActionResult outcomes once (AC-6b). */
+      auditService?: AuditService;
     },
   ) {}
 
@@ -68,6 +71,7 @@ export class AutomationService {
         id: params.relationshipId,
         stage: params.targetStage,
         actorId,
+        suppressAudit: true,
       });
       const noop =
         after.currentStage === before.currentStage &&
@@ -170,6 +174,7 @@ export class AutomationService {
         id: params.relationshipId,
         assigneeId: params.assigneeId,
         actorId,
+        suppressAudit: true,
       });
       return this.ok(
         "assign",
@@ -229,6 +234,7 @@ export class AutomationService {
     };
     await this.deps.actionResultRepository.append(result);
     await this.deps.notificationService?.onAutomationCompleted(result);
+    await this.recordAudit(result);
     return result;
   }
 
@@ -249,7 +255,33 @@ export class AutomationService {
       target,
     };
     await this.deps.actionResultRepository.append(result);
+    await this.recordAudit(result);
     return result;
+  }
+
+  private async recordAudit(result: ActionResult): Promise<void> {
+    await this.deps.auditService?.record({
+      actorId: result.actorId,
+      action: `automation.${result.actionType}`,
+      source: "automation",
+      outcome: result.success ? "success" : "failure",
+      occurredAt: result.executedAt,
+      target: {
+        relationshipId: result.target.relationshipId,
+        candidateId: result.target.candidateId,
+        jobId: result.target.jobId,
+        actionId: result.actionId,
+        assigneeId: result.target.assigneeId,
+        stage: result.target.stage,
+      },
+      summary: result.success
+        ? result.noop
+          ? `Automation ${result.actionType} noop`
+          : `Automation ${result.actionType} succeeded`
+        : `Automation ${result.actionType} failed`,
+      error: result.error,
+      correlation: { actionId: result.actionId },
+    });
   }
 
   private async fromRelationshipError(
