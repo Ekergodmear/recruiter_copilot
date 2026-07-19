@@ -1,0 +1,340 @@
+{
+  "epic": "EPIC-006",
+  "title": "AI Recruiter Copilot",
+  "generatedAt": "2026-07-19T08:14:38.607Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-006-validate-Mbb0yV",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 19,
+    "passed": 19,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-1b",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      },
+      {
+        "ac": "AC-11",
+        "pass": true
+      },
+      {
+        "ac": "AC-12",
+        "pass": true
+      },
+      {
+        "ac": "AC-13",
+        "pass": true
+      },
+      {
+        "ac": "AC-14",
+        "pass": true
+      }
+    ],
+    "note": "AC-15 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "health",
+      "ac": "AC-14",
+      "description": "GET /health returns status ok",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "import",
+      "ac": "AC-13",
+      "description": "Resume Import works (no regression)",
+      "pass": true,
+      "detail": {
+        "c1": "candidate_3e7411110980"
+      }
+    },
+    {
+      "id": "matching-baseline",
+      "ac": "AC-12",
+      "description": "Matching Foundation baseline available",
+      "pass": true,
+      "detail": {
+        "scoreBefore": 80
+      }
+    },
+    {
+      "id": "explain-match",
+      "ac": "AC-1",
+      "description": "Explain Match grounded in Matching Evidence",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "overallMatchScore": 80,
+        "matchedSkills": [
+          "React",
+          "TypeScript"
+        ],
+        "missingSkills": [
+          "Node"
+        ]
+      }
+    },
+    {
+      "id": "transparency",
+      "ac": "AC-1b",
+      "description": "Response separates evidence (platform) from aiSuggestion (LLM)",
+      "pass": true,
+      "detail": {
+        "evidenceKeys": [
+          "overallMatchScore",
+          "matchedSkills",
+          "missingSkills",
+          "experience",
+          "english",
+          "salary",
+          "scoreBreakdown",
+          "weights",
+          "source"
+        ],
+        "aiSuggestionPreview": "[mock] Score 80 is produced by Matching Intelligence. Matched: React, TypeScript. Missing: Node. Use the Evidence sectio",
+        "providerId": "mock-reasoning"
+      }
+    },
+    {
+      "id": "score-invariant",
+      "ac": "AC-2",
+      "description": "Explain Match does not change Overall Match Score",
+      "pass": true,
+      "detail": {
+        "scoreBefore": 80,
+        "scoreAfter": 80,
+        "embedded": 80
+      }
+    },
+    {
+      "id": "summarize-candidate",
+      "ac": "AC-3",
+      "description": "Summarize Candidate from Candidate Intelligence",
+      "pass": true,
+      "detail": {
+        "evidence": {
+          "candidateId": "candidate_3e7411110980",
+          "name": "Unknown Candidate",
+          "skills": "TypeScript, React",
+          "english": "B2",
+          "experience": "5",
+          "summary": "E006 Cand — profile generated without LLM.",
+          "salary": "",
+          "currentTitle": "",
+          "company": "",
+          "source": "Candidate Intelligence (EPIC-001)"
+        },
+        "suggestionLen": 77
+      }
+    },
+    {
+      "id": "summarize-job",
+      "ac": "AC-4",
+      "description": "Summarize Job from Job Intelligence",
+      "pass": true,
+      "detail": {
+        "evidence": {
+          "jobId": "job_72686b6c8839",
+          "title": "E006 Job",
+          "company": "E006 Co",
+          "location": "",
+          "skills": [
+            "React",
+            "TypeScript",
+            "Node"
+          ],
+          "experienceYears": 5,
+          "englishRequirement": "B2",
+          "salaryMin": null,
+          "salaryMax": null,
+          "currency": "USD",
+          "requirements": "",
+          "description": "",
+          "source": "Job Intelligence (EPIC-002)"
+        }
+      }
+    },
+    {
+      "id": "draft-outreach",
+      "ac": "AC-5",
+      "description": "Draft Outreach returns reviewable draft (no send)",
+      "pass": true,
+      "detail": {
+        "note": "Draft only — Copilot does not send email",
+        "suggestionLen": 128
+      }
+    },
+    {
+      "id": "interview-questions",
+      "ac": "AC-6",
+      "description": "Interview Questions reference Missing Skills / job gaps",
+      "pass": true,
+      "detail": {
+        "missingSkills": [
+          "Node"
+        ],
+        "suggestionPreview": "[mock] 1. Probe experience with Node."
+      }
+    },
+    {
+      "id": "orchestration-determinism",
+      "description": "Same mock provider + input → stable response shape (evidence + aiSuggestion present)",
+      "pass": true,
+      "detail": {
+        "keys1": [
+          "overallMatchScore",
+          "matchedSkills",
+          "missingSkills",
+          "experience",
+          "english",
+          "salary",
+          "scoreBreakdown",
+          "weights",
+          "source"
+        ],
+        "keys2": [
+          "overallMatchScore",
+          "matchedSkills",
+          "missingSkills",
+          "experience",
+          "english",
+          "salary",
+          "scoreBreakdown",
+          "weights",
+          "source"
+        ],
+        "suggestionEqual": true
+      }
+    },
+    {
+      "id": "read-only",
+      "ac": "AC-7",
+      "description": "Copilot does not mutate Candidate, Job, Relationship, Workflow, Matching",
+      "pass": true,
+      "detail": {
+        "stageBefore": "Screening",
+        "stageAfter": "Screening",
+        "histBefore": 2,
+        "histAfter": 2,
+        "scoreBefore": 80,
+        "scoreFinal": 80
+      }
+    },
+    {
+      "id": "error-no-side-effect",
+      "description": "Provider/orchestration error (404 missing candidate) does not mutate domain",
+      "pass": true,
+      "detail": {
+        "statusCode": 404,
+        "body": {
+          "error": "CANDIDATE_NOT_FOUND",
+          "message": "Candidate not found"
+        },
+        "stage": "Screening"
+      }
+    },
+    {
+      "id": "candidate-workspace",
+      "ac": "AC-8",
+      "description": "Candidate Workspace has no regression",
+      "pass": true,
+      "detail": {
+        "detail": 200,
+        "list": 200
+      }
+    },
+    {
+      "id": "job-workspace",
+      "ac": "AC-9",
+      "description": "Job Workspace has no regression",
+      "pass": true,
+      "detail": {
+        "get": 200,
+        "list": 200
+      }
+    },
+    {
+      "id": "relationship-foundation",
+      "ac": "AC-10",
+      "description": "Relationship Foundation has no regression",
+      "pass": true,
+      "detail": {
+        "list": 200,
+        "duplicate": 409
+      }
+    },
+    {
+      "id": "workflow-foundation",
+      "ac": "AC-11",
+      "description": "Workflow Foundation has no regression",
+      "pass": true,
+      "detail": {
+        "currentStage": "Screening",
+        "historyLen": 2
+      }
+    },
+    {
+      "id": "matching-foundation",
+      "ac": "AC-12",
+      "description": "Matching Foundation has no regression after Copilot",
+      "pass": true,
+      "detail": {
+        "scoreBefore": 80,
+        "scoreFinal": 80
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-14",
+      "description": "/health still ok after Copilot actions",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    }
+  ]
+}

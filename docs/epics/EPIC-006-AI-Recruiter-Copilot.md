@@ -1,12 +1,12 @@
 # EPIC-006 — AI Recruiter Copilot
 
-| Field             | Value                                                      |
-| ----------------- | ---------------------------------------------------------- |
-| Status            | **SPEC** (PR-1 docs-only)                                  |
-| Baseline          | `main @ 78faa38` + EPIC-001…005 COMPLETED                  |
-| Type              | Product EPIC (user value)                                  |
-| Foundation Freeze | Intact                                                     |
-| TECH required     | None                                                       |
+| Field             | Value                                     |
+| ----------------- | ----------------------------------------- |
+| Status            | **PASS** (Validation PR-3)                |
+| Baseline          | `main @ 61a929c` + EPIC-001…005 COMPLETED |
+| Type              | Product EPIC (user value)                 |
+| Foundation Freeze | Intact                                    |
+| TECH required     | None                                      |
 
 ---
 
@@ -14,13 +14,13 @@
 
 The platform already owns five foundation capabilities:
 
-| EPIC     | Capability                | Role                                      |
-| -------- | ------------------------- | ----------------------------------------- |
-| EPIC-001 | Candidate Intelligence    | Candidate profile / workspace             |
-| EPIC-002 | Job Intelligence          | Job requirements                          |
-| EPIC-003 | Relationship Intelligence | Candidate ↔ Job link                      |
-| EPIC-004 | Workflow Intelligence     | Hiring stage + history                    |
-| EPIC-005 | Matching Intelligence     | Deterministic evidence → score            |
+| EPIC     | Capability                | Role                           |
+| -------- | ------------------------- | ------------------------------ |
+| EPIC-001 | Candidate Intelligence    | Candidate profile / workspace  |
+| EPIC-002 | Job Intelligence          | Job requirements               |
+| EPIC-003 | Relationship Intelligence | Candidate ↔ Job link           |
+| EPIC-004 | Workflow Intelligence     | Hiring stage + history         |
+| EPIC-005 | Matching Intelligence     | Deterministic evidence → score |
 
 Recruiters can manage hiring data and see explainable match evidence. They still lack an **assistant layer** that turns those capabilities into recruiter-facing language: explanations, summaries, and draft outreach — without inventing new business rules.
 
@@ -47,8 +47,8 @@ Without a Copilot that **reads** existing capabilities, teams either skip explan
 
 Introduce **AI Recruiter Copilot** focused on:
 
-1. **Explainability** — narrate Matching Evidence and related context in recruiter language  
-2. **Productivity** — draft summaries and outreach grounded in platform data  
+1. **Explainability** — narrate Matching Evidence and related context in recruiter language
+2. **Productivity** — draft summaries and outreach grounded in platform data
 
 AI **never** becomes the owner of hiring rules or decisions.
 
@@ -58,10 +58,10 @@ AI **never** becomes the owner of hiring rules or decisions.
 
 > **AI consumes capabilities; AI does not own business rules.**
 
-| Layer                         | Owns                                              |
-| ----------------------------- | ------------------------------------------------- |
-| EPIC-001…005 (capabilities)   | Business rules, Matching score, Workflow stages   |
-| EPIC-006 (Copilot)            | Natural-language interpretation & draft content   |
+| Layer                       | Owns                                            |
+| --------------------------- | ----------------------------------------------- |
+| EPIC-001…005 (capabilities) | Business rules, Matching score, Workflow stages |
+| EPIC-006 (Copilot)          | Natural-language interpretation & draft content |
 
 Consequences:
 
@@ -94,14 +94,14 @@ This supports **Evidence over Opinion**: recruiters must never confuse LLM wordi
 
 ## Business Language (Ubiquitous Language)
 
-| Term                     | Role in this EPIC                                              |
-| ------------------------ | -------------------------------------------------------------- |
-| **Copilot**              | AI assistant that interprets existing capabilities             |
-| **Explanation**          | Natural-language narration of Matching Evidence / context      |
-| **Summary**              | Short recruiter-facing brief of Candidate or Job               |
-| **Outreach Draft**       | Suggested first-touch message grounded in platform data        |
-| **Interview Prompts**    | Suggested questions grounded in Missing Skills / gaps          |
-| Matching Result          | Owned by EPIC-005 — Copilot consumes, does not redefine        |
+| Term                  | Role in this EPIC                                         |
+| --------------------- | --------------------------------------------------------- |
+| **Copilot**           | AI assistant that interprets existing capabilities        |
+| **Explanation**       | Natural-language narration of Matching Evidence / context |
+| **Summary**           | Short recruiter-facing brief of Candidate or Job          |
+| **Outreach Draft**    | Suggested first-touch message grounded in platform data   |
+| **Interview Prompts** | Suggested questions grounded in Missing Skills / gaps     |
+| Matching Result       | Owned by EPIC-005 — Copilot consumes, does not redefine   |
 
 Avoid framing Copilot as “AI Matching” or “AI Pipeline”.
 
@@ -125,9 +125,9 @@ Input: Candidate + Job (via on-demand Matching Result from EPIC-005).
 
 Output: Natural-language explanation of why the Overall Match Score is what it is, grounded in:
 
-- Matched Skills  
-- Missing Skills  
-- Experience / English / Salary evidence  
+- Matched Skills
+- Missing Skills
+- Experience / English / Salary evidence
 
 Must not invent a different score or omit that score comes from Matching Intelligence.
 
@@ -177,50 +177,50 @@ No architecture redesign. No new TECH ticket for MVP.
 
 ## Acceptance Criteria
 
-| ID        | Criterion                                                                 |
-| --------- | ------------------------------------------------------------------------- |
-| **AC-1**  | Explain Match returns an explanation grounded in Matching Evidence.       |
-| **AC-2**  | Explain Match does not change Overall Match Score vs EPIC-005 result.     |
+| ID        | Criterion                                                                        |
+| --------- | -------------------------------------------------------------------------------- |
+| **AC-1**  | Explain Match returns an explanation grounded in Matching Evidence.              |
+| **AC-2**  | Explain Match does not change Overall Match Score vs EPIC-005 result.            |
 | **AC-1b** | Copilot responses distinguish platform facts from AI suggestions (Transparency). |
-| **AC-3**  | Summarize Candidate returns a summary from Candidate Intelligence.        |
-| **AC-4**  | Summarize Job returns a summary from Job Intelligence.                    |
-| **AC-5**  | Draft Outreach returns a reviewable email draft (no send).                |
-| **AC-6**  | Suggest Interview Questions references Missing Skills / job gaps.         |
-| **AC-7**  | Copilot actions do not mutate Candidate, Job, Relationship, or Workflow.  |
-| **AC-8**  | Candidate Workspace has no regression.                                    |
-| **AC-9**  | Job Workspace has no regression.                                          |
-| **AC-10** | Relationship Foundation has no regression.                                |
-| **AC-11** | Workflow Foundation has no regression.                                    |
-| **AC-12** | Matching Foundation has no regression.                                    |
-| **AC-13** | Resume Import has no regression.                                          |
-| **AC-14** | `GET /health` returns `"status":"ok"`.                                    |
-| **AC-15** | `pnpm run ci` PASS.                                                       |
+| **AC-3**  | Summarize Candidate returns a summary from Candidate Intelligence.               |
+| **AC-4**  | Summarize Job returns a summary from Job Intelligence.                           |
+| **AC-5**  | Draft Outreach returns a reviewable email draft (no send).                       |
+| **AC-6**  | Suggest Interview Questions references Missing Skills / job gaps.                |
+| **AC-7**  | Copilot actions do not mutate Candidate, Job, Relationship, or Workflow.         |
+| **AC-8**  | Candidate Workspace has no regression.                                           |
+| **AC-9**  | Job Workspace has no regression.                                                 |
+| **AC-10** | Relationship Foundation has no regression.                                       |
+| **AC-11** | Workflow Foundation has no regression.                                           |
+| **AC-12** | Matching Foundation has no regression.                                           |
+| **AC-13** | Resume Import has no regression.                                                 |
+| **AC-14** | `GET /health` returns `"status":"ok"`.                                           |
+| **AC-15** | `pnpm run ci` PASS.                                                              |
 
 ---
 
 ## Out of Scope
 
-- AI recalculating Match Score or replacing Matching Engine  
-- Auto-ranking / recommendation lists  
-- Auto Workflow stage transitions / auto-hire decisions  
-- Sending email / calendar / interview scheduling product  
-- Chatbot with unbounded tool use that mutates domain  
-- Fine-tuning / learning loops / feedback-trained models  
-- Semantic search product EPIC  
-- Analytics dashboards  
-- TECH / architecture redesign / Memory Bank changes  
-- Pipeline Kanban board  
+- AI recalculating Match Score or replacing Matching Engine
+- Auto-ranking / recommendation lists
+- Auto Workflow stage transitions / auto-hire decisions
+- Sending email / calendar / interview scheduling product
+- Chatbot with unbounded tool use that mutates domain
+- Fine-tuning / learning loops / feedback-trained models
+- Semantic search product EPIC
+- Analytics dashboards
+- TECH / architecture redesign / Memory Bank changes
+- Pipeline Kanban board
 
 ---
 
 ## Dependencies
 
-| Dependency                         | Status    |
-| ---------------------------------- | --------- |
-| `main @ 78faa38` / Founder Alpha   | Required  |
-| EPIC-001…005                       | Completed |
-| Matching Result (on-demand)        | Required  |
-| LLM plugin (`ProviderRegistry`)    | Required  |
+| Dependency                       | Status    |
+| -------------------------------- | --------- |
+| `main @ 78faa38` / Founder Alpha | Required  |
+| EPIC-001…005                     | Completed |
+| Matching Result (on-demand)      | Required  |
+| LLM plugin (`ProviderRegistry`)  | Required  |
 
 No new TECH ticket. Prefer mock/deterministic providers in CI when live keys are absent.
 
@@ -228,35 +228,35 @@ No new TECH ticket. Prefer mock/deterministic providers in CI when live keys are
 
 ## Risks
 
-| Risk                                      | Mitigation                                                                 |
-| ----------------------------------------- | -------------------------------------------------------------------------- |
-| Business rules leak into prompts          | Governing principle; prompts only narrate capability payloads              |
-| Hallucinated skills / scores              | Ground Explain Match on Matching Evidence; AC-2 score invariance           |
-| Recruiter over-trusts drafts              | Label outputs as suggestions; no auto-send / auto-stage                    |
-| Provider flakiness in CI                  | Mock provider path; contract tests for response shape                      |
+| Risk                             | Mitigation                                                       |
+| -------------------------------- | ---------------------------------------------------------------- |
+| Business rules leak into prompts | Governing principle; prompts only narrate capability payloads    |
+| Hallucinated skills / scores     | Ground Explain Match on Matching Evidence; AC-2 score invariance |
+| Recruiter over-trusts drafts     | Label outputs as suggestions; no auto-send / auto-stage          |
+| Provider flakiness in CI         | Mock provider path; contract tests for response shape            |
 
 ---
 
 ## Success Metrics
 
-- Recruiters can get an evidence-grounded match explanation without leaving the platform.  
-- Copilot drafts reduce blank-page time for outreach / briefing.  
-- Matching Engine remains the sole owner of Match Score.  
+- Recruiters can get an evidence-grounded match explanation without leaving the platform.
+- Copilot drafts reduce blank-page time for outreach / briefing.
+- Matching Engine remains the sole owner of Match Score.
 - Future Analytics can treat Copilot usage as optional telemetry without owning hiring rules.
 
 ---
 
 ## Roadmap context
 
-| EPIC         | Goal                              |
-| ------------ | --------------------------------- |
-| ✅ EPIC-001  | Candidate Intelligence            |
-| ✅ EPIC-002  | Job Intelligence                  |
-| ✅ EPIC-003  | Relationship Intelligence         |
-| ✅ EPIC-004  | Workflow Intelligence             |
-| ✅ EPIC-005  | Matching Intelligence             |
-| **EPIC-006** | AI Recruiter Copilot _(this)_     |
-| EPIC-007     | Analytics & Insights              |
+| EPIC         | Goal                          |
+| ------------ | ----------------------------- |
+| ✅ EPIC-001  | Candidate Intelligence        |
+| ✅ EPIC-002  | Job Intelligence              |
+| ✅ EPIC-003  | Relationship Intelligence     |
+| ✅ EPIC-004  | Workflow Intelligence         |
+| ✅ EPIC-005  | Matching Intelligence         |
+| **EPIC-006** | AI Recruiter Copilot _(this)_ |
+| EPIC-007     | Analytics & Insights          |
 
 ---
 
@@ -264,30 +264,30 @@ No new TECH ticket. Prefer mock/deterministic providers in CI when live keys are
 
 EPIC-006 is done when:
 
-- AC-1…AC-15 **PASS**  
-- Regressions on EPIC-001…005 + Resume Import: **NONE**  
-- `GET /health` **PASS**  
-- `pnpm run ci` **PASS**  
-- Validation Report completed (PR-3) with evidence and clear **PASS / FAIL**  
-- Documented confirmation: Copilot did not own/recalculate Matching business rules  
+- AC-1…AC-15 **PASS**
+- Regressions on EPIC-001…005 + Resume Import: **NONE**
+- `GET /health` **PASS**
+- `pnpm run ci` **PASS**
+- Validation Report completed (PR-3) with evidence and clear **PASS / FAIL**
+- Documented confirmation: Copilot did not own/recalculate Matching business rules
 
 ---
 
 ## Deliverables (lifecycle)
 
-| PR              | Content                                                                 |
-| --------------- | ----------------------------------------------------------------------- |
-| **PR-1 (this)** | Spec only — this document + `reports/epic-006-spec-review.md`           |
+| PR              | Content                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| **PR-1 (this)** | Spec only — this document + `reports/epic-006-spec-review.md`                             |
 | **PR-2**        | Implementation — Copilot actions (explain / summarize / draft / questions) via LLM plugin |
-| **PR-3**        | Validation Report — AC checklist, runtime evidence, PASS/FAIL           |
+| **PR-3**        | Validation Report — AC checklist, runtime evidence, PASS/FAIL                             |
 
 ---
 
 ## Implementation constraints (for PR-2)
 
-- Branch from `main` after this Spec merges.  
-- Consume Matching Result via existing on-demand Matching API/engine — do not fork scoring logic into prompts.  
-- Use existing LLM plugin pattern; fail gracefully without keys.  
-- No mutations to Candidate / Job / Relationship / Workflow from Copilot endpoints.  
-- No email send; no auto stage move.  
-- Keep `main` deployable; CI green.  
+- Branch from `main` after this Spec merges.
+- Consume Matching Result via existing on-demand Matching API/engine — do not fork scoring logic into prompts.
+- Use existing LLM plugin pattern; fail gracefully without keys.
+- No mutations to Candidate / Job / Relationship / Workflow from Copilot endpoints.
+- No email send; no auto stage move.
+- Keep `main` deployable; CI green.
