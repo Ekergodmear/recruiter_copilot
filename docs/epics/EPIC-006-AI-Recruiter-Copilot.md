@@ -149,8 +149,9 @@ No architecture redesign. No new TECH ticket for MVP.
 3. Copilot **never** changes Candidate, Job, Relationship, or Workflow as a side effect of generation.
 4. Copilot outputs are **non-authoritative suggestions** — recruiter remains decision maker.
 5. Explanations must cite / reflect Matching Evidence when explaining scores.
-6. When required inputs are missing, Copilot fails clearly or states gaps — it does not fabricate facts.
-7. Feature flag / provider availability may gate live LLM calls; deterministic fixtures used for CI where needed.
+6. **Copilot Transparency:** responses separate platform facts from LLM-generated suggestions (structured sections and/or explicit labels).
+7. When required inputs are missing, Copilot fails clearly or states gaps — it does not fabricate facts.
+8. Feature flag / provider availability may gate live LLM calls; deterministic fixtures used for CI where needed.
 
 ---
 
@@ -160,6 +161,7 @@ No architecture redesign. No new TECH ticket for MVP.
 | --------- | ------------------------------------------------------------------------- |
 | **AC-1**  | Explain Match returns an explanation grounded in Matching Evidence.       |
 | **AC-2**  | Explain Match does not change Overall Match Score vs EPIC-005 result.     |
+| **AC-1b** | Copilot responses distinguish platform facts from AI suggestions (Transparency). |
 | **AC-3**  | Summarize Candidate returns a summary from Candidate Intelligence.        |
 | **AC-4**  | Summarize Job returns a summary from Job Intelligence.                    |
 | **AC-5**  | Draft Outreach returns a reviewable email draft (no send).                |

@@ -22,6 +22,7 @@ Five foundation capabilities exist. The remaining gap is **recruiter-facing lang
 | AI owns / recalculates Match Score          | **Reject** — Matching Intelligence (EPIC-005) owns score                |
 | AI auto-advances Workflow / auto-hire       | **Reject** — out of scope; recruiter decides                            |
 | **AI consumes capabilities; does not own business rules** | **Adopt** — locked governing principle                    |
+| **Copilot Transparency** (facts vs AI suggestion) | **Adopt** — separate platform data from LLM wording               |
 | Explainability + Productivity MVP           | **Adopt** — explain, summarize, draft, interview prompts                |
 
 Aligns with: Evidence over Opinion; AI as support layer, not decision maker.
@@ -70,7 +71,11 @@ EPIC-006      = Copilot (interpretation + drafts)
 
 - Hallucination risk — mitigate via Evidence grounding + AC-2 score invariance  
 - CI without API keys — mock provider path  
-- Recruiter over-trust — label suggestions; no auto-apply  
+- Recruiter over-trust — Copilot Transparency (facts vs suggestion) + no auto-apply  
+
+### Copilot Transparency (TL note)
+
+Every response should separate **platform-derived facts** from **LLM-generated suggestions**, so recruiters do not treat AI wording as source-of-truth data.
 
 ---
 
