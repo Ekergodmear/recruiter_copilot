@@ -33,7 +33,7 @@ docker compose --env-file .env.production up -d --build
 ```
 
 API: [http://localhost:3000/health](http://localhost:3000/health)  
-Ops checklist: [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) · Backup/restore: [BACKUP_RESTORE.md](./BACKUP_RESTORE.md)  
+Ops checklist: [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) · Backup/restore: [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · Deploy/rollback: [DEPLOY_ROLLBACK.md](./DEPLOY_ROLLBACK.md)  
 Tunnel (manual): Cloudflare → `http://localhost:3000` → `app.recruittersup.online`
 
 ## Common commands

@@ -47,16 +47,27 @@ docker compose down -v
 
 ---
 
-## 3. Upgrade
+## 3. Upgrade / Rollback
 
-```bash
-git pull
-docker compose --env-file .env.production up -d --build
-docker compose ps
-curl -s http://localhost:3000/health
+See **[DEPLOY_ROLLBACK.md](./DEPLOY_ROLLBACK.md)** (TECH-006 WP-3).
+
+```powershell
+.\scripts\deploy\update.ps1
+# rollback bad image (after an update that tagged :previous):
+.\scripts\deploy\rollback.ps1 -Mode image
+# rollback code to baseline tag:
+.\scripts\deploy\rollback.ps1 -Mode git -Target founder-alpha-1
 ```
 
-Entrypoint runs `prisma db push` on each start (schema sync). No separate migrate step for Founder Alpha.
+```bash
+./scripts/deploy/update.sh
+./scripts/deploy/rollback.sh image
+./scripts/deploy/rollback.sh git founder-alpha-1
+```
+
+Always verify: `docker compose ps` + `curl -s http://localhost:3000/health`.
+
+Entrypoint runs `prisma db push` on each start (schema sync). No separate migrate step for Founder Alpha. Data/schema damage → WP-1 restore.
 
 ---
 

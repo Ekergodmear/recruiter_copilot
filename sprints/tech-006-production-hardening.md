@@ -89,11 +89,22 @@ Example: VPS dies at 15:00; last backup 02:00; restore done 15:20 → RTO 20m (p
 - Disk usage checks for volumes + host
 - Basic health monitoring (poll `/health`; alert = human/process, not a new platform)
 
-### WP-3 — Deployment
+### WP-3 — Deployment / Rollback
+
+**Includes**
 
 - Safe update procedure (`compose up -d --build` with checks)
-- Rollback procedure to previous image / tag `founder-alpha-1`
-- Evidence checklist after each deploy
+- Image rollback (`aiheadhunter-api:previous`)
+- Git tag / SHA rollback (e.g. `founder-alpha-1`)
+- Compose recreate path
+- Database rollback via WP-1 restore (when data/schema damaged)
+- Deployment verification checklist
+
+**Does not include**
+
+- CI/CD / GitHub Actions deploy
+- Kubernetes / Helm / ArgoCD
+- Blue/green / canary
 
 ### WP-4 — Operations Runbook
 
