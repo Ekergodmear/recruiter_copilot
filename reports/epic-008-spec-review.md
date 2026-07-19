@@ -25,6 +25,7 @@ Seven capabilities cover observation and decision support. The natural next step
 | Automation writes outreach text                                | **Reject** — Copilot drafts; Automation sends        |
 | **Automation consumes capabilities; executes authorized actions** | **Adopt** — locked                               |
 | **Every execution attributable and auditable**                 | **Adopt** — locked (MVP Action Result, not full Audit EPIC) |
+| **Idempotency / repeat-safe (AC-9b)**                          | **Adopt** — assign/move no-op; send rejects duplicate draft |
 | Stage Move / Send Outreach / Assignment only                   | **Adopt** — small mutation surface                   |
 
 Aligns with: Observation → Controlled Execution without breaking source-of-truth boundaries.

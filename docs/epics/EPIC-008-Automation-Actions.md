@@ -170,7 +170,8 @@ Confirm dialogs / action controls for the three actions (e.g. on Job Relationshi
 5. Assignment mutates only the assignee field on the relationship (plus Action Result record).  
 6. Failures return Action Result with `success: false` and do not leave undocumented partial state when avoidable (recoverable: retry after fix).  
 7. Authorization: MVP enforces that `actorId` is present and actions are only the three Spec types (deeper RBAC deferred to Administration EPIC).  
-8. Copilot and Analytics remain read-only; Automation is the mutation path for these actions.
+8. Copilot and Analytics remain read-only; Automation is the mutation path for these actions.  
+9. **Idempotency (MVP):** Assign same assignee → success no-op (no duplicate side effects). Stage Move to current stage → success no-op (no new history — already Workflow behavior). Send Outreach: reject repeat send of the same draft fingerprint for the same relationship with a clear error (`ALREADY_SENT`) unless an explicit new send is confirmed with a different draft.
 
 ---
 
@@ -187,6 +188,7 @@ Confirm dialogs / action controls for the three actions (e.g. on Job Relationshi
 | **AC-7**  | Action Result returned (success/failure + attribution fields).            |
 | **AC-8**  | Failure is recoverable (clear error; safe retry after correction).        |
 | **AC-9**  | Every execution is attributable and auditable (actor, time, action, result recorded). |
+| **AC-9b** | Idempotent / repeat-safe behavior for suitable actions: assign same assignee twice is a no-op success; move to current stage does not append Stage History; repeat Send of the same draft is rejected or clearly marked already-sent (MVP must document which). |
 | **AC-10** | Candidate Workspace has no regression.                                    |
 | **AC-11** | Job Workspace has no regression.                                          |
 | **AC-12** | Relationship / Workflow Foundations have no regression.                   |
@@ -261,12 +263,12 @@ Confirm dialogs / action controls for the three actions (e.g. on Job Relationshi
 
 EPIC-008 is done when:
 
-- AC-1…AC-18 **PASS**  
+- AC-1…AC-18 (+ AC-9b Idempotency) **PASS**  
 - Regressions on EPIC-001…007 + Resume Import: **NONE**  
 - `GET /health` **PASS**  
 - `pnpm run ci` **PASS**  
 - Validation Report completed (PR-3) with evidence and clear **PASS / FAIL**  
-- Documented confirmation: no rule engine / auto-stage; Send does not author drafts; executions attributable  
+- Documented confirmation: no rule engine / auto-stage; Send does not author drafts; executions attributable; repeat-safe behavior documented  
 
 ---
 
