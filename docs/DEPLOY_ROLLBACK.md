@@ -148,7 +148,19 @@ Optional: hit one read-only business path you know (e.g. list jobs) if marker da
 
 ---
 
-## When to use which rollback
+## Decision matrix (operator quick pick)
+
+| Situation | Action |
+|-----------|--------|
+| Deploy failed, DB unchanged | Rollback **image** (`rollback.* -Mode image`) |
+| Deploy failed, migration / `db push` damaged data | **Restore DB** (WP-1) + rollback **image** |
+| Tunnel down / 502 from Cloudflare | Do **not** rollback app — fix Tunnel (see [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md)) |
+| Docker image bad / API crash-loop after update | Rollback **image** |
+| Data corrupted / wrong rows | **Restore DB** (WP-1) |
+| Need known-good full tree | Git rollback to `founder-alpha-1` |
+| Containers wedged, image/code fine | Compose force-recreate |
+
+### Rollback modes (detail)
 
 | Symptom | First try |
 |---------|-----------|

@@ -109,7 +109,24 @@ Postgres password is applied only on first volume init — restore scripts recre
 
 ---
 
-## 6. Troubleshooting
+## 6. Incident runbook
+
+Step-by-step SOPs: **[OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md)** (TECH-006 WP-4).
+
+| Problem | Start at |
+|---------|----------|
+| API crash loop | SOP-1 |
+| Postgres / connection | SOP-2 |
+| `/health` not ok | SOP-3 |
+| Tunnel / public URL only | SOP-4 |
+| Disk full | SOP-5 |
+| Backup failed | SOP-6 |
+
+Always finish with the runbook **After every fix** checklist.
+
+---
+
+## 7. Troubleshooting (short)
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
@@ -128,7 +145,7 @@ docker inspect --format '{{.State.Health.Status}}' aiheadhunter-api-1
 
 ---
 
-## 7. Verification steps
+## 8. Verification steps
 
 - [ ] `docker compose ps` → `api` and `postgres` both **healthy**
 - [ ] `curl http://localhost:3000/health` → `"status":"ok"`
@@ -141,7 +158,7 @@ docker inspect --format '{{.State.Health.Status}}' aiheadhunter-api-1
 
 ---
 
-## 8. Security reminders
+## 9. Security reminders
 
 - Never ship with `POSTGRES_PASSWORD=CHANGE_ME_BEFORE_PRODUCTION`. Set a strong secret before first volume init.
 - Keep `OPERATIONS_DASHBOARD_ENABLED=false` on public hosts.
