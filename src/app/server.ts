@@ -32,6 +32,9 @@ import { AutomationService } from "../modules/automation/application/automation-
 import { registerAutomationRoutes } from "../modules/automation/presentation/automation-routes.js";
 import { FileActionResultRepository } from "../modules/automation/infrastructure/action-result-repository.js";
 import { MockEmailSendAdapter } from "../modules/automation/infrastructure/email-send-adapter.js";
+import { ActorRegistry } from "../modules/authorization/application/actor-registry.js";
+import { AuthorizationService } from "../modules/authorization/application/authorization-service.js";
+import { registerAuthorizationGate } from "../modules/authorization/presentation/authorization-gate.js";
 import { RecruitmentService } from "../modules/recruitment/application/recruitment-service.js";
 import { join } from "node:path";
 import { registerRecruitmentRoutes } from "../modules/recruitment/presentation/recruitment-routes.js";
@@ -81,6 +84,7 @@ export type AppDependencies = {
   copilotService: CopilotService;
   analyticsService: AnalyticsService;
   automationService: AutomationService;
+  authorizationService: AuthorizationService;
   recruitmentService: RecruitmentService;
   knowledgeEvolutionService: KnowledgeEvolutionService;
   candidateInsightService: CandidateInsightService;
@@ -267,6 +271,8 @@ export function createAppDependencies(
     matchingService,
   });
 
+  const authorizationService = new AuthorizationService(new ActorRegistry());
+
   const automationService = new AutomationService({
     clock,
     idGenerator,
@@ -276,6 +282,7 @@ export function createAppDependencies(
       join(config.storagePath, "automation-actions.jsonl"),
     ),
     emailSendAdapter: new MockEmailSendAdapter(),
+    authorizationService,
   });
 
   const auditReplayService = new AuditReplayService({
@@ -316,6 +323,7 @@ export function createAppDependencies(
     copilotService,
     analyticsService,
     automationService,
+    authorizationService,
     recruitmentService,
     knowledgeEvolutionService,
     candidateInsightService,
@@ -344,6 +352,7 @@ export async function buildApp(deps?: AppDependencies) {
   setLogger(resolved.logger);
   registerRequestLogging(app, resolved.logger);
   registerSecurityPlugin(app, resolved.config, resolved.logger);
+  registerAuthorizationGate(app, resolved.authorizationService);
 
   await app.register(cors, { origin: true });
   await app.register(multipart, {

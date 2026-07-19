@@ -1,5 +1,6 @@
 import type { Clock } from "../../../shared/clock/index.js";
 import type { IdGenerator } from "../../../shared/id-generator/index.js";
+import type { AuthorizationService } from "../../authorization/application/authorization-service.js";
 import {
   RelationshipService,
   RelationshipServiceError,
@@ -37,6 +38,8 @@ export class AutomationService {
       relationshipRepository: RelationshipRepository;
       actionResultRepository: ActionResultRepository;
       emailSendAdapter: EmailSendAdapter;
+      /** EPIC-009 — no local role matrix; policy via AuthorizationService. */
+      authorizationService: AuthorizationService;
     },
   ) {}
 
@@ -47,6 +50,7 @@ export class AutomationService {
     confirmed?: boolean;
   }): Promise<ActionResult> {
     const actorId = this.requireAuth(params);
+    this.requirePermission(actorId);
     const before = await this.deps.relationshipRepository.findById(params.relationshipId);
     if (!before) {
       return this.fail("stage_move", actorId, "NOT_FOUND", "Relationship not found", {
@@ -92,6 +96,7 @@ export class AutomationService {
     confirmed?: boolean;
   }): Promise<ActionResult> {
     const actorId = this.requireAuth(params);
+    this.requirePermission(actorId);
     const draft = params.draftBody?.trim() ?? "";
     if (!draft) {
       return this.fail("send_outreach", actorId, "DRAFT_REQUIRED", "draftBody is required", {
@@ -155,6 +160,7 @@ export class AutomationService {
     confirmed?: boolean;
   }): Promise<ActionResult> {
     const actorId = this.requireAuth(params);
+    this.requirePermission(actorId);
     try {
       const { relationship, changed } = await this.deps.relationshipService.assign({
         id: params.relationshipId,
@@ -191,6 +197,13 @@ export class AutomationService {
       throw new AutomationServiceError("UNAUTHORIZED", "actorId is required");
     }
     return actorId;
+  }
+
+  private requirePermission(actorId: string): void {
+    const decision = this.deps.authorizationService.authorize(actorId, "automation.execute");
+    if (!decision.allowed) {
+      throw new AutomationServiceError(decision.code, decision.message);
+    }
   }
 
   private async ok(

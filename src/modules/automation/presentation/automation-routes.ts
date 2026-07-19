@@ -9,7 +9,14 @@ function sendAuthError(
   },
   err: AutomationServiceError,
 ) {
-  const status = err.code === "UNAUTHORIZED" || err.code === "CONFIRMATION_REQUIRED" ? 403 : 400;
+  const status =
+    err.code === "UNAUTHORIZED" ||
+    err.code === "CONFIRMATION_REQUIRED" ||
+    err.code === "FORBIDDEN" ||
+    err.code === "UNKNOWN_ACTOR" ||
+    err.code === "UNKNOWN_PERMISSION"
+      ? 403
+      : 400;
   return reply.status(status).send({ error: { code: err.code, message: err.message } });
 }
 
