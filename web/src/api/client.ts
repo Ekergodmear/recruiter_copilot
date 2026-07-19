@@ -9,9 +9,11 @@ import type {
   InsightsResponse,
   Job,
   JobListItem,
+  JobManualCreate,
   JobMatch,
   JobReview,
   JobSubmission,
+  JobWorkspacePatch,
   Offer,
   PipelineActivity,
   PipelineStats,
@@ -126,15 +128,42 @@ export const api = {
     );
   },
 
-  listJobs(params?: { status?: string; q?: string; company?: string; location?: string }) {
+  listJobs(params?: {
+    status?: string;
+    q?: string;
+    company?: string;
+    location?: string;
+    sort?: "updated" | "created";
+  }) {
     const sp = new URLSearchParams();
     if (params?.status) sp.set("status", params.status);
     if (params?.q) sp.set("q", params.q);
     if (params?.company) sp.set("company", params.company);
     if (params?.location) sp.set("location", params.location);
+    if (params?.sort) sp.set("sort", params.sort);
     const qs = sp.toString();
     return parseJson<{ items: JobListItem[]; total: number }>(
       fetch(`/api/v1/jobs${qs ? `?${qs}` : ""}`),
+    );
+  },
+
+  createJobManual(body: JobManualCreate) {
+    return parseJson<Job>(
+      fetch("/api/v1/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
+  },
+
+  updateJob(id: string, body: JobWorkspacePatch) {
+    return parseJson<Job>(
+      fetch(`/api/v1/jobs/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
     );
   },
 

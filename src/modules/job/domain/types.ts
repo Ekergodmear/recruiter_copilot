@@ -4,6 +4,11 @@ export const JOB_STATUSES: JobStatus[] = ["Draft", "Open", "Paused", "Closed", "
 
 export type EmploymentType = "full_time" | "part_time" | "contract" | "internship" | "other";
 
+/** EPIC-002 — assigned at creation; immutable in MVP */
+export type JobSource = "manual" | "client" | "import";
+
+export const JOB_SOURCES: JobSource[] = ["manual", "client", "import"];
+
 export type JobReviewField =
   | "title"
   | "skills"
@@ -52,6 +57,10 @@ export type Job = {
   updatedAt: string;
   createdBy: string;
   rawJdText: string;
+  /** EPIC-002 Job Intelligence — immutable after create */
+  source: JobSource;
+  /** Job-level recruiter notes (not submission notes) */
+  notes: string;
 };
 
 export type SubmissionStatus =

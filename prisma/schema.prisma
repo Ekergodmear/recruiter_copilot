@@ -69,6 +69,8 @@ model Job {
   updatedAt           String
   createdBy           String
   rawJdText           String
+  source              String  @default("manual")
+  notes               String  @default("")
 
   @@index([workspaceId])
   @@index([status])

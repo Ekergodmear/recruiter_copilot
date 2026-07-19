@@ -1,6 +1,11 @@
 import type { PrismaClient } from "@prisma/client";
 import type { JobRepository } from "../../../modules/job/infrastructure/job-repository.js";
-import type { EmploymentType, Job, JobStatus } from "../../../modules/job/domain/types.js";
+import type {
+  EmploymentType,
+  Job,
+  JobSource,
+  JobStatus,
+} from "../../../modules/job/domain/types.js";
 
 type JobRow = {
   id: string;
@@ -29,6 +34,8 @@ type JobRow = {
   updatedAt: string;
   createdBy: string;
   rawJdText: string;
+  source: string;
+  notes: string;
 };
 
 function toRow(job: Job): JobRow {
@@ -59,6 +66,8 @@ function toRow(job: Job): JobRow {
     updatedAt: job.updatedAt,
     createdBy: job.createdBy,
     rawJdText: job.rawJdText,
+    source: job.source,
+    notes: job.notes,
   };
 }
 
@@ -90,6 +99,8 @@ function toJob(row: JobRow): Job {
     updatedAt: row.updatedAt,
     createdBy: row.createdBy,
     rawJdText: row.rawJdText,
+    source: (row.source as JobSource) || "manual",
+    notes: row.notes ?? "",
   };
 }
 

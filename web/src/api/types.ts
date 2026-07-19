@@ -106,9 +106,12 @@ export type JobListItem = {
   company: string;
   status: string;
   location: string;
+  employmentType: string;
+  source: string;
   ready: boolean;
   submissionCount: number;
   candidates: number;
+  createdAt: string;
   updatedAt: string;
 };
 
@@ -136,6 +139,35 @@ export type Job = {
   createdAt: string;
   updatedAt: string;
   rawJdText: string;
+  source: string;
+  notes: string;
+};
+
+export type JobManualCreate = {
+  title: string;
+  company: string;
+  location?: string;
+  employmentType?: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  currency?: string;
+  status?: string;
+  notes?: string;
+  description?: string;
+  requirements?: string;
+  benefits?: string;
+};
+
+export type JobWorkspacePatch = {
+  title?: string;
+  company?: string;
+  location?: string;
+  employmentType?: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  currency?: string;
+  status?: string;
+  notes?: string;
 };
 
 export type JobReview = {

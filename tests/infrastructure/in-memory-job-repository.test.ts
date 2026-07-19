@@ -31,6 +31,8 @@ function makeJob(overrides: Partial<Job>): Job {
     updatedAt: now,
     createdBy: "recruiter_alpha",
     rawJdText: "",
+    source: "manual",
+    notes: "",
     ...overrides,
   };
 }

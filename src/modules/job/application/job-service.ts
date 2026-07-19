@@ -4,7 +4,13 @@ import type { Clock } from "../../../shared/clock/index.js";
 import type { IdGenerator } from "../../../shared/id-generator/index.js";
 import { createTelemetryEvent, type TelemetryStore } from "../../../shared/telemetry/index.js";
 import type { CandidateRepository } from "../../candidate/infrastructure/persistence/candidate-repository.js";
-import type { Job, JobReviewField, JobStatus, Submission } from "../domain/types.js";
+import type {
+  EmploymentType,
+  Job,
+  JobReviewField,
+  JobStatus,
+  Submission,
+} from "../domain/types.js";
 import { JOB_REVIEW_FIELDS, JOB_STATUSES } from "../domain/types.js";
 import { applyJobFieldEdit, extractJdFields, jobFieldValue } from "./jd-parse.js";
 import { rankReadyCandidates, type RuleMatchResult } from "./rule-matching.js";
@@ -93,6 +99,8 @@ export class JobService {
       updatedAt: now,
       createdBy: actorId,
       rawJdText: text,
+      source: "manual",
+      notes: "",
     };
     await this.deps.jobRepository.save(job);
     const parseTimeMs = this.deps.clock.now().getTime() - started.getTime();
@@ -116,7 +124,76 @@ export class JobService {
     return job;
   }
 
-  async list(params: { status?: string; q?: string; company?: string; location?: string }) {
+  /**
+   * EPIC-002 — manual create (source=manual, immutable thereafter).
+   */
+  async createManual(params: {
+    actorId: string;
+    title: string;
+    company: string;
+    location?: string;
+    employmentType?: EmploymentType;
+    salaryMin?: number | null;
+    salaryMax?: number | null;
+    currency?: string;
+    status?: JobStatus;
+    notes?: string;
+    description?: string;
+    requirements?: string;
+    benefits?: string;
+  }): Promise<Job> {
+    const title = params.title.trim();
+    const company = params.company.trim();
+    if (!title) throw new JobServiceError("INVALID_BODY", "title is required");
+    if (!company) throw new JobServiceError("INVALID_BODY", "company is required");
+    if (params.status && !JOB_STATUSES.includes(params.status)) {
+      throw new JobServiceError("INVALID_STATUS", `Invalid status: ${params.status}`);
+    }
+    const now = this.deps.clock.nowIso();
+    const job: Job = {
+      id: this.deps.idGenerator.generateId("job"),
+      workspaceId: this.deps.workspaceId,
+      title,
+      company,
+      department: "",
+      employmentType: params.employmentType ?? "full_time",
+      location: params.location?.trim() ?? "",
+      salaryMin: params.salaryMin ?? null,
+      salaryMax: params.salaryMax ?? null,
+      currency: params.currency?.trim() || "USD",
+      experienceYears: null,
+      englishRequirement: "",
+      skills: [],
+      description: params.description?.trim() ?? "",
+      responsibilities: "",
+      requirements: params.requirements?.trim() ?? "",
+      benefits: params.benefits?.trim() ?? "",
+      status: params.status ?? "Draft",
+      ready: true,
+      submissionCount: 0,
+      placementCount: 0,
+      deletedAt: null,
+      createdAt: now,
+      updatedAt: now,
+      createdBy: params.actorId,
+      rawJdText: "",
+      source: "manual",
+      notes: params.notes?.trim() ?? "",
+    };
+    await this.deps.jobRepository.save(job);
+    if (this.deps.onJobCreated) {
+      await this.deps.onJobCreated(job.id, params.actorId);
+    }
+    return job;
+  }
+
+  async list(params: {
+    status?: string;
+    q?: string;
+    company?: string;
+    location?: string;
+    sort?: "updated" | "created";
+  }) {
     let jobs = await this.deps.jobRepository.findAll();
     if (params.status) {
       jobs = jobs.filter((j) => j.status === params.status);
@@ -131,14 +208,16 @@ export class JobService {
     }
     const q = params.q?.trim().toLowerCase();
     if (q) {
+      // EPIC-002: search by title and company
       jobs = jobs.filter(
-        (j) =>
-          j.title.toLowerCase().includes(q) ||
-          j.company.toLowerCase().includes(q) ||
-          j.location.toLowerCase().includes(q) ||
-          j.skills.some((s) => s.toLowerCase().includes(q)),
+        (j) => j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q),
       );
     }
+    const sort = params.sort === "created" ? "created" : "updated";
+    jobs = [...jobs].sort((a, b) => {
+      const key = sort === "created" ? "createdAt" : "updatedAt";
+      return new Date(b[key]).getTime() - new Date(a[key]).getTime();
+    });
     return {
       items: jobs.map((j) => ({
         id: j.id,
@@ -146,10 +225,13 @@ export class JobService {
         company: j.company,
         status: j.status,
         location: j.location,
+        employmentType: j.employmentType,
+        source: j.source,
         ready: j.ready,
         submissionCount: j.submissionCount,
         placementCount: j.placementCount,
         candidates: j.submissionCount,
+        createdAt: j.createdAt,
         updatedAt: j.updatedAt,
       })),
       total: jobs.length,
@@ -177,6 +259,8 @@ export class JobService {
       submissionCount: job.submissionCount,
       placementCount: job.placementCount,
       deletedAt: job.deletedAt,
+      // EPIC-002: source is immutable after creation
+      source: job.source,
       updatedAt: this.deps.clock.nowIso(),
     };
     await this.deps.jobRepository.save(next);
@@ -384,5 +468,7 @@ function sanitizePatch(patch: Partial<Job>): Partial<Job> {
     }
     next.status = patch.status;
   }
+  if (patch.notes !== undefined) next.notes = String(patch.notes);
+  // source intentionally omitted — immutable
   return next;
 }

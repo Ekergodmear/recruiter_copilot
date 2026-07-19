@@ -150,6 +150,8 @@ export async function seedBenchmarkJob(
     updatedAt: now,
     createdBy: "recruiter_bench",
     rawJdText: "Senior Software Engineer TypeScript React Node",
+    source: "manual",
+    notes: "",
   };
   await deps.repositories.jobRepository.save(job);
   return job;
