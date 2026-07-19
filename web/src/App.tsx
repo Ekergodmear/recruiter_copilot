@@ -12,6 +12,7 @@ import { JobsScreen } from "./screens/JobsScreen";
 import { JobCreateScreen } from "./screens/JobCreateScreen";
 import { JobReviewScreen } from "./screens/JobReviewScreen";
 import { JobDetailScreen } from "./screens/JobDetailScreen";
+import { AnalyticsScreen } from "./screens/AnalyticsScreen";
 import { SubmissionsScreen } from "./screens/SubmissionsScreen";
 import { SubmissionDetailScreen } from "./screens/SubmissionDetailScreen";
 import { OnboardingScreen, isOnboardingDone } from "./screens/OnboardingScreen";
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="jobs" element={<JobsScreen />} />
           <Route path="jobs/new" element={<JobCreateScreen />} />
           <Route path="jobs/:id" element={<JobDetailScreen />} />
+          <Route path="analytics" element={<AnalyticsScreen />} />
           <Route path="pipeline" element={<SubmissionsScreen />} />
           <Route path="submissions/:id" element={<SubmissionDetailScreen />} />
         </Route>

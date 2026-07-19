@@ -284,6 +284,62 @@ export type CopilotResponse = {
   generatedAt: string;
 };
 
+/** EPIC-007 — Analytics read snapshot (traceable aggregates). */
+export type AnalyticsSnapshot = {
+  scope: "global" | "job";
+  jobId: string | null;
+  generatedAt: string;
+  sourceCapabilities: string[];
+  counts: { candidates: number; jobs: number; relationships: number };
+  stageDistribution: {
+    stages: Array<{ stage: WorkflowStage; count: number; relationshipIds: string[] }>;
+    total: number;
+  };
+  funnel: {
+    transitions: Array<{
+      from: WorkflowStage | null;
+      to: WorkflowStage;
+      count: number;
+      relationshipIds: string[];
+    }>;
+    conversions: Array<{
+      from: WorkflowStage;
+      to: WorkflowStage;
+      reachedFrom: number;
+      movedTo: number;
+      rate: number | null;
+      relationshipIdsReachedFrom: string[];
+      relationshipIdsMovedTo: string[];
+    }>;
+  };
+  matchScoreDistribution: {
+    buckets: Array<{
+      label: string;
+      min: number;
+      max: number;
+      count: number;
+      items: Array<{
+        relationshipId: string;
+        candidateId: string;
+        jobId: string;
+        overallMatchScore: number;
+        computedAt: string;
+      }>;
+    }>;
+    totalComputed: number;
+    source: "matching_on_demand";
+  };
+  timeToStage: {
+    byStage: Array<{
+      stage: WorkflowStage;
+      sampleSize: number;
+      averageDays: number | null;
+      medianDays: number | null;
+      relationshipIds: string[];
+    }>;
+  };
+};
+
 export type JobMatch = {
   candidateId: string;
   name: string;

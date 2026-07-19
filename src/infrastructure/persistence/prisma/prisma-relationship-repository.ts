@@ -100,4 +100,11 @@ export class PrismaRelationshipRepository implements RelationshipRepository {
     });
     return rows.map(toDomain);
   }
+
+  async findAll(): Promise<CandidateJobRelationship[]> {
+    const rows = await this.prisma.candidateJobRelationship.findMany({
+      orderBy: { updatedAt: "desc" },
+    });
+    return rows.map(toDomain);
+  }
 }

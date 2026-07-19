@@ -13,6 +13,7 @@ import type {
   JobMatch,
   MatchingResult,
   CopilotResponse,
+  AnalyticsSnapshot,
   JobReview,
   JobSubmission,
   JobWorkspacePatch,
@@ -330,6 +331,15 @@ export const api = {
         body: JSON.stringify({ candidateId, jobId }),
       }),
     );
+  },
+
+  /** EPIC-007 — Analytics (read-only aggregates). */
+  getAnalyticsOverview() {
+    return parseJson<AnalyticsSnapshot>(fetch("/api/v1/analytics/overview"));
+  },
+
+  getJobAnalytics(jobId: string) {
+    return parseJson<AnalyticsSnapshot>(fetch(`/api/v1/analytics/jobs/${jobId}`));
   },
 
   getJobSubmissions(id: string) {
