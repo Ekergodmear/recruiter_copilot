@@ -17,6 +17,8 @@ import { RelationshipService } from "../src/modules/relationship/application/rel
 import { InMemoryRelationshipRepository } from "../src/modules/relationship/infrastructure/in-memory-relationship-repository.js";
 import { InMemoryCandidateRepository } from "../src/modules/candidate/infrastructure/persistence/in-memory-candidate-repository.js";
 import { InMemoryJobRepository } from "../src/modules/job/infrastructure/in-memory-job-repository.js";
+import { ActorRegistry } from "../src/modules/authorization/application/actor-registry.js";
+import { AuthorizationService } from "../src/modules/authorization/application/authorization-service.js";
 
 type Step = {
   id: string;
@@ -488,6 +490,7 @@ async function main() {
     relationshipRepository: memRels,
     actionResultRepository: actionRepo,
     emailSendAdapter: failingAdapter,
+    authorizationService: new AuthorizationService(new ActorRegistry()),
   });
   const failSend = await autoSvc.sendOutreach({
     relationshipId: "rel_atomicity01",
