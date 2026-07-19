@@ -274,6 +274,16 @@ export type MatchingResult = {
   computedAt: string;
 };
 
+/** EPIC-006 — Copilot Transparency: evidence (platform) vs aiSuggestion (LLM). */
+export type CopilotResponse = {
+  action: string;
+  evidence: Record<string, unknown>;
+  aiSuggestion: string;
+  matchingResult?: MatchingResult;
+  providerId: string;
+  generatedAt: string;
+};
+
 export type JobMatch = {
   candidateId: string;
   name: string;

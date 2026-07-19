@@ -2,7 +2,12 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { JobWorkspacePatch, MatchingResult, WorkflowStage } from "../api/types";
+import type {
+  CopilotResponse,
+  JobWorkspacePatch,
+  MatchingResult,
+  WorkflowStage,
+} from "../api/types";
 import { WORKFLOW_STAGES } from "../api/types";
 import { InsightsPanel } from "../components/InsightsPanel";
 
@@ -20,6 +25,10 @@ export function JobDetailScreen() {
   const [matchResult, setMatchResult] = useState<MatchingResult | null>(null);
   const [matchError, setMatchError] = useState<string | null>(null);
   const [matchLoadingId, setMatchLoadingId] = useState<string | null>(null);
+  const [copilotCandidateId, setCopilotCandidateId] = useState<string | null>(null);
+  const [copilot, setCopilot] = useState<CopilotResponse | null>(null);
+  const [copilotError, setCopilotError] = useState<string | null>(null);
+  const [copilotBusy, setCopilotBusy] = useState(false);
   const [form, setForm] = useState({
     title: "",
     company: "",
@@ -447,6 +456,7 @@ export function JobDetailScreen() {
                           try {
                             const result = await api.getMatching(r.candidateId, id);
                             setMatchResult(result);
+                            setCopilotCandidateId(r.candidateId);
                           } catch (e) {
                             setMatchResult(null);
                             setMatchError(e instanceof Error ? e.message : "Match failed");
@@ -543,6 +553,75 @@ export function JobDetailScreen() {
                   {matchResult.scoreBreakdown.english} · salary {matchResult.scoreBreakdown.salary}
                 </p>
               </div>
+            </section>
+          )}
+          {copilotCandidateId && (
+            <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+              <div>
+                <h3 className="font-semibold text-slate-900">AI Recruiter Copilot</h3>
+                <p className="text-xs text-slate-500">
+                  Evidence → AI Suggestion · read-only · does not change Match Score or Workflow
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["Explain Match", () => api.copilotExplainMatch(copilotCandidateId, id)],
+                    [
+                      "Summarize Candidate",
+                      () => api.copilotSummarizeCandidate(copilotCandidateId),
+                    ],
+                    ["Summarize Job", () => api.copilotSummarizeJob(id)],
+                    ["Draft Outreach", () => api.copilotDraftOutreach(copilotCandidateId, id)],
+                    [
+                      "Interview Questions",
+                      () => api.copilotSuggestInterviewQuestions(copilotCandidateId, id),
+                    ],
+                  ] as const
+                ).map(([label, run]) => (
+                  <button
+                    key={label}
+                    type="button"
+                    disabled={copilotBusy}
+                    className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-medium disabled:opacity-50"
+                    onClick={async () => {
+                      setCopilotError(null);
+                      setCopilotBusy(true);
+                      try {
+                        setCopilot(await run());
+                      } catch (e) {
+                        setCopilot(null);
+                        setCopilotError(e instanceof Error ? e.message : "Copilot failed");
+                      } finally {
+                        setCopilotBusy(false);
+                      }
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {copilotError && <p className="text-sm text-red-600">{copilotError}</p>}
+              {copilot && (
+                <div className="space-y-3 border-t border-slate-100 pt-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Evidence (platform)
+                    </p>
+                    <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-xs text-slate-800">
+                      {JSON.stringify(copilot.evidence, null, 2)}
+                    </pre>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+                      AI Suggestion
+                    </p>
+                    <pre className="mt-1 whitespace-pre-wrap rounded-lg border border-amber-100 bg-amber-50/40 p-3 text-xs text-slate-800">
+                      {copilot.aiSuggestion}
+                    </pre>
+                  </div>
+                </div>
+              )}
             </section>
           )}
         </div>

@@ -12,6 +12,7 @@ import type {
   JobManualCreate,
   JobMatch,
   MatchingResult,
+  CopilotResponse,
   JobReview,
   JobSubmission,
   JobWorkspacePatch,
@@ -278,6 +279,57 @@ export const api = {
   getMatching(candidateId: string, jobId: string) {
     const q = new URLSearchParams({ candidateId, jobId });
     return parseJson<MatchingResult>(fetch(`/api/v1/matching?${q}`));
+  },
+
+  /** EPIC-006 — Copilot (read-only). Response separates evidence vs aiSuggestion. */
+  copilotExplainMatch(candidateId: string, jobId: string) {
+    return parseJson<CopilotResponse>(
+      fetch("/api/v1/copilot/explain-match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateId, jobId }),
+      }),
+    );
+  },
+
+  copilotSummarizeCandidate(candidateId: string) {
+    return parseJson<CopilotResponse>(
+      fetch("/api/v1/copilot/summarize-candidate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateId }),
+      }),
+    );
+  },
+
+  copilotSummarizeJob(jobId: string) {
+    return parseJson<CopilotResponse>(
+      fetch("/api/v1/copilot/summarize-job", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId }),
+      }),
+    );
+  },
+
+  copilotDraftOutreach(candidateId: string, jobId: string) {
+    return parseJson<CopilotResponse>(
+      fetch("/api/v1/copilot/draft-outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateId, jobId }),
+      }),
+    );
+  },
+
+  copilotSuggestInterviewQuestions(candidateId: string, jobId: string) {
+    return parseJson<CopilotResponse>(
+      fetch("/api/v1/copilot/suggest-interview-questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateId, jobId }),
+      }),
+    );
   },
 
   getJobSubmissions(id: string) {
