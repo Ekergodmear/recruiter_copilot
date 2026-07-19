@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { CandidateWorkspacePatch, RelationshipStatus } from "../api/types";
+import type { CandidateWorkspacePatch, WorkflowStage } from "../api/types";
+import { WORKFLOW_STAGES } from "../api/types";
 import { CandidateKnowledgePanel } from "./CandidateKnowledgePanel";
 
 type Tab = "workspace" | "relationships" | "knowledge";
@@ -39,8 +40,8 @@ export function CandidateDetailScreen() {
   });
   const [saveError, setSaveError] = useState<string | null>(null);
   const [jobIdInput, setJobIdInput] = useState("");
-  const [relStatus, setRelStatus] = useState<RelationshipStatus>("Sourced");
   const [relError, setRelError] = useState<string | null>(null);
+  const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["workspace", id],
@@ -65,7 +66,6 @@ export function CandidateDetailScreen() {
       api.createRelationship({
         candidateId: id,
         jobId: jobIdInput,
-        status: relStatus,
       }),
     onSuccess: async () => {
       setRelError(null);
@@ -77,8 +77,8 @@ export function CandidateDetailScreen() {
   });
 
   const updateRelMutation = useMutation({
-    mutationFn: ({ relId, status }: { relId: string; status: RelationshipStatus }) =>
-      api.updateRelationshipStatus(relId, status),
+    mutationFn: ({ relId, stage }: { relId: string; stage: WorkflowStage }) =>
+      api.updateRelationshipStage(relId, stage),
     onSuccess: async () => {
       await refetchRels();
     },
@@ -178,7 +178,8 @@ export function CandidateDetailScreen() {
           <section className="rounded-xl border border-slate-200 bg-white p-4">
             <h2 className="text-sm font-semibold text-slate-900">Relate to a Job</h2>
             <p className="mt-1 text-xs text-slate-500">
-              Records a recruiter association — not a match score.
+              Association only — not matching. New relationships start at Current Stage{" "}
+              <strong>Sourced</strong>.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <select
@@ -192,15 +193,6 @@ export function CandidateDetailScreen() {
                     {j.title} · {j.company}
                   </option>
                 ))}
-              </select>
-              <select
-                value={relStatus}
-                onChange={(e) => setRelStatus(e.target.value as RelationshipStatus)}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              >
-                <option value="Sourced">Sourced</option>
-                <option value="Applied">Applied</option>
-                <option value="Screening">Screening</option>
               </select>
               <button
                 type="button"
@@ -220,28 +212,50 @@ export function CandidateDetailScreen() {
               relationships!.items.map((r) => (
                 <li
                   key={r.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+                  className="space-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
                 >
-                  <div>
-                    <Link to={`/jobs/${r.jobId}`} className="font-medium underline">
-                      {r.jobTitle ?? r.jobId}
-                    </Link>
-                    <p className="text-xs text-slate-500">{r.jobCompany}</p>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <Link to={`/jobs/${r.jobId}`} className="font-medium underline">
+                        {r.jobTitle ?? r.jobId}
+                      </Link>
+                      <p className="text-xs text-slate-500">{r.jobCompany}</p>
+                    </div>
+                    <select
+                      value={r.currentStage ?? r.status}
+                      onChange={(e) =>
+                        updateRelMutation.mutate({
+                          relId: r.id,
+                          stage: e.target.value as WorkflowStage,
+                        })
+                      }
+                      className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                    >
+                      {WORKFLOW_STAGES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <select
-                    value={r.status}
-                    onChange={(e) =>
-                      updateRelMutation.mutate({
-                        relId: r.id,
-                        status: e.target.value as RelationshipStatus,
-                      })
-                    }
-                    className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                  <button
+                    type="button"
+                    className="text-xs text-slate-600 underline"
+                    onClick={() => setExpandedHistory((cur) => (cur === r.id ? null : r.id))}
                   >
-                    <option value="Sourced">Sourced</option>
-                    <option value="Applied">Applied</option>
-                    <option value="Screening">Screening</option>
-                  </select>
+                    {expandedHistory === r.id ? "Hide" : "Show"} stage history (
+                    {(r.stageHistory ?? []).length})
+                  </button>
+                  {expandedHistory === r.id && (
+                    <ol className="list-decimal space-y-1 pl-4 text-xs text-slate-600">
+                      {(r.stageHistory ?? []).map((h, i) => (
+                        <li key={`${r.id}-${i}`}>
+                          {h.previousStage ?? "—"} → {h.newStage} ·{" "}
+                          {new Date(h.changedAt).toLocaleString()}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
                 </li>
               ))
             )}

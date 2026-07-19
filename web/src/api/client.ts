@@ -16,6 +16,7 @@ import type {
   JobWorkspacePatch,
   CandidateJobRelationship,
   RelationshipStatus,
+  WorkflowStage,
   Offer,
   PipelineActivity,
   PipelineStats,
@@ -192,7 +193,11 @@ export const api = {
     return parseJson<Job>(fetch(`/api/v1/jobs/${id}`));
   },
 
-  createRelationship(body: { candidateId: string; jobId: string; status?: RelationshipStatus }) {
+  createRelationship(body: {
+    candidateId: string;
+    jobId: string;
+    status?: RelationshipStatus | WorkflowStage;
+  }) {
     return parseJson<CandidateJobRelationship>(
       fetch("/api/v1/relationships", {
         method: "POST",
@@ -202,7 +207,8 @@ export const api = {
     );
   },
 
-  updateRelationshipStatus(id: string, status: RelationshipStatus) {
+  /** EPIC-003 compat — moves current stage (alias of updateRelationshipStage). */
+  updateRelationshipStatus(id: string, status: RelationshipStatus | WorkflowStage) {
     return parseJson<CandidateJobRelationship>(
       fetch(`/api/v1/relationships/${id}`, {
         method: "PATCH",
@@ -212,16 +218,37 @@ export const api = {
     );
   },
 
+  updateRelationshipStage(id: string, stage: WorkflowStage) {
+    return parseJson<CandidateJobRelationship>(
+      fetch(`/api/v1/relationships/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage }),
+      }),
+    );
+  },
+
+  getRelationship(id: string) {
+    return parseJson<CandidateJobRelationship>(fetch(`/api/v1/relationships/${id}`));
+  },
+
   listCandidateRelationships(candidateId: string) {
     return parseJson<{ items: CandidateJobRelationship[]; total: number }>(
       fetch(`/api/v1/candidates/${candidateId}/relationships`),
     );
   },
 
-  listJobRelationships(jobId: string) {
-    return parseJson<{ items: CandidateJobRelationship[]; total: number }>(
-      fetch(`/api/v1/jobs/${jobId}/relationships`),
-    );
+  listJobRelationships(jobId: string, opts?: { stage?: WorkflowStage; groupBy?: "stage" }) {
+    const q = new URLSearchParams();
+    if (opts?.stage) q.set("stage", opts.stage);
+    if (opts?.groupBy) q.set("groupBy", opts.groupBy);
+    const qs = q.toString();
+    return parseJson<{
+      items?: CandidateJobRelationship[];
+      groups?: Record<string, CandidateJobRelationship[]>;
+      stages?: WorkflowStage[];
+      total: number;
+    }>(fetch(`/api/v1/jobs/${jobId}/relationships${qs ? `?${qs}` : ""}`));
   },
 
   getJobReview(id: string) {

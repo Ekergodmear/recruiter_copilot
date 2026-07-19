@@ -1,14 +1,32 @@
 import type { PrismaClient } from "@prisma/client";
-import type { CandidateJobRelationship } from "../../../modules/relationship/domain/types.js";
-import type { RelationshipStatus } from "../../../modules/relationship/domain/types.js";
+import type {
+  CandidateJobRelationship,
+  StageHistoryEntry,
+  WorkflowStage,
+} from "../../../modules/relationship/domain/types.js";
 import type { RelationshipRepository } from "../../../modules/relationship/infrastructure/relationship-repository.js";
+
+function serializeHistory(history: StageHistoryEntry[]): string {
+  return JSON.stringify(history);
+}
+
+function parseHistory(raw: string): StageHistoryEntry[] {
+  try {
+    const parsed = JSON.parse(raw) as StageHistoryEntry[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 function toRow(r: CandidateJobRelationship) {
   return {
     id: r.id,
     candidateId: r.candidateId,
     jobId: r.jobId,
-    status: r.status,
+    status: r.currentStage,
+    currentStage: r.currentStage,
+    stageHistory: serializeHistory(r.stageHistory),
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     createdBy: r.createdBy,
@@ -20,15 +38,20 @@ function toDomain(row: {
   candidateId: string;
   jobId: string;
   status: string;
+  currentStage: string;
+  stageHistory: string;
   createdAt: string;
   updatedAt: string;
   createdBy: string;
 }): CandidateJobRelationship {
+  const currentStage = (row.currentStage || row.status) as WorkflowStage;
   return {
     id: row.id,
     candidateId: row.candidateId,
     jobId: row.jobId,
-    status: row.status as RelationshipStatus,
+    status: currentStage,
+    currentStage,
+    stageHistory: parseHistory(row.stageHistory),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     createdBy: row.createdBy,
