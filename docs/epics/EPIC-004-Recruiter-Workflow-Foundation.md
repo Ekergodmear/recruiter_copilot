@@ -79,6 +79,16 @@ Avoid introducing **Pipeline** as a domain aggregate root. A Pipeline board (Kan
 
 Each `CandidateJobRelationship` owns **one** current stage.
 
+### Workflow Initialization
+
+When a `CandidateJobRelationship` is created, its Current Stage is automatically initialized to the default stage:
+
+```text
+Sourced
+```
+
+No separate API is required to set the first stage. The first Stage History entry records this initialization (previous stage may be empty/null → `Sourced`).
+
 ### 2. Workflow Stages (default set)
 
 | Stage                       | Intent                                      |
@@ -141,11 +151,12 @@ This is **not** a rewrite of EPIC-003.
 ## Business Rules
 
 1. Workflow belongs to `CandidateJobRelationship`.
-2. Stage history is append-only and cannot be edited.
-3. Current Stage always reflects the **latest** history entry.
-4. Workflow records recruiter actions; it does **not** imply candidate suitability.
-5. MVP allows moving to any stage in the default set (no hardcoded transition matrix).
-6. Candidate, Job, and Relationship Foundation remain independent of Matching / AI semantics.
+2. **Initialization:** on relationship create, Current Stage is set to `Sourced` automatically (with a corresponding history entry).
+3. Stage history is append-only and cannot be edited.
+4. Current Stage always reflects the **latest** history entry.
+5. Workflow records recruiter actions; it does **not** imply candidate suitability.
+6. MVP allows moving to any stage in the default set (no hardcoded transition matrix).
+7. Candidate, Job, and Relationship Foundation remain independent of Matching / AI semantics.
 
 ---
 
@@ -153,7 +164,7 @@ This is **not** a rewrite of EPIC-003.
 
 | ID        | Criterion                                                                 |
 | --------- | ------------------------------------------------------------------------- |
-| **AC-1**  | Every `CandidateJobRelationship` has a current stage.                     |
+| **AC-1**  | Every `CandidateJobRelationship` has a current stage (new ones default to `Sourced`). |
 | **AC-2**  | Recruiter can update current stage (to any valid default stage).          |
 | **AC-3**  | Every stage change creates a history record.                              |
 | **AC-4**  | Current stage always matches the latest history entry.                    |

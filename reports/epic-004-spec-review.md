@@ -73,6 +73,10 @@ EPIC-004 Recruiter Workflow
 
 MVP **does not** hardcode from→to stage rules. Recruiters differ by company; enforcing a matrix early would slow foundation delivery and risk lock-in. Transition graphs / customization deferred until product evidence requires them.
 
+### Workflow initialization (TL note)
+
+On `CandidateJobRelationship` create, Current Stage initializes to **`Sourced`** automatically (first history entry). Avoids ambiguity about the first stage and whether a separate “set initial stage” API is required.
+
 ---
 
 ## Risks accepted for Alpha
