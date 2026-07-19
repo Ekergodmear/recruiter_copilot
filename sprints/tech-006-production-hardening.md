@@ -2,7 +2,9 @@
 
 | Field | Value |
 |-------|-------|
-| Status | **COMPLETE** (all WPs delivered — pending WP-5 merge) |
+| Status | **COMPLETE** |
+| Closed | 2026-07-19 |
+| Tag | `founder-alpha-2` |
 | Baseline | `founder-alpha-1` (Founder Alpha v0.1.0) |
 | Foundation Freeze | **Intact — required** |
 | Mode | Ops / deploy / security only |

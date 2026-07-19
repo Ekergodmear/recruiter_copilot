@@ -97,6 +97,24 @@ Complete before inviting real recruiters / opening the Tunnel to broader traffic
 - [ ] `/health` returns `"status":"ok"` locally (and via public URL if used)  
 - [ ] Runbook bookmarked: [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md)  
 
+### Security Review Checklist (before each public / release deploy)
+
+Use as a go/no-go gate — print or copy into the deploy note:
+
+```text
+[ ] .env.production is not in Git (git check-ignore / git status clean of secrets)
+[ ] PostgreSQL is not published to the Internet (compose: expose only)
+[ ] Cloudflare Tunnel is up and targets http://localhost:3000
+[ ] Backup has run within the last 24 hours (RPO)
+[ ] Restore / Recovery Drill has passed at least once on this stack lineage
+[ ] Docker image builds successfully (compose up -d --build)
+[ ] Container runs as user node (whoami)
+[ ] Log rotation is active (json-file max-size / max-file)
+[ ] Disk usage is under warning threshold (monitor exit != critical; prefer < 85% used)
+[ ] GET /health returns "status":"ok" with database.connected true
+[ ] Rollback path known (image :previous and/or git founder-alpha-1 / founder-alpha-2)
+```
+
 ---
 
 ## 6. Monitor exit codes (WP-2 — explicit)
