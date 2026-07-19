@@ -1,0 +1,322 @@
+{
+  "epic": "EPIC-001",
+  "title": "Candidate Workspace",
+  "generatedAt": "2026-07-19T05:24:05.882Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-001-validate-RAd0QY",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 12,
+    "passed": 12,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "health",
+      "ac": "AC-7",
+      "description": "GET /health returns status ok",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "status": "ok",
+          "sprint": "4",
+          "epic": "EPIC-008",
+          "mode": "founder-alpha",
+          "foundation": "v3.1-frozen",
+          "persistence": "memory",
+          "database": {
+            "configured": false,
+            "connected": null,
+            "dialect": null
+          },
+          "uptimeSeconds": 0,
+          "version": "0.1.0",
+          "buildTimestamp": null,
+          "feature_flags": {
+            "ai.parsing.enabled": true,
+            "ai.truth_engine.enabled": false,
+            "ai.knowledge_graph.enabled": false,
+            "ai.semantic_search.enabled": false,
+            "ai.duplicate_detection.enabled": false,
+            "ai.matching.enabled": false
+          },
+          "operations_dashboard": "/internal/operations-dashboard/ui"
+        }
+      }
+    },
+    {
+      "id": "import-a",
+      "ac": "AC-6",
+      "description": "Import Resume succeeds (candidate created)",
+      "pass": true,
+      "detail": {
+        "statusCode": 201,
+        "candidateId": "candidate_1dae1393203c"
+      }
+    },
+    {
+      "id": "import-b",
+      "ac": "AC-6",
+      "description": "Second Import Resume succeeds (no regression)",
+      "pass": true,
+      "detail": {
+        "statusCode": 201,
+        "candidateId": "candidate_16d1153d787f"
+      }
+    },
+    {
+      "id": "list",
+      "ac": "AC-1",
+      "description": "Candidate List returns MVP columns",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "total": 2,
+        "sampleColumns": {
+          "name": "Validate Beta",
+          "currentTitle": "",
+          "company": "",
+          "experience": "2",
+          "english": "unknown",
+          "updatedAt": "2026-07-19T05:24:05.853Z"
+        }
+      }
+    },
+    {
+      "id": "detail",
+      "ac": "AC-2",
+      "description": "Candidate Detail workspace payload present",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "keys": [
+          "candidateId",
+          "name",
+          "phone",
+          "email",
+          "currentTitle",
+          "company",
+          "skills",
+          "experience",
+          "education",
+          "english",
+          "salary",
+          "note",
+          "summary",
+          "ready",
+          "createdAt",
+          "updatedAt",
+          "uploadedAt"
+        ],
+        "name": "Validate Alpha",
+        "email": "alpha.validate@example.com"
+      }
+    },
+    {
+      "id": "edit",
+      "ac": "AC-3",
+      "description": "Recruiter can edit allowed fields",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "candidateId": "candidate_1dae1393203c",
+          "name": "Validate Alpha Edited",
+          "phone": "+84902222222",
+          "email": "alpha.edited@example.com",
+          "currentTitle": "",
+          "company": "",
+          "skills": "TypeScript",
+          "experience": "4",
+          "education": "",
+          "english": "unknown",
+          "salary": "2500 USD",
+          "note": "EPIC-001 validation note",
+          "summary": "Validate Alpha — profile generated without LLM.",
+          "ready": true,
+          "createdAt": "2026-07-19T05:24:05.803Z",
+          "updatedAt": "2026-07-19T05:24:05.874Z",
+          "uploadedAt": "2026-07-19T05:24:05.803Z"
+        }
+      }
+    },
+    {
+      "id": "persist",
+      "ac": "AC-4",
+      "description": "Edits remain after reload (repository persist)",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "candidateId": "candidate_1dae1393203c",
+          "name": "Validate Alpha Edited",
+          "phone": "+84902222222",
+          "email": "alpha.edited@example.com",
+          "currentTitle": "",
+          "company": "",
+          "skills": "TypeScript",
+          "experience": "4",
+          "education": "",
+          "english": "unknown",
+          "salary": "2500 USD",
+          "note": "EPIC-001 validation note",
+          "summary": "Validate Alpha — profile generated without LLM.",
+          "ready": true,
+          "createdAt": "2026-07-19T05:24:05.803Z",
+          "updatedAt": "2026-07-19T05:24:05.874Z",
+          "uploadedAt": "2026-07-19T05:24:05.803Z"
+        }
+      }
+    },
+    {
+      "id": "search",
+      "ac": "AC-5",
+      "description": "Search by name and email; empty query returns []",
+      "pass": true,
+      "detail": {
+        "byName": {
+          "items": [
+            {
+              "candidateId": "candidate_16d1153d787f",
+              "name": "Validate Beta",
+              "ready": true,
+              "uploadedAt": "2026-07-19T05:24:05.853Z",
+              "readyAt": "2026-07-19T05:24:05.865Z",
+              "skillsPreview": "Python",
+              "english": "unknown",
+              "currentTitle": "",
+              "company": "",
+              "experience": "2",
+              "email": "beta.validate@example.com",
+              "createdAt": "2026-07-19T05:24:05.853Z",
+              "updatedAt": "2026-07-19T05:24:05.853Z"
+            }
+          ],
+          "total": 1
+        },
+        "byEmail": {
+          "items": [
+            {
+              "candidateId": "candidate_16d1153d787f",
+              "name": "Validate Beta",
+              "ready": true,
+              "uploadedAt": "2026-07-19T05:24:05.853Z",
+              "readyAt": "2026-07-19T05:24:05.865Z",
+              "skillsPreview": "Python",
+              "english": "unknown",
+              "currentTitle": "",
+              "company": "",
+              "experience": "2",
+              "email": "beta.validate@example.com",
+              "createdAt": "2026-07-19T05:24:05.853Z",
+              "updatedAt": "2026-07-19T05:24:05.853Z"
+            }
+          ],
+          "total": 1
+        },
+        "empty": {
+          "items": [],
+          "total": 0
+        }
+      }
+    },
+    {
+      "id": "sort",
+      "description": "Sort by updated/created works",
+      "pass": true,
+      "detail": {
+        "sortUpdatedFirst": "candidate_16d1153d787f",
+        "sortCreatedFirst": "candidate_16d1153d787f"
+      }
+    },
+    {
+      "id": "edge-404",
+      "description": "PATCH missing candidate → 404",
+      "pass": true,
+      "detail": {
+        "statusCode": 404,
+        "body": {
+          "error": "NOT_FOUND",
+          "message": "Candidate not found: candidate_doesnotexist999"
+        }
+      }
+    },
+    {
+      "id": "edge-email",
+      "description": "PATCH invalid email → 400",
+      "pass": true,
+      "detail": {
+        "statusCode": 400,
+        "body": {
+          "error": "INVALID_BODY",
+          "message": "email format is invalid"
+        }
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-7",
+      "description": "/health still ok after workspace mutations",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "status": "ok",
+          "sprint": "4",
+          "epic": "EPIC-008",
+          "mode": "founder-alpha",
+          "foundation": "v3.1-frozen",
+          "persistence": "memory",
+          "database": {
+            "configured": false,
+            "connected": null,
+            "dialect": null
+          },
+          "uptimeSeconds": 0,
+          "version": "0.1.0",
+          "buildTimestamp": null,
+          "feature_flags": {
+            "ai.parsing.enabled": true,
+            "ai.truth_engine.enabled": false,
+            "ai.knowledge_graph.enabled": false,
+            "ai.semantic_search.enabled": false,
+            "ai.duplicate_detection.enabled": false,
+            "ai.matching.enabled": false
+          },
+          "operations_dashboard": "/internal/operations-dashboard/ui"
+        }
+      }
+    }
+  ]
+}
