@@ -11,6 +11,7 @@ import type {
   JobListItem,
   JobManualCreate,
   JobMatch,
+  MatchingResult,
   JobReview,
   JobSubmission,
   JobWorkspacePatch,
@@ -271,6 +272,12 @@ export const api = {
 
   getJobMatches(id: string) {
     return parseJson<{ items: JobMatch[]; total: number }>(fetch(`/api/v1/jobs/${id}/matches`));
+  },
+
+  /** EPIC-005 — on-demand Matching Result (Evidence → Score). Not persisted. */
+  getMatching(candidateId: string, jobId: string) {
+    const q = new URLSearchParams({ candidateId, jobId });
+    return parseJson<MatchingResult>(fetch(`/api/v1/matching?${q}`));
   },
 
   getJobSubmissions(id: string) {

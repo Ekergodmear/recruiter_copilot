@@ -230,6 +230,50 @@ export type JobReview = {
   diff: FieldDiffRow[];
 };
 
+export type MatchingResult = {
+  candidateId: string;
+  jobId: string;
+  evidence: {
+    matchedSkills: string[];
+    missingSkills: string[];
+    skillsDimensionScore: number;
+    experience: {
+      requiredYears: number | null;
+      actualYears: number | null;
+      status: string;
+      dimensionScore: number;
+    };
+    english: {
+      required: string;
+      actual: string;
+      status: string;
+      dimensionScore: number;
+    };
+    salary: {
+      expectedSalary: number | null;
+      jobSalaryMin: number | null;
+      jobSalaryMax: number | null;
+      currency: string;
+      status: string;
+      dimensionScore: number;
+    };
+  };
+  weights: {
+    skills: number;
+    experience: number;
+    english: number;
+    salary: number;
+  };
+  scoreBreakdown: {
+    skills: number;
+    experience: number;
+    english: number;
+    salary: number;
+  };
+  overallMatchScore: number;
+  computedAt: string;
+};
+
 export type JobMatch = {
   candidateId: string;
   name: string;
