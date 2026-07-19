@@ -62,6 +62,16 @@ Entrypoint runs `prisma db push` on each start (schema sync). No separate migrat
 
 ## 4. Backup
 
+See **[BACKUP_RESTORE.md](./BACKUP_RESTORE.md)** (TECH-006 WP-1).
+
+```powershell
+.\scripts\backup\backup.ps1
+```
+
+```bash
+./scripts/backup/backup.sh
+```
+
 Named volumes (Compose project `aiheadhunter` by default):
 
 | Volume | Contents |
@@ -70,44 +80,21 @@ Named volumes (Compose project `aiheadhunter` by default):
 | `aiheadhunter_api-resumes` | Uploaded resumes |
 | `aiheadhunter_api-telemetry` | Telemetry JSONL |
 
-### Postgres dump
-
-```bash
-docker compose exec -T postgres \
-  pg_dump -U recruiter -d recruiter_copilot --format=custom \
-  > backup-$(date +%Y%m%d).dump
-```
-
-Windows PowerShell:
-
-```powershell
-docker compose exec -T postgres pg_dump -U recruiter -d recruiter_copilot --format=custom | Set-Content -Encoding Byte backup.dump
-# Prefer:
-docker compose exec -T postgres pg_dump -U recruiter -d recruiter_copilot > backup.sql
-```
-
-### Volume archive (optional)
-
-```bash
-docker run --rm -v aiheadhunter_postgres-data:/data -v ${PWD}:/backup alpine \
-  tar czf /backup/postgres-data.tgz -C /data .
-```
-
 ---
 
 ## 5. Restore
 
-```bash
-docker compose up -d postgres
-# wait healthy
-docker compose exec -T postgres \
-  psql -U recruiter -d recruiter_copilot < backup.sql
-
-docker compose up -d api
-curl -s http://localhost:3000/health
+```powershell
+.\scripts\backup\restore.ps1 -DumpPath backups\postgres-….dump
 ```
 
-After restore from empty volume with a **new** `POSTGRES_PASSWORD`, recreate volume first (`down -v`) then restore — Postgres only applies password on first init.
+```bash
+./scripts/backup/restore.sh backups/postgres-….dump
+```
+
+After restore: `curl -s http://localhost:3000/health` → `"status":"ok"`.
+
+Postgres password is applied only on first volume init — restore scripts recreate the **database**, not the Postgres role/volume credentials.
 
 ---
 
