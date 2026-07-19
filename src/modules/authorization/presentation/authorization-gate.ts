@@ -82,6 +82,37 @@ export const AUTHORIZED_ROUTES: RouteRule[] = [
   { method: "POST", path: "/api/v1/notifications/:id/read", permission: "notification.read" },
   { method: "POST", path: "/api/v1/notifications/read-all", permission: "notification.read" },
   { method: "POST", path: "/api/v1/collaboration/notes", permission: "notification.write" },
+
+  // Integrations (EPIC-011)
+  { method: "GET", path: "/api/v1/integrations", permission: "integration.read" },
+  { method: "GET", path: "/api/v1/integrations/:id", permission: "integration.read" },
+  { method: "POST", path: "/api/v1/integrations", permission: "integration.execute" },
+  { method: "PATCH", path: "/api/v1/integrations/:id", permission: "integration.execute" },
+  {
+    method: "POST",
+    path: "/api/v1/integrations/:id/test-connection",
+    permission: "integration.execute",
+  },
+  {
+    method: "POST",
+    path: "/api/v1/integrations/:id/import/preview",
+    permission: "integration.read",
+  },
+  {
+    method: "POST",
+    path: "/api/v1/integrations/:id/import/execute",
+    permission: "integration.execute",
+  },
+  {
+    method: "POST",
+    path: "/api/v1/integrations/:id/export/preview",
+    permission: "integration.read",
+  },
+  {
+    method: "POST",
+    path: "/api/v1/integrations/:id/export/execute",
+    permission: "integration.execute",
+  },
 ];
 
 function pathToRegex(path: string): RegExp {
