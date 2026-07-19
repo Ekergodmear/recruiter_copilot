@@ -1,0 +1,302 @@
+{
+  "epic": "EPIC-005",
+  "title": "Matching Foundation",
+  "generatedAt": "2026-07-19T07:50:21.122Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-005-validate-zCqf7r",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 18,
+    "passed": 18,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      },
+      {
+        "ac": "AC-11",
+        "pass": true
+      },
+      {
+        "ac": "AC-12",
+        "pass": true
+      },
+      {
+        "ac": "AC-13",
+        "pass": true
+      }
+    ],
+    "note": "AC-14 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "health",
+      "ac": "AC-13",
+      "description": "GET /health returns status ok",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "body": {
+          "status": "ok",
+          "sprint": "4",
+          "epic": "EPIC-008",
+          "mode": "founder-alpha",
+          "foundation": "v3.1-frozen",
+          "persistence": "memory",
+          "database": {
+            "configured": false,
+            "connected": null,
+            "dialect": null
+          },
+          "uptimeSeconds": 0,
+          "version": "0.1.0",
+          "buildTimestamp": null,
+          "feature_flags": {
+            "ai.parsing.enabled": true,
+            "ai.truth_engine.enabled": false,
+            "ai.knowledge_graph.enabled": false,
+            "ai.semantic_search.enabled": false,
+            "ai.duplicate_detection.enabled": false,
+            "ai.matching.enabled": false
+          },
+          "operations_dashboard": "/internal/operations-dashboard/ui"
+        }
+      }
+    },
+    {
+      "id": "import",
+      "ac": "AC-12",
+      "description": "Resume Import works (no regression)",
+      "pass": true,
+      "detail": {
+        "c1": "candidate_29d9270740ae"
+      }
+    },
+    {
+      "id": "job-create",
+      "ac": "AC-9",
+      "description": "Job create/edit still works (Job Workspace)",
+      "pass": true,
+      "detail": {
+        "jobId": "job_0f85a5d8791a"
+      }
+    },
+    {
+      "id": "generate",
+      "ac": "AC-1",
+      "description": "Matching Result can be generated on demand",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "score": 80
+      }
+    },
+    {
+      "id": "matched-skills",
+      "ac": "AC-2",
+      "description": "Matched Skills are correct",
+      "pass": true,
+      "detail": {
+        "matchedSkills": [
+          "React",
+          "TypeScript"
+        ]
+      }
+    },
+    {
+      "id": "missing-skills",
+      "ac": "AC-3",
+      "description": "Missing Skills are correct",
+      "pass": true,
+      "detail": {
+        "missingSkills": [
+          "Node"
+        ]
+      }
+    },
+    {
+      "id": "experience",
+      "ac": "AC-4",
+      "description": "Experience comparison is correct",
+      "pass": true,
+      "detail": {
+        "experience": {
+          "requiredYears": 5,
+          "actualYears": 5,
+          "status": "meets",
+          "dimensionScore": 1
+        }
+      }
+    },
+    {
+      "id": "english",
+      "ac": "AC-5",
+      "description": "English comparison is correct",
+      "pass": true,
+      "detail": {
+        "english": {
+          "required": "B2",
+          "actual": "B2",
+          "status": "meets",
+          "dimensionScore": 1
+        }
+      }
+    },
+    {
+      "id": "salary",
+      "ac": "AC-6",
+      "description": "Salary comparison is correct",
+      "pass": true,
+      "detail": {
+        "salary": {
+          "expectedSalary": 1800,
+          "jobSalaryMin": 1000,
+          "jobSalaryMax": 2500,
+          "currency": "USD",
+          "status": "within_budget",
+          "dimensionScore": 1
+        }
+      }
+    },
+    {
+      "id": "deterministic",
+      "ac": "AC-7",
+      "description": "Overall Match Score is deterministic (same input → same output)",
+      "pass": true,
+      "detail": {
+        "scores": [
+          80,
+          80,
+          80
+        ]
+      }
+    },
+    {
+      "id": "score-from-evidence",
+      "description": "Overall score equals weighted sum of documented evidence dimensions",
+      "pass": true,
+      "detail": {
+        "overallMatchScore": 80,
+        "expectedFromBreakdown": 80,
+        "weights": {
+          "skills": 0.6,
+          "experience": 0.2,
+          "english": 0.1,
+          "salary": 0.1
+        }
+      }
+    },
+    {
+      "id": "monotonicity",
+      "description": "Score monotonicity: adding a matched skill does not decrease; removing does not increase",
+      "pass": true,
+      "detail": {
+        "scoreBase": 80,
+        "scoreAddSkill": 100,
+        "scoreRemoveSkill": 60
+      }
+    },
+    {
+      "id": "read-only",
+      "description": "Matching does not mutate Candidate, Job, Relationship, or Workflow",
+      "pass": true,
+      "detail": {
+        "nameBefore": "Unknown Candidate",
+        "nameAfter": "Unknown Candidate",
+        "titleBefore": "E005 Job",
+        "titleAfter": "E005 Job",
+        "stageBefore": "Sourced",
+        "stageAfter": "Sourced",
+        "historyLenBefore": 1,
+        "historyLenAfter": 1
+      }
+    },
+    {
+      "id": "candidate-workspace",
+      "ac": "AC-8",
+      "description": "Candidate Workspace has no regression",
+      "pass": true,
+      "detail": {
+        "detail": 200,
+        "list": 200
+      }
+    },
+    {
+      "id": "job-workspace",
+      "ac": "AC-9",
+      "description": "Job Workspace has no regression",
+      "pass": true,
+      "detail": {
+        "get": 200,
+        "list": 200
+      }
+    },
+    {
+      "id": "relationship-foundation",
+      "ac": "AC-10",
+      "description": "Relationship Foundation has no regression",
+      "pass": true,
+      "detail": {
+        "list": 200,
+        "create": 201,
+        "duplicate": 409
+      }
+    },
+    {
+      "id": "workflow-foundation",
+      "ac": "AC-11",
+      "description": "Workflow Foundation has no regression",
+      "pass": true,
+      "detail": {
+        "currentStage": "Screening",
+        "historyLen": 2
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-13",
+      "description": "/health still ok after matching",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    }
+  ]
+}
