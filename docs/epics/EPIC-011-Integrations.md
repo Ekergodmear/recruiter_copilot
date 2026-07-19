@@ -209,6 +209,7 @@ Deny-by-default remains for unknown permissions.
 6. Disabled integration cannot test-as-success for execute; execute is rejected.  
 7. No scheduler, queue, retry engine, or conflict-resolution product in MVP.  
 8. Authorization gates all Integrations APIs via `AuthorizationService`.  
+9. **Import atomicity:** if Execute fails, the system must not leave a partial import; changes are rolled back or nothing is committed (same spirit as EPIC-008 Automation atomicity).  
 
 ---
 
@@ -223,6 +224,7 @@ Deny-by-default remains for unknown permissions.
 | **AC-5**  | Manual Export supported for at least one MVP provider (CSV and/or Webhook). |
 | **AC-6**  | Test Connection returns a clear ok/fail without mutating SoT.             |
 | **AC-7**  | Preview before Execute — Preview does not persist; Execute requires confirm. |
+| **AC-7b** | Import atomicity — failed Execute leaves no partial import (rollback or no partial commit). |
 | **AC-8**  | Authorization via `integration.read` / `integration.execute` on AuthorizationService. |
 | **AC-9**  | Integrations do not write directly to DB/repositories (Application Services only). |
 | **AC-10** | No business rule ownership — Matching/Workflow/Automation semantics unchanged. |
@@ -298,10 +300,10 @@ No new TECH ticket inside this EPIC.
 
 EPIC-011 is done when:
 
-- AC-1…AC-14 **PASS**  
+- AC-1…AC-14 (+ AC-7b Import atomicity) **PASS**  
 - Regressions for authorized happy-paths on EPIC-001…010: **NONE**  
 - Confirmed: Integrations did not own business rules; no direct DB writes from providers  
-- Preview never persists; Execute requires confirm  
+- Preview never persists; Execute requires confirm; failed Execute leaves no partial import  
 - `GET /health` **PASS** (still public)  
 - `pnpm run ci` **PASS**  
 - Validation Report completed (PR-3) with registry / preview / execute / AuthZ evidence  

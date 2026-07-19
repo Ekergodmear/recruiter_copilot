@@ -28,6 +28,7 @@ EPIC-001…010 closed the internal product loop (SoT → consumers → automatio
 | Registry + Provider port + CSV / Webhook / ATS Mock            | **Adopt**                                            |
 | Manual Preview → Confirm → Execute                             | **Adopt**                                            |
 | AuthZ `integration.read` / `integration.execute`               | **Adopt**                                            |
+| **AC-7b Import atomicity** (no partial import on failure)      | **Adopt** — aligned with EPIC-008 atomicity spirit   |
 
 Architecture fit:
 
