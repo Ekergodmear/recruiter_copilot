@@ -85,6 +85,11 @@ function instrumentRepositories(
       repos.knowledgeRepository,
       profiler,
     ),
+    relationshipRepository: wrapWithProfiler(
+      "RelationshipRepository",
+      repos.relationshipRepository,
+      profiler,
+    ),
   };
 }
 

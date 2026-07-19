@@ -14,6 +14,8 @@ import type {
   JobReview,
   JobSubmission,
   JobWorkspacePatch,
+  CandidateJobRelationship,
+  RelationshipStatus,
   Offer,
   PipelineActivity,
   PipelineStats,
@@ -188,6 +190,38 @@ export const api = {
 
   getJob(id: string) {
     return parseJson<Job>(fetch(`/api/v1/jobs/${id}`));
+  },
+
+  createRelationship(body: { candidateId: string; jobId: string; status?: RelationshipStatus }) {
+    return parseJson<CandidateJobRelationship>(
+      fetch("/api/v1/relationships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
+  },
+
+  updateRelationshipStatus(id: string, status: RelationshipStatus) {
+    return parseJson<CandidateJobRelationship>(
+      fetch(`/api/v1/relationships/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      }),
+    );
+  },
+
+  listCandidateRelationships(candidateId: string) {
+    return parseJson<{ items: CandidateJobRelationship[]; total: number }>(
+      fetch(`/api/v1/candidates/${candidateId}/relationships`),
+    );
+  },
+
+  listJobRelationships(jobId: string) {
+    return parseJson<{ items: CandidateJobRelationship[]; total: number }>(
+      fetch(`/api/v1/jobs/${jobId}/relationships`),
+    );
   },
 
   getJobReview(id: string) {

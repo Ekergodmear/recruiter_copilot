@@ -7,6 +7,7 @@ import type { InterviewRepository } from "../../modules/recruitment/infrastructu
 import type { OfferRepository } from "../../modules/recruitment/infrastructure/offer-repository.js";
 import type { ActivityRepository } from "../../modules/recruitment/infrastructure/activity-repository.js";
 import type { KnowledgeRepository } from "../../modules/knowledge/infrastructure/knowledge-repository.js";
+import type { RelationshipRepository } from "../../modules/relationship/infrastructure/relationship-repository.js";
 import { InMemoryCandidateRepository } from "../../modules/candidate/infrastructure/persistence/in-memory-candidate-repository.js";
 import { InMemoryResumeRepository } from "../../modules/candidate/infrastructure/persistence/in-memory-resume-repository.js";
 import { InMemoryJobRepository } from "../../modules/job/infrastructure/in-memory-job-repository.js";
@@ -15,6 +16,7 @@ import { InMemoryInterviewRepository } from "../../modules/recruitment/infrastru
 import { InMemoryOfferRepository } from "../../modules/recruitment/infrastructure/in-memory-offer-repository.js";
 import { InMemoryActivityRepository } from "../../modules/recruitment/infrastructure/in-memory-activity-repository.js";
 import { InMemoryKnowledgeRepository } from "../../modules/knowledge/infrastructure/knowledge-repository.js";
+import { InMemoryRelationshipRepository } from "../../modules/relationship/infrastructure/in-memory-relationship-repository.js";
 import { getPrismaClient } from "./prisma/prisma-client.js";
 import { PrismaCandidateRepository } from "./prisma/prisma-candidate-repository.js";
 import { PrismaResumeRepository } from "./prisma/prisma-resume-repository.js";
@@ -24,6 +26,7 @@ import { PrismaInterviewRepository } from "./prisma/prisma-interview-repository.
 import { PrismaOfferRepository } from "./prisma/prisma-offer-repository.js";
 import { PrismaActivityRepository } from "./prisma/prisma-activity-repository.js";
 import { PrismaKnowledgeRepository } from "./prisma/prisma-knowledge-repository.js";
+import { PrismaRelationshipRepository } from "./prisma/prisma-relationship-repository.js";
 
 export type PersistenceDriver = "memory" | "prisma";
 
@@ -37,6 +40,7 @@ export type AppRepositories = {
   offerRepository: OfferRepository;
   activityRepository: ActivityRepository;
   knowledgeRepository: KnowledgeRepository;
+  relationshipRepository: RelationshipRepository;
 };
 
 /**
@@ -61,6 +65,7 @@ export function createRepositories(config: AppConfig): AppRepositories {
       offerRepository: new PrismaOfferRepository(prisma),
       activityRepository: new PrismaActivityRepository(prisma),
       knowledgeRepository: new PrismaKnowledgeRepository(prisma),
+      relationshipRepository: new PrismaRelationshipRepository(prisma),
     };
   }
 
@@ -74,5 +79,6 @@ export function createRepositories(config: AppConfig): AppRepositories {
     offerRepository: new InMemoryOfferRepository(),
     activityRepository: new InMemoryActivityRepository(),
     knowledgeRepository: new InMemoryKnowledgeRepository(),
+    relationshipRepository: new InMemoryRelationshipRepository(),
   };
 }

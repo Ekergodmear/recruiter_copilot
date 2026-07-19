@@ -20,6 +20,8 @@ import { registerOperationsDashboardRoutes } from "../modules/operations/operati
 import { registerUxTelemetryRoutes } from "../modules/product/ux-telemetry-routes.js";
 import { JobService } from "../modules/job/application/job-service.js";
 import { registerJobRoutes } from "../modules/job/presentation/job-routes.js";
+import { RelationshipService } from "../modules/relationship/application/relationship-service.js";
+import { registerRelationshipRoutes } from "../modules/relationship/presentation/relationship-routes.js";
 import { RecruitmentService } from "../modules/recruitment/application/recruitment-service.js";
 import { registerRecruitmentRoutes } from "../modules/recruitment/presentation/recruitment-routes.js";
 import {
@@ -63,6 +65,7 @@ export type AppDependencies = {
   candidateEditService: CandidateEditService;
   resumePreviewService: ResumePreviewService;
   jobService: JobService;
+  relationshipService: RelationshipService;
   recruitmentService: RecruitmentService;
   knowledgeEvolutionService: KnowledgeEvolutionService;
   candidateInsightService: CandidateInsightService;
@@ -114,6 +117,7 @@ export function createAppDependencies(
     offerRepository,
     activityRepository,
     knowledgeRepository,
+    relationshipRepository,
   } = repos;
   const storage = new LocalStorageAdapter(config.storagePath);
 
@@ -215,6 +219,14 @@ export function createAppDependencies(
       recruitmentService.onSubmissionCreated(submission, actorId),
   });
 
+  const relationshipService = new RelationshipService({
+    clock,
+    idGenerator,
+    relationshipRepository,
+    candidateRepository,
+    jobRepository,
+  });
+
   const auditReplayService = new AuditReplayService({
     candidateRepository,
     submissionRepository,
@@ -248,6 +260,7 @@ export function createAppDependencies(
     candidateEditService,
     resumePreviewService,
     jobService,
+    relationshipService,
     recruitmentService,
     knowledgeEvolutionService,
     candidateInsightService,
@@ -318,6 +331,7 @@ export async function buildApp(deps?: AppDependencies) {
   });
 
   registerJobRoutes(app, resolved.jobService, resolved.clock);
+  registerRelationshipRoutes(app, resolved.relationshipService);
   registerRecruitmentRoutes(app, resolved.recruitmentService);
 
   registerOperationsDashboardRoutes(app, {

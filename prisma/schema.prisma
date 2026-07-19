@@ -92,6 +92,22 @@ model Submission {
   @@index([candidateId])
 }
 
+/// EPIC-003 — Relationship Intelligence (neutral UL; not Application)
+model CandidateJobRelationship {
+  id          String @id
+  candidateId String
+  jobId       String
+  status      String
+  createdAt   String
+  updatedAt   String
+  createdBy   String
+
+  @@unique([candidateId, jobId])
+  @@index([jobId])
+  @@index([candidateId])
+  @@index([updatedAt])
+}
+
 model Interview {
   id            String @id
   submissionId  String
