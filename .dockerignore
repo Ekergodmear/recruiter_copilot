@@ -22,6 +22,9 @@ memory-bank
 .idea
 *.log
 data
+backups
+deploy-history
 .tmp
 temp
 pnpm-store
+BEFORE-WRITING-CODE.md

@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| Status | **OPEN** (docs kickoff) |
+| Status | **COMPLETE** (all WPs delivered — pending WP-5 merge) |
 | Baseline | `founder-alpha-1` (Founder Alpha v0.1.0) |
 | Foundation Freeze | **Intact — required** |
 | Mode | Ops / deploy / security only |
@@ -130,10 +130,18 @@ SOP documents only (no product code / no new automation platforms):
 
 ### WP-5 — Production Hardening
 
+**Includes**
+
 - Secrets hygiene (`.env.production`, password rotation notes)
-- Firewall / published ports (API only; Postgres not public — already done)
-- Least privilege reminders (container user, host access)
-- Docker image hygiene (non-root, prune, no secrets in image)
+- Firewall / published ports checklist (API for Tunnel; Postgres not public)
+- Least privilege (container `USER node`, host file modes)
+- Docker image hygiene (multi-stage, prune, no secrets, `.dockerignore`)
+- Pre-public security checklist
+- Document monitor exit codes `0/1/2` as a stable contract
+
+**Does not include**
+
+- WAF / IDS/IPS / Vault / Swarm / Kubernetes / service mesh / enterprise SIEM
 
 ---
 
@@ -206,10 +214,11 @@ SOP documents only (no product code / no new automation platforms):
 
 ## Definition of Done
 
-- All five WPs Accepted (or explicitly deferred by TL with reason)
-- `docs/DEPLOYMENT_CHECKLIST.md` and/or `docs/PRODUCTION.md` updated with pointers to new SOPs
-- TECH-006 closure report updated in `reports/tech-006-production-hardening.md`
-- Baseline still: `founder-alpha-1` for rollback; new tag only if TL requests a hardening milestone
+- [x] WP-1…WP-5 delivered as separate PRs with evidence
+- [x] `docs/DEPLOYMENT_CHECKLIST.md` / `docs/PRODUCTION.md` point to ops docs
+- [x] Closure tracker: `reports/tech-006-production-hardening.md`
+- [x] Baseline `founder-alpha-1` remains the rollback reference
+- New tag for hardening only if TL requests (optional)
 
 ---
 

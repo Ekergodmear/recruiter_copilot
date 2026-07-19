@@ -174,9 +174,12 @@ docker inspect --format '{{.State.Health.Status}}' aiheadhunter-api-1
 
 ---
 
-## 10. Security reminders
+## 10. Security / hardening
+
+Full checklist: **[PRODUCTION_HARDENING.md](./PRODUCTION_HARDENING.md)** (TECH-006 WP-5).
 
 - Never ship with `POSTGRES_PASSWORD=CHANGE_ME_BEFORE_PRODUCTION`. Set a strong secret before first volume init.
 - Keep `OPERATIONS_DASHBOARD_ENABLED=false` on public hosts.
 - Postgres is **not** published to the host (`expose` only). Do not add `ports: 5432` for production.
+- API container runs as non-root (`node`).
 - Tunnel / TLS terminate at Cloudflare (manual) — not managed by this repo.
