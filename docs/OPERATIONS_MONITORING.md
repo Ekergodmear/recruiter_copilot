@@ -24,14 +24,24 @@ Founder Alpha — **know the system is alive** without a metrics platform.
 
 ```powershell
 .\scripts\ops\monitor.ps1
-echo $LASTEXITCODE   # 0=ok, 1=warn, 2=critical
+echo $LASTEXITCODE
 ```
 
 ```bash
 chmod +x scripts/ops/monitor.sh
 ./scripts/ops/monitor.sh
-echo $?              # 0=ok, 1=warn, 2=critical
+echo $?
 ```
+
+### Exit codes (stable contract)
+
+| Exit code | Meaning | Examples |
+|-----------|---------|----------|
+| **0** | Healthy | Containers healthy, `/health` ok, disk & backup within thresholds |
+| **1** | Warning | Disk used ≥ 80%, backup older than 24h, error-like log patterns |
+| **2** | Critical | API/Postgres missing/unhealthy, `/health` down, DB disconnected |
+
+Cron / Task Scheduler can alert on non-zero without parsing stdout.
 
 ### Environment knobs
 
