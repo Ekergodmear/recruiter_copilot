@@ -83,11 +83,21 @@ Example: VPS dies at 15:00; last backup 02:00; restore done 15:20 → RTO 20m (p
 - Point-in-time recovery (PITR)
 - Replication / High Availability
 
-### WP-2 — Operations
+### WP-2 — Operations Monitoring
 
-- Log rotation guidance (and/or Compose logging options)
-- Disk usage checks for volumes + host
-- Basic health monitoring (poll `/health`; alert = human/process, not a new platform)
+**Includes**
+
+- API `/health` check script
+- Container healthy/running check
+- Host disk used% warning
+- Backup age vs RPO (24h)
+- Basic api log pattern scan
+- Docker `json-file` log rotation (`max-size` / `max-file`)
+- Optional host cron / Task Scheduler notes
+
+**Does not include**
+
+- Prometheus / Grafana / ELK / Loki / Datadog / New Relic / OTel / Alertmanager
 
 ### WP-3 — Deployment / Rollback
 

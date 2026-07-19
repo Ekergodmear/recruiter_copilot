@@ -7,10 +7,17 @@
 #
 # Postgres is NOT published to the host (internal network only).
 
+x-app-logging: &app-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   postgres:
     image: postgres:16-alpine
     restart: always
+    logging: *app-logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-recruiter}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
@@ -31,6 +38,7 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: always
+    logging: *app-logging
     depends_on:
       postgres:
         condition: service_healthy
