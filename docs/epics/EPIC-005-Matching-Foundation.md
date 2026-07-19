@@ -55,6 +55,7 @@ Matching never makes hiring decisions.
 | **Score second**     | Overall Match Score is derived only from that evidence                   |
 | **Explainable**      | Every score must be traceable to evidence                                |
 | **No black box**     | Same input → same output; rules are deterministic                        |
+| **Matching Stability** | Score may use only documented evidence; no hidden factors or undocumented heuristics |
 
 This aligns with the product philosophy: **Evidence over Opinion**.
 
@@ -142,7 +143,8 @@ Cache or historical snapshots (if needed for performance / audit later) belong t
 3. Matching produces **read-only** results.
 4. Evidence fields are computed **before** Overall Match Score.
 5. Overall Match Score must be explainable from the evidence in the same result.
-6. Matching does **not** auto-rank lists, auto-advance Workflow, or make hire/reject decisions.
+6. **Matching Stability:** The overall match score must be derived solely from the documented evidence. No hidden factors or undocumented heuristics may influence the score. Weight changes must update documented business rules — not invent silent inputs.
+7. Matching does **not** auto-rank lists, auto-advance Workflow, or make hire/reject decisions.
 
 ---
 

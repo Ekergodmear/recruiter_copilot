@@ -78,6 +78,10 @@ EPIC-005 Matching Foundation (Evidence → Score)
 
 MVP computes Matching Result on request and **does not store** it. Avoids stale matches when Candidate/Job change. Cache or snapshot history can be a later EPIC without changing the Matching Result / Evidence-first model.
 
+### Matching Stability (TL note)
+
+Overall Match Score may use **only documented evidence**. No hidden factors or undocumented heuristics. Future weight calibration updates explicit rules — philosophy stays Evidence-first.
+
 ---
 
 ## Risks accepted for Alpha
