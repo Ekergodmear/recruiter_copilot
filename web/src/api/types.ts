@@ -170,6 +170,22 @@ export type JobWorkspacePatch = {
   notes?: string;
 };
 
+export type RelationshipStatus = "Sourced" | "Applied" | "Screening";
+
+export type CandidateJobRelationship = {
+  id: string;
+  candidateId: string;
+  jobId: string;
+  status: RelationshipStatus;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  jobTitle?: string;
+  jobCompany?: string;
+  jobStatus?: string | null;
+  candidateName?: string;
+};
+
 export type JobReview = {
   jobId: string;
   title: string;

@@ -2,10 +2,10 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { CandidateWorkspacePatch } from "../api/types";
+import type { CandidateWorkspacePatch, RelationshipStatus } from "../api/types";
 import { CandidateKnowledgePanel } from "./CandidateKnowledgePanel";
 
-type Tab = "workspace" | "knowledge";
+type Tab = "workspace" | "relationships" | "knowledge";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -38,11 +38,50 @@ export function CandidateDetailScreen() {
     note: "",
   });
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [jobIdInput, setJobIdInput] = useState("");
+  const [relStatus, setRelStatus] = useState<RelationshipStatus>("Sourced");
+  const [relError, setRelError] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["workspace", id],
     queryFn: () => api.getWorkspace(id),
     enabled: Boolean(id),
+  });
+
+  const { data: relationships, refetch: refetchRels } = useQuery({
+    queryKey: ["candidate-relationships", id],
+    queryFn: () => api.listCandidateRelationships(id),
+    enabled: Boolean(id) && tab === "relationships",
+  });
+
+  const { data: jobs } = useQuery({
+    queryKey: ["jobs-for-rel"],
+    queryFn: () => api.listJobs({ sort: "updated" }),
+    enabled: tab === "relationships",
+  });
+
+  const createRelMutation = useMutation({
+    mutationFn: () =>
+      api.createRelationship({
+        candidateId: id,
+        jobId: jobIdInput,
+        status: relStatus,
+      }),
+    onSuccess: async () => {
+      setRelError(null);
+      setJobIdInput("");
+      await refetchRels();
+      await queryClient.invalidateQueries({ queryKey: ["job-relationships"] });
+    },
+    onError: (e: Error) => setRelError(e.message),
+  });
+
+  const updateRelMutation = useMutation({
+    mutationFn: ({ relId, status }: { relId: string; status: RelationshipStatus }) =>
+      api.updateRelationshipStatus(relId, status),
+    onSuccess: async () => {
+      await refetchRels();
+    },
   });
 
   useEffect(() => {
@@ -115,6 +154,7 @@ export function CandidateDetailScreen() {
         {(
           [
             ["workspace", "Workspace"],
+            ["relationships", "Jobs"],
             ["knowledge", "Knowledge"],
           ] as const
         ).map(([key, label]) => (
@@ -133,7 +173,81 @@ export function CandidateDetailScreen() {
         ))}
       </div>
 
-      {tab === "workspace" ? (
+      {tab === "relationships" ? (
+        <div className="space-y-4">
+          <section className="rounded-xl border border-slate-200 bg-white p-4">
+            <h2 className="text-sm font-semibold text-slate-900">Relate to a Job</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Records a recruiter association — not a match score.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <select
+                value={jobIdInput}
+                onChange={(e) => setJobIdInput(e.target.value)}
+                className="min-w-[220px] flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              >
+                <option value="">Select job…</option>
+                {(jobs?.items ?? []).map((j) => (
+                  <option key={j.id} value={j.id}>
+                    {j.title} · {j.company}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={relStatus}
+                onChange={(e) => setRelStatus(e.target.value as RelationshipStatus)}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              >
+                <option value="Sourced">Sourced</option>
+                <option value="Applied">Applied</option>
+                <option value="Screening">Screening</option>
+              </select>
+              <button
+                type="button"
+                disabled={!jobIdInput || createRelMutation.isPending}
+                onClick={() => createRelMutation.mutate()}
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                Add
+              </button>
+            </div>
+            {relError && <p className="mt-2 text-sm text-red-600">{relError}</p>}
+          </section>
+          <ul className="space-y-2">
+            {(relationships?.items ?? []).length === 0 ? (
+              <li className="text-sm text-slate-500">No jobs related yet.</li>
+            ) : (
+              relationships!.items.map((r) => (
+                <li
+                  key={r.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+                >
+                  <div>
+                    <Link to={`/jobs/${r.jobId}`} className="font-medium underline">
+                      {r.jobTitle ?? r.jobId}
+                    </Link>
+                    <p className="text-xs text-slate-500">{r.jobCompany}</p>
+                  </div>
+                  <select
+                    value={r.status}
+                    onChange={(e) =>
+                      updateRelMutation.mutate({
+                        relId: r.id,
+                        status: e.target.value as RelationshipStatus,
+                      })
+                    }
+                    className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                  >
+                    <option value="Sourced">Sourced</option>
+                    <option value="Applied">Applied</option>
+                    <option value="Screening">Screening</option>
+                  </select>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      ) : tab === "workspace" ? (
         editing ? (
           <form
             className="max-w-xl space-y-4 rounded-xl border border-slate-200 bg-white p-4"
