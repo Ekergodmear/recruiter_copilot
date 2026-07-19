@@ -109,7 +109,24 @@ Postgres password is applied only on first volume init — restore scripts recre
 
 ---
 
-## 6. Troubleshooting
+## 6. Incident runbook
+
+Step-by-step SOPs: **[OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md)** (TECH-006 WP-4).
+
+| Problem | Start at |
+|---------|----------|
+| API crash loop | SOP-1 |
+| Postgres / connection | SOP-2 |
+| `/health` not ok | SOP-3 |
+| Tunnel / public URL only | SOP-4 |
+| Disk full | SOP-5 |
+| Backup failed | SOP-6 |
+
+Always finish with the runbook **After every fix** checklist.
+
+---
+
+## 7. Troubleshooting (short)
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|

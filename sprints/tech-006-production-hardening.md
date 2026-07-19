@@ -108,11 +108,15 @@ Example: VPS dies at 15:00; last backup 02:00; restore done 15:20 → RTO 20m (p
 
 ### WP-4 — Operations Runbook
 
-SOP documents only (no product code):
+SOP documents only (no product code / no new automation platforms):
 
-- API down
-- DB unhealthy / auth / disk
+- API will not start / crash loop
+- PostgreSQL will not connect
+- `/health` reports error
 - Cloudflare Tunnel disconnected
+- Disk full
+- Backup failed
+- Post-fix verification checklist
 
 ### WP-5 — Production Hardening
 
