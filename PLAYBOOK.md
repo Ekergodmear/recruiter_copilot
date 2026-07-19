@@ -3,24 +3,36 @@
 > Operating manual for the team.  
 > **MANIFESTO** = why we build. **Memory Bank** = product. **ADR** = decisions. **PLAYBOOK** = how we work.
 
-**Bắt buộc:** Đọc [docs/MANIFESTO.md](./docs/MANIFESTO.md) trước khi viết code.
+**Bắt buộc:** Đọc [docs/MANIFESTO.md](./docs/MANIFESTO.md) trước khi viết code.  
+Trước mỗi Sprint: [docs/founder-questions.md](./docs/founder-questions.md).
 
 ---
 
 # Roles
 
-| Role          | Responsibility                                  |
-| ------------- | ----------------------------------------------- |
-| Founder / CTO | Scope, ADR approval, sprint goals               |
-| Cursor        | **Junior Engineer** — implement only, no design |
-| Human         | Review, accept, real-user validation            |
+| Role          | Responsibility                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Founder / CTO | Scope, ADR approval, sprint goals                                                                                        |
+| Cursor        | **Staff Product Engineer** (Sprint 2+) — implement from spec, question friction, no architecture unless product requires |
+| Human         | Review, accept, real-user validation                                                                                     |
 
-## Cursor rules
+## Cursor rules (Sprint 2+)
 
-- Do not redesign architecture
-- Do not optimize without task
-- Do not edit Memory Bank except bugs, user requirements, or approved ADR
-- Implement from sprint task + Memory Bank reference + ADR
+```text
+1. Product Philosophy is Frozen.
+2. UX is a hypothesis.
+3. Every screen must reduce recruiter friction.
+4. Never add architecture unless Product requires it.
+5. Evidence beats opinion.
+```
+
+Đọc: [docs/MANIFESTO.md](./docs/MANIFESTO.md) · [docs/founder-questions.md](./docs/founder-questions.md)
+
+**Không phải Founder.** Không thiết kế triết lý. Không mở rộng kiến trúc trừ khi product blocked.
+
+## Cursor rules (Sprint 0–1 — archived)
+
+Junior Engineer — implement only, no design. Xem git history / `sprint-engineering.mdc`.
 
 ---
 
@@ -28,6 +40,7 @@
 
 ```
 docs/MANIFESTO.md    ← founding principles (read first)
+docs/founder-questions.md ← 10 questions before each Sprint
 PLAYBOOK.md          ← how we work (this file)
 docs/                ← product discovery (interview guides, validation)
 memory-bank/         ← product spec (FROZEN)
@@ -61,10 +74,20 @@ Chỉ **bằng chứng Alpha** được phép thay đổi nền móng. Chi tiế
 
 # How to start a sprint
 
-1. CTO publishes `sprints/sprint-N.md` with goal, story, acceptance criteria
-2. Sprint 0.5 infra must be green before Sprint 1 business work
-3. No parallel sprints — finish N before N+1
-4. Milestone gate: real recruiter validation before next sprint
+1. Founder trả lời [docs/founder-questions.md](./docs/founder-questions.md)
+2. CTO publishes `sprints/sprint-N.md` với **Objective + Success Metrics** trước, features sau
+3. Sprint 0.5 infra must be green before Sprint 1 business work
+4. No parallel sprints — finish N before N+1
+5. Milestone gate: real recruiter validation before next sprint
+
+## Sprint goal format
+
+**Outcome Goal** — không Output Goal.
+
+❌ `Build Candidate List, Search, Import`
+
+✅ Objective + Success Metrics trước  
+✅ Features sau — mỗi feature trả lời "giảm friction ở đâu?"
 
 ## Sprint lifecycle
 
@@ -262,3 +285,7 @@ Repository foundation locked at **v3.1**. Tag: `foundation-v3.1-frozen`
 **Foundation is Frozen** — xem [docs/FOUNDATION-FROZEN.md](./docs/FOUNDATION-FROZEN.md).
 
 Do not expand Memory Bank. Let Alpha and Weekly Product Review drive what comes next.
+
+---
+
+> **We don't ship features. We reduce friction. We don't follow roadmaps. We follow evidence.**

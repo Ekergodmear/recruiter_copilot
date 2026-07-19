@@ -1,0 +1,151 @@
+// TECH-001 — Persistence matching current domain aggregates.
+// Nested domain structures are stored as Json (no business-field redesign).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model CandidateRecord {
+  id            String  @id
+  workspaceId   String
+  resumeId      String
+  resumeVersion Int
+  status        String
+  name          String
+  createdAt     String
+  uploadedAt    String
+  profileJson   String
+  knowledgeJson String
+  identityJson  String?
+
+  @@index([workspaceId])
+  @@index([uploadedAt])
+}
+
+model Resume {
+  id            String @id
+  candidateId   String
+  workspaceId   String
+  version       Int
+  storageRef    String
+  filename      String
+  mimeType      String
+  fileSizeBytes Int
+  sourceType    String
+  uploadedAt    String
+
+  @@index([candidateId])
+}
+
+model Job {
+  id                  String  @id
+  workspaceId         String
+  title               String
+  company             String
+  department          String
+  employmentType      String
+  location            String
+  salaryMin           Float?
+  salaryMax           Float?
+  currency            String
+  experienceYears     Float?
+  englishRequirement  String
+  skillsJson          String
+  description         String
+  responsibilities    String
+  requirements        String
+  benefits            String
+  status              String
+  ready               Boolean
+  submissionCount     Int
+  placementCount      Int
+  deletedAt           String?
+  createdAt           String
+  updatedAt           String
+  createdBy           String
+  rawJdText           String
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([updatedAt])
+}
+
+model Submission {
+  id           String @id
+  candidateId  String
+  jobId        String
+  submittedBy  String
+  submittedAt  String
+  status       String
+  notes        String
+  updatedAt    String
+
+  @@unique([candidateId, jobId])
+  @@index([jobId])
+  @@index([candidateId])
+}
+
+model Interview {
+  id            String @id
+  submissionId  String
+  jobId         String
+  candidateId   String
+  round         Int
+  type          String
+  date          String
+  interviewer   String
+  location      String
+  meetingLink   String
+  feedback      String
+  decision      String
+  status        String
+  createdAt     String
+  createdBy     String
+
+  @@index([submissionId])
+  @@index([jobId])
+  @@index([candidateId])
+}
+
+model Offer {
+  id           String @id
+  submissionId String
+  jobId        String
+  candidateId  String
+  salary       String
+  startDate    String
+  benefits     String
+  notes        String
+  status       String
+  createdAt    String
+  updatedAt    String
+  createdBy    String
+
+  @@index([submissionId])
+}
+
+model PipelineActivity {
+  id           String  @id
+  jobId        String
+  submissionId String?
+  candidateId  String?
+  type         String
+  message      String
+  actorId      String
+  createdAt    String
+
+  @@index([jobId])
+  @@index([submissionId])
+}
+
+model KnowledgeSet {
+  candidateId       String @id
+  workspaceId       String
+  objectsJson       String
+  candidateSignalsJson String
+}

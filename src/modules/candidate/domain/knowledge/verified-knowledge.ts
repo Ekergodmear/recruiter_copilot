@@ -66,6 +66,21 @@ export class VerifiedKnowledge {
     readonly importTraceId: string,
   ) {}
 
+  /** Persistence rehydrate — restores verified-knowledge snapshot as stored. */
+  static restore(params: {
+    fields: Record<EditableFieldName, FieldKnowledge>;
+    uploadedAt: string;
+    readyAt: string | null;
+    importTraceId: string;
+  }): VerifiedKnowledge {
+    return new VerifiedKnowledge(
+      params.fields,
+      params.uploadedAt,
+      params.readyAt,
+      params.importTraceId,
+    );
+  }
+
   static fromImport(params: {
     summary: string;
     skills: { normalizedName: string; confidence?: number }[];

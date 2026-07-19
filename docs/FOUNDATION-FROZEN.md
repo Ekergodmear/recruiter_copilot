@@ -22,7 +22,8 @@ Từ thời điểm này, chỉ có **bằng chứng từ Alpha** (và sau đó 
 |------------|------------|
 | Memory Bank | FROZEN |
 | Architecture (Foundation v3.1) | FROZEN — tag `foundation-v3.1-frozen` |
-| [MANIFESTO.md](./MANIFESTO.md) v1.0 | FROZEN |
+| [MANIFESTO.md](./MANIFESTO.md) v1.3 philosophy | FROZEN |
+| UX / Working Modes (EPIC-002) | **HYPOTHESIS** — Alpha validates |
 | North Star: *AI chuẩn bị tri thức. Recruiter xác nhận tri thức.* | FROZEN |
 | Sprint 1 scope & Recruiter Review Experience | SHIPPED — không mở rộng |
 
@@ -30,6 +31,7 @@ Từ thời điểm này, chỉ có **bằng chứng từ Alpha** (và sau đó 
 
 ## Được phép thay đổi khi có bằng chứng
 
+- **UX workflow** — Focus vs Flexible vs Kanban — Alpha + telemetry quyết định
 - Extraction rules / prompt tuning — khi telemetry + quote cùng chỉ một field
 - Sprint 2 scope — sau data review 30–50 CV
 - UX điều chỉnh — rule of 10 (≥10 bằng chứng cùng pattern)

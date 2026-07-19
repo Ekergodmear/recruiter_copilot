@@ -12,4 +12,8 @@ export class InMemoryResumeRepository implements ResumeRepository {
   async findById(id: ResumeId): Promise<Resume | null> {
     return this.store.get(id.toString()) ?? null;
   }
+
+  async findAll(): Promise<Resume[]> {
+    return [...this.store.values()];
+  }
 }

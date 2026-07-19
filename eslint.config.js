@@ -4,7 +4,7 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**", "memory-bank/**"],
+    ignores: ["dist/**", "node_modules/**", "memory-bank/**", "web/**"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,

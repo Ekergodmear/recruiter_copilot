@@ -9,7 +9,13 @@ describe("health endpoint", () => {
     expect(response.statusCode).toBe(200);
     const body = response.json();
     expect(body.status).toBe("ok");
-    expect(body.sprint).toBe("1");
+    expect(body.sprint).toBe("4");
     expect(body.feature_flags["ai.parsing.enabled"]).toBe(true);
+    expect(body.persistence).toBeDefined();
+    expect(body.database).toBeDefined();
+    expect(typeof body.uptimeSeconds).toBe("number");
+    expect(typeof body.version).toBe("string");
+    expect(response.headers["x-request-id"]).toBeTruthy();
+    expect(response.headers["x-correlation-id"]).toBeTruthy();
   });
 });

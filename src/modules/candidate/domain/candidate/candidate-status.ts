@@ -15,6 +15,11 @@ export class CandidateStatus {
     return new CandidateStatus("archived");
   }
 
+  /** Persistence rehydrate — not a business transition. */
+  static from(value: CandidateStatusValue): CandidateStatus {
+    return new CandidateStatus(value);
+  }
+
   toString(): string {
     return this.value;
   }

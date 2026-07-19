@@ -136,3 +136,46 @@ describe("POST /api/v1/candidates/import-resume", () => {
     expect(readyResponse.json().ready).toBe(true);
   });
 });
+
+describe("GET /api/v1/candidates", () => {
+  it("lists inbox and ready candidates", async () => {
+    const storagePath = mkdtempSync(join(tmpdir(), "api-list-"));
+    const config = AppConfig.fromEnv({
+      ...process.env,
+      STORAGE_PATH: storagePath,
+      DEFAULT_WORKSPACE_ID: "ws_api",
+    });
+    const app = await buildApp(createAppDependencies(config));
+
+    const docx = await createTestDocx(["List Test", "list@example.com", "Go"]);
+    const boundary = "----cursorboundary";
+    const body = Buffer.concat([
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="t.docx"\r\nContent-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n\r\n`,
+      ),
+      docx,
+      Buffer.from(`\r\n--${boundary}--\r\n`),
+    ]);
+
+    const imported = await app.inject({
+      method: "POST",
+      url: "/api/v1/candidates/import-resume",
+      headers: { "content-type": `multipart/form-data; boundary=${boundary}` },
+      payload: body,
+    });
+    const candidateId = imported.json().candidateId as string;
+
+    const inbox = await app.inject({ method: "GET", url: "/api/v1/candidates?ready=false" });
+    expect(inbox.statusCode).toBe(200);
+    expect(
+      inbox.json().items.some((i: { candidateId: string }) => i.candidateId === candidateId),
+    ).toBe(true);
+
+    await app.inject({ method: "POST", url: `/api/v1/candidates/${candidateId}/mark-ready` });
+
+    const ready = await app.inject({ method: "GET", url: "/api/v1/candidates?ready=true" });
+    expect(
+      ready.json().items.some((i: { candidateId: string }) => i.candidateId === candidateId),
+    ).toBe(true);
+  });
+});

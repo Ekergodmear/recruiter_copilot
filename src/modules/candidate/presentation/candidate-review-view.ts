@@ -44,6 +44,12 @@ export type FieldDiffRow = {
   display: string;
 };
 
+export type DuplicateCandidateView = {
+  candidateId: string;
+  name: string;
+  score: number;
+};
+
 export type CandidateReviewView = {
   candidateId: string;
   name: string;
@@ -61,6 +67,8 @@ export type CandidateReviewView = {
   diff: FieldDiffRow[];
   reviewActions: readonly string[];
   overrideReasons: readonly string[];
+  /** EPIC-007 — warning only; never blocks workflow */
+  possibleDuplicates: DuplicateCandidateView[];
 };
 
 const FIELD_LABELS: Record<EditableFieldName, string> = {
@@ -86,6 +94,7 @@ function lastHumanRevision(revisions: RevisionEntry[]): string | null {
 export function toCandidateReviewView(
   record: CandidateRecord,
   resume: ResumePreviewMetadata | null = null,
+  possibleDuplicates: DuplicateCandidateView[] = [],
 ): CandidateReviewView {
   const knowledge = record.knowledge;
   const diff: FieldDiffRow[] = EDITABLE_FIELDS.map((field) => {
@@ -143,5 +152,6 @@ export function toCandidateReviewView(
       "Wrong company",
       "Other",
     ],
+    possibleDuplicates,
   };
 }

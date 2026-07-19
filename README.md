@@ -6,7 +6,7 @@ Recruitment Intelligence Platform — **Foundation v3.1 frozen**.
 
 - [docs/MANIFESTO.md](./docs/MANIFESTO.md) — founding principles (read before code)
 - [docs/FOUNDATION-FROZEN.md](./docs/FOUNDATION-FROZEN.md) — v1.0 frozen; Alpha evidence only
-- [docs/weekly-product-review.md](./docs/weekly-product-review.md) — 60-min weekly ritual
+- [docs/founder-questions.md](./docs/founder-questions.md) — 10 questions before each Sprint
 - [PLAYBOOK.md](./PLAYBOOK.md) — how the team works
 - [sprints/sprint-0.5.md](./sprints/sprint-0.5.md) — current sprint
 - [memory-bank/](./memory-bank/) — product spec (read-only)
@@ -20,10 +20,14 @@ pnpm run test
 pnpm run ci
 ```
 
-## Docker
+## Docker (production)
+
+See **[docs/PRODUCTION.md](./docs/PRODUCTION.md)** and **[docs/DEPLOYMENT_CHECKLIST.md](./docs/DEPLOYMENT_CHECKLIST.md)**.
 
 ```bash
-docker compose up --build
+cp .env.production.example .env.production
+docker compose --env-file .env.production up -d --build
+# health: http://localhost:3000/health
 ```
 
 ## Milestone 1

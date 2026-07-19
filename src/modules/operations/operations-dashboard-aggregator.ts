@@ -1,11 +1,20 @@
 import type { TelemetryEvent } from "../../shared/telemetry/types.js";
 import type {
   DurationTrendMetric,
+  FieldDurationStat,
+  FieldReviewStat,
   OperationsDashboardResponse,
+  PriorityReviewStat,
   RankedField,
   RankedReason,
+  ReviewModeStat,
   TrendMetric,
+  TtqcByModeStat,
 } from "./operations-dashboard-types.js";
+
+const REVIEW_MODES = ["focus", "flexible"] as const;
+
+const REVIEW_PRIORITY_TIERS = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const;
 
 const GAP_LABELS: Record<string, string> = {
   languages: "English",
@@ -59,6 +68,37 @@ function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]!;
+}
+
+function percentile(values: number[], p: number): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const idx = Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1));
+  return sorted[idx]!;
+}
+
+function buildReviewSessionKpis(events: readonly TelemetryEvent[]) {
+  const sessions = events.filter((e) => e.event_type === "review_session_completed");
+  const readySessions = sessions.filter(
+    (e) => e.outcome === "accepted" || e.review_action === "ready",
+  );
+  const readyDurations = readySessions.map((e) => e.ttqc_ms ?? e.latency_ms);
+  const corrections = sessions.map((e) => e.fields_overridden ?? 0);
+  const medianReady = median(readyDurations);
+  const p95Ready = percentile(readyDurations, 95);
+  return {
+    sessions: sessions.length,
+    ready_rate:
+      sessions.length === 0
+        ? 0
+        : Math.round((readySessions.length / sessions.length) * 1000) / 1000,
+    median_time_to_ready_ms: Math.round(medianReady),
+    median_time_to_ready_formatted: formatDuration(medianReady),
+    p95_time_to_ready_ms: Math.round(p95Ready),
+    p95_time_to_ready_formatted: formatDuration(p95Ready),
+    average_corrections:
+      corrections.length === 0 ? 0 : Math.round(average(corrections) * 1000) / 1000,
+  };
 }
 
 function buildTrend(todayValue: number, yesterdayValue: number): TrendMetric {
@@ -123,6 +163,128 @@ function topOverrideReasons(events: readonly TelemetryEvent[]): RankedReason[] {
     .map(([reason, count]) => ({ reason, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
+}
+
+function buildFieldReviewStats(events: readonly TelemetryEvent[]): FieldReviewStat[] {
+  const reviewed = events.filter((e) => e.event_type === "knowledge_reviewed" && e.field_name);
+  const byField = new Map<string, TelemetryEvent[]>();
+  for (const event of reviewed) {
+    const field = event.field_name!;
+    const list = byField.get(field) ?? [];
+    list.push(event);
+    byField.set(field, list);
+  }
+
+  return [...byField.entries()]
+    .map(([field, fieldEvents]) => {
+      const reviewedCount = fieldEvents.length;
+      const overrideCount = fieldEvents.filter((e) => e.review_action === "edit").length;
+      const acceptedCount = fieldEvents.filter(
+        (e) => e.review_action === "accept" || e.review_action === "verify",
+      ).length;
+      return {
+        field,
+        reviewed_count: reviewedCount,
+        override_count: overrideCount,
+        override_rate:
+          reviewedCount === 0 ? 0 : Math.round((overrideCount / reviewedCount) * 1000) / 1000,
+        accepted_count: acceptedCount,
+        acceptance_rate:
+          reviewedCount === 0 ? 0 : Math.round((acceptedCount / reviewedCount) * 1000) / 1000,
+      };
+    })
+    .sort((a, b) => b.reviewed_count - a.reviewed_count);
+}
+
+function buildFieldEditDuration(events: readonly TelemetryEvent[]): FieldDurationStat[] {
+  const reviewed = events.filter(
+    (e) =>
+      e.event_type === "knowledge_reviewed" && e.field_name && e.edit_duration_ms !== undefined,
+  );
+  const byField = new Map<string, number[]>();
+  for (const event of reviewed) {
+    const field = event.field_name!;
+    const list = byField.get(field) ?? [];
+    list.push(event.edit_duration_ms ?? 0);
+    byField.set(field, list);
+  }
+
+  return [...byField.entries()]
+    .map(([field, durations]) => {
+      const avg = average(durations);
+      return {
+        field,
+        count: durations.length,
+        avg_duration_ms: Math.round(avg),
+        avg_duration_formatted: formatDuration(avg),
+      };
+    })
+    .sort((a, b) => b.avg_duration_ms - a.avg_duration_ms);
+}
+
+function buildReviewByPriority(events: readonly TelemetryEvent[]): PriorityReviewStat[] {
+  const reviewed = events.filter((e) => e.event_type === "knowledge_reviewed" && e.review_priority);
+  const total = reviewed.length;
+  const byPriority = new Map<string, TelemetryEvent[]>();
+  for (const event of reviewed) {
+    const priority = event.review_priority!;
+    const list = byPriority.get(priority) ?? [];
+    list.push(event);
+    byPriority.set(priority, list);
+  }
+
+  return REVIEW_PRIORITY_TIERS.map((priority) => {
+    const tierEvents = byPriority.get(priority) ?? [];
+    const reviewedCount = tierEvents.length;
+    const overrideCount = tierEvents.filter((e) => e.review_action === "edit").length;
+    return {
+      priority,
+      reviewed_count: reviewedCount,
+      percent_of_reviews: total === 0 ? 0 : Math.round((reviewedCount / total) * 1000) / 1000,
+      override_rate:
+        reviewedCount === 0 ? 0 : Math.round((overrideCount / reviewedCount) * 1000) / 1000,
+    };
+  }).filter((row) => row.reviewed_count > 0);
+}
+
+function buildReviewModeSplit(events: readonly TelemetryEvent[]): ReviewModeStat[] {
+  const modeUsed = events.filter((e) => e.event_type === "review_mode_used" && e.review_mode);
+  const abandons = events.filter((e) => e.event_type === "abandon_reason" && e.review_mode);
+  const total = modeUsed.length;
+
+  return REVIEW_MODES.map((mode) => {
+    const count = modeUsed.filter((e) => e.review_mode === mode).length;
+    const abandonCount = abandons.filter((e) => e.review_mode === mode).length;
+    return {
+      mode,
+      count,
+      percent_of_reviews: total === 0 ? 0 : Math.round((count / total) * 1000) / 1000,
+      abandon_count: abandonCount,
+      abandon_rate: count === 0 ? 0 : Math.round((abandonCount / count) * 1000) / 1000,
+    };
+  }).filter((row) => row.count > 0 || row.abandon_count > 0);
+}
+
+function buildTtqcByMode(events: readonly TelemetryEvent[]): TtqcByModeStat[] {
+  const qualified = events.filter((e) => e.event_type === "candidate_qualified" && e.review_mode);
+  const byMode = new Map<string, number[]>();
+  for (const event of qualified) {
+    const mode = event.review_mode!;
+    const list = byMode.get(mode) ?? [];
+    list.push(event.ttqc_ms ?? event.latency_ms ?? 0);
+    byMode.set(mode, list);
+  }
+
+  return REVIEW_MODES.map((mode) => {
+    const durations = byMode.get(mode) ?? [];
+    const avg = average(durations);
+    return {
+      mode,
+      count: durations.length,
+      avg_ttqc_ms: Math.round(avg),
+      avg_ttqc_formatted: formatDuration(avg),
+    };
+  }).filter((row) => row.count > 0);
 }
 
 export function buildOperationsDashboard(
@@ -247,6 +409,8 @@ export function buildOperationsDashboard(
       qualified_candidates_created: buildTrend(todayQualified.length, yesterdayQualified.length),
       average_ttqc: buildDurationTrend(average(ttqcToday), average(ttqcYesterday)),
       median_ttqc: buildDurationTrend(median(ttqcToday), median(ttqcYesterday)),
+      ttqc_by_mode: buildTtqcByMode(events),
+      review_session_kpis: buildReviewSessionKpis(events),
     },
     ai: {
       average_parse_time: buildDurationTrend(average(parseToday), average(parseYesterday)),
@@ -270,6 +434,9 @@ export function buildOperationsDashboard(
         ...knowledgeEdits,
         ...events.filter((e) => e.event_type === "recruiter_feedback"),
       ]),
+      field_review_stats: buildFieldReviewStats(events),
+      field_edit_duration: buildFieldEditDuration(events),
+      review_by_priority: buildReviewByPriority(events),
     },
     reliability: {
       import_success_rate: buildTrend(todaySuccessRate, yesterdaySuccessRate),
@@ -285,6 +452,7 @@ export function buildOperationsDashboard(
       daily_active_recruiters: buildTrend(recruitersToday.size, recruitersYesterday.size),
       imports_per_recruiter: importsPerRecruiter,
       average_cvs_imported_per_day: buildTrend(avgCvsPerDay, avgCvsYesterday),
+      review_mode_split: buildReviewModeSplit(events),
     },
     generated_at: now.toISOString(),
   };

@@ -12,4 +12,11 @@ export class InMemoryCandidateRepository implements CandidateRepository {
   async findById(id: CandidateId): Promise<CandidateRecord | null> {
     return this.store.get(id.toString()) ?? null;
   }
+
+  async findAll(): Promise<CandidateRecord[]> {
+    return [...this.store.values()].sort(
+      (a, b) =>
+        new Date(b.knowledge.uploadedAt).getTime() - new Date(a.knowledge.uploadedAt).getTime(),
+    );
+  }
 }

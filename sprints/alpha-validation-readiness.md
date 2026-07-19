@@ -84,20 +84,26 @@ Chuẩn bị cho **30–50 CV thật** sao cho sau Alpha mở dashboard / đọc
 
 ## Deliverables (instrumentation, không UI mới)
 
-### A. Dashboard extensions (Operations)
+### A. Dashboard extensions (Operations) ✅ implemented
 
 Aggregate từ telemetry hiện có (`data/telemetry/events.jsonl`):
 
-- Override distribution by field (%)
-- Acceptance by field (%)
-- Review completion by priority tier
-- TTQC breakdown by field (avg edit duration)
+- [x] Override distribution by field (%) — `ai.field_review_stats`
+- [x] Acceptance by field (%) — `ai.field_review_stats`
+- [x] Review completion by priority tier — `ai.review_by_priority` (added `review_priority` to telemetry schema, captured at review time in `CandidateEditService`)
+- [x] TTQC breakdown by field (avg edit duration) — `ai.field_edit_duration`
 
-### B. Weekly alpha report (file, không DB)
+Answers Q1–Q5 directly from `/internal/operations-dashboard` once real Alpha events land — no new UI screens, per "instrumentation only" scope.
+
+### B. Weekly alpha report (file, không DB) ✅ implemented
 
 ```text
 reports/weekly-alpha.md
 ```
+
+`pnpm run report:weekly` (script `scripts/generate-weekly-report.ts`) đọc `data/telemetry/events.jsonl`, tự tính lại các bảng số (Top Override Fields, Top Accepted Fields, TTQC, Top Missing Fields, Top Review Reasons, Review Queue Effectiveness, TTQC by Field) và ghi ra `reports/weekly-alpha-YYYY-MM-DD.md` — không sửa file template gốc.
+
+**Vẫn cần người:** phần "Product Notes" (quote nguyên văn, surprises, churn risks) — script không bịa quote hay tự đánh giá recruiter.
 
 Mỗi tuần generate (script hoặc manual từ dashboard JSON):
 
@@ -110,9 +116,9 @@ Mỗi tuần generate (script hoặc manual từ dashboard JSON):
 
 → **Nhật ký tiến hóa** sản phẩm.
 
-### C. Churn risk checklist
+### C. Churn risk checklist ✅ already authored — no code needed
 
-`docs/what-would-make-recruiter-stop.md` — đối chiếu sau phỏng vấn.
+`docs/what-would-make-recruiter-stop.md` — 20 lý do + ma trận đối chiếu đã viết sẵn. Việc còn lại là **dùng nó sau phỏng vấn thật**, không phải code thêm.
 
 ---
 

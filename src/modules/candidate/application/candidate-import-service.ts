@@ -34,6 +34,10 @@ import {
 import { CandidateRecord } from "../domain/candidate/candidate-record.js";
 import { VerifiedKnowledge } from "../domain/knowledge/verified-knowledge.js";
 import { toCandidateProfileView } from "../presentation/candidate-profile-view.js";
+import type { KnowledgeEvolutionService } from "../../knowledge/application/knowledge-evolution-service.js";
+import { CandidateIdentityService } from "./identity/candidate-identity-service.js";
+import { createHash } from "node:crypto";
+import { emitOperationFailed } from "../../operations/founder-readiness/operation-failed.js";
 
 const SUPPORTED_MIME_TYPES = new Set([
   "application/pdf",
@@ -42,6 +46,9 @@ const SUPPORTED_MIME_TYPES = new Set([
 
 export class CandidateImportService {
   private readonly contractExecutor = new KnowledgeContractExecutor();
+  private readonly identityService = new CandidateIdentityService();
+  /** In-flight dedupe: retry of the same payload in the same request does not create a second record. */
+  private readonly inflight = new Map<string, Promise<ImportResumeResult>>();
 
   constructor(
     private readonly deps: {
@@ -53,11 +60,61 @@ export class CandidateImportService {
       resumeRepository: ResumeRepository;
       providerRegistry: ProviderRegistry;
       telemetry: TelemetryStore;
+      knowledgeEvolution?: KnowledgeEvolutionService;
     },
   ) {}
 
   async importResume(command: ImportResumeCommand): Promise<ImportResumeResult> {
+    const key = `${command.workspaceId}:${createHash("sha256").update(command.file).digest("hex")}:${command.filename}`;
+    const existing = this.inflight.get(key);
+    if (existing) return existing;
+
+    const promise = this.runImport(command).finally(() => {
+      this.inflight.delete(key);
+    });
+    this.inflight.set(key, promise);
+    return promise;
+  }
+
+  private async runImport(command: ImportResumeCommand): Promise<ImportResumeResult> {
     const startedAt = this.deps.clock.now();
+    try {
+      return await this.executeImport(command, startedAt);
+    } catch (error) {
+      const code = error instanceof ImportResumeError ? error.code : "INTERNAL_ERROR";
+      const traceId = this.deps.idGenerator.generateId("trace");
+      const correlationId = this.deps.idGenerator.generateId("corr");
+      this.deps.telemetry.record(
+        createTelemetryEvent(
+          {
+            event_type: "resume_import_failed",
+            trace_id: traceId,
+            correlation_id: correlationId,
+            workspace_id: command.workspaceId,
+            actor_id: command.actorId ?? "recruiter_alpha",
+            latency_ms: Math.max(0, this.deps.clock.now().getTime() - startedAt.getTime()),
+            error_code: code,
+            outcome: "failed",
+          },
+          this.deps.clock,
+        ),
+      );
+      emitOperationFailed(this.deps, {
+        operation: "import_resume",
+        errorCode: code,
+        traceId,
+        correlationId,
+        workspaceId: command.workspaceId,
+        actorId: command.actorId ?? "recruiter_alpha",
+      });
+      throw error;
+    }
+  }
+
+  private async executeImport(
+    command: ImportResumeCommand,
+    startedAt: Date,
+  ): Promise<ImportResumeResult> {
     this.validate(command);
 
     const traceId = this.deps.idGenerator.generateId("trace");
@@ -150,8 +207,74 @@ export class CandidateImportService {
     });
 
     const englishValue = kc002.english.value as { level: string };
+
+    const parsedName = this.identityService.extractName(processing.parsed.rawText);
+    const email = processing.deterministic.fields.email ?? null;
+    const phone = processing.deterministic.fields.phone ?? null;
+    const identity = this.identityService.buildIdentity({
+      name: parsedName.value,
+      email,
+      phone,
+      parsedName,
+    });
+
+    this.deps.telemetry.record(
+      createTelemetryEvent(
+        {
+          event_type: "candidate_name_extracted",
+          trace_id: traceId,
+          correlation_id: correlationId,
+          workspace_id: command.workspaceId,
+          actor_id: command.actorId ?? "recruiter_alpha",
+          candidate_id: candidateId.toString(),
+          latency_ms: 0,
+          name_confidence: parsedName.confidence,
+          name_source: parsedName.source,
+          confidence_avg: parsedName.confidence,
+        },
+        this.deps.clock,
+      ),
+    );
+
+    const existing = await this.deps.candidateRepository.findAll();
+    const duplicates = this.identityService.findDuplicates(
+      {
+        candidateId: candidateId.toString(),
+        name: parsedName.value,
+        email,
+        phone,
+        fingerprint: identity.fingerprint,
+      },
+      existing.map((r) => ({
+        candidateId: r.candidateId,
+        name: r.candidate.profile.name,
+        email: r.identity?.email ?? null,
+        phone: r.identity?.phone ?? null,
+        fingerprint: r.identity?.fingerprint ?? null,
+      })),
+    );
+
+    if (duplicates.length > 0) {
+      this.deps.telemetry.record(
+        createTelemetryEvent(
+          {
+            event_type: "candidate_duplicate_detected",
+            trace_id: traceId,
+            correlation_id: correlationId,
+            workspace_id: command.workspaceId,
+            actor_id: command.actorId ?? "recruiter_alpha",
+            candidate_id: candidateId.toString(),
+            latency_ms: 0,
+            duplicate_count: duplicates.length,
+            highest_score: duplicates[0]!.score,
+          },
+          this.deps.clock,
+        ),
+      );
+    }
+
     const profile = CandidateProfile.create({
-      name: processing.deterministic.fields.candidateName ?? "Unknown Candidate",
+      name: parsedName.value,
       summary: summaryResult.summary,
       skills,
       englishLevel: englishValue.level,
@@ -214,10 +337,31 @@ export class CandidateImportService {
       knowledge,
       resumeVersion: resume.version.toNumber(),
       resumeId: resumeId.toString(),
+      identity,
     });
 
     await this.deps.candidateRepository.save(record);
     await this.deps.resumeRepository.save(resume);
+
+    if (this.deps.knowledgeEvolution) {
+      try {
+        await this.deps.knowledgeEvolution.seedFromVerifiedKnowledge({
+          candidateId: candidate.idValue,
+          workspaceId: command.workspaceId,
+          knowledge,
+        });
+      } catch (err) {
+        emitOperationFailed(this.deps, {
+          operation: "knowledge_seed",
+          errorCode: (err as Error).name || "SEED_FAILED",
+          traceId,
+          correlationId,
+          candidateId: candidate.idValue,
+          workspaceId: command.workspaceId,
+          actorId: command.actorId ?? "recruiter_alpha",
+        });
+      }
+    }
 
     const fieldsExtracted = knowledge.totalEditableFields();
     const fieldsOverridden = 0;
@@ -232,6 +376,7 @@ export class CandidateImportService {
           correlation_id: correlationId,
           workspace_id: command.workspaceId,
           actor_id: command.actorId ?? "recruiter_alpha",
+          candidate_id: candidate.idValue,
           provider_id: summaryResult.providerId,
           latency_ms: totalLatencyMs,
           parse_time_ms: parseTimeMs,

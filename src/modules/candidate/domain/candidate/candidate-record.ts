@@ -2,6 +2,7 @@ import { Candidate } from "../candidate/candidate.js";
 import type { VerifiedKnowledge } from "../knowledge/verified-knowledge.js";
 import { CandidateProfile } from "../candidate/candidate-profile.js";
 import { parseSkills } from "../knowledge/verified-knowledge.js";
+import type { CandidateIdentity } from "../identity/types.js";
 
 export class CandidateRecord {
   private constructor(
@@ -9,6 +10,7 @@ export class CandidateRecord {
     readonly knowledge: VerifiedKnowledge,
     readonly resumeVersion: number,
     readonly resumeId: string,
+    readonly identity: CandidateIdentity | null,
   ) {}
 
   static create(params: {
@@ -16,12 +18,14 @@ export class CandidateRecord {
     knowledge: VerifiedKnowledge;
     resumeVersion: number;
     resumeId: string;
+    identity?: CandidateIdentity | null;
   }): CandidateRecord {
     return new CandidateRecord(
       params.candidate,
       params.knowledge,
       params.resumeVersion,
       params.resumeId,
+      params.identity ?? null,
     );
   }
 
@@ -37,7 +41,23 @@ export class CandidateRecord {
       profile,
       createdAt: this.candidate.createdAt,
     });
-    return new CandidateRecord(updatedCandidate, knowledge, this.resumeVersion, this.resumeId);
+    return new CandidateRecord(
+      updatedCandidate,
+      knowledge,
+      this.resumeVersion,
+      this.resumeId,
+      this.identity,
+    );
+  }
+
+  withIdentity(identity: CandidateIdentity): CandidateRecord {
+    return new CandidateRecord(
+      this.candidate,
+      this.knowledge,
+      this.resumeVersion,
+      this.resumeId,
+      identity,
+    );
   }
 
   toDisplayProfile(knowledge: VerifiedKnowledge = this.knowledge): CandidateProfile {

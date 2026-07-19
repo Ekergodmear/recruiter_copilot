@@ -111,6 +111,8 @@ describe("CandidateEditService", () => {
     expect(edited?.human_value).toBe("C1");
     expect(edited?.override_reason).toBe("Wrong English");
     expect(edited?.edit_duration_ms).toBe(4200);
+    expect(edited?.review_priority).toBeDefined();
+    expect(reviewed?.review_priority).toBe(edited?.review_priority);
   });
 
   it("emits candidate_qualified only when marked ready", async () => {
@@ -119,6 +121,7 @@ describe("CandidateEditService", () => {
     const review = await editService.markCandidateReady({
       candidateId,
       actorId: "recruiter_alpha",
+      reviewMode: "focus",
     });
 
     expect(review.ready).toBe(true);
@@ -130,5 +133,6 @@ describe("CandidateEditService", () => {
     expect(qualified?.verification_rate).toBe(1);
     expect(qualified?.review_completion_rate).toBe(0);
     expect(qualified?.ttqc_ms).toBeGreaterThanOrEqual(0);
+    expect(qualified?.review_mode).toBe("focus");
   });
 });

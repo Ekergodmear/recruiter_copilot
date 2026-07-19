@@ -1,8 +1,26 @@
-# Recruitment Intelligence Platform Manifesto v1.0
+# Recruitment Intelligence Platform Manifesto v1.3
 
-> **Nguyên tắc sáng lập.** Đọc trước khi viết code — dù là người đầu tiên hay người thứ mười trong đội.
->
-> Kết thúc giai đoạn thiết kế · Chốt bởi CTO · 2026-07-10
+> v1.3 — Zero Friction · UX = hypothesis · Founder · 2026-07-10
+
+---
+
+## Product Vision
+
+> **Zero Friction Recruiting**
+
+*Giảm mọi ma sát trong quy trình xử lý ứng viên.*
+
+Review Session, Focus Mode, Inbox Zero — là **một cách** đạt vision, không phải vision.
+
+---
+
+## USP
+
+Không bán ATS + AI. Không bán parsing. Không bán dashboard.
+
+> **Zero Inbox for Recruiters.**
+
+Giống Superhuman bán **Inbox Zero**, không bán email — chúng ta bán **CV Inbox Zero**.
 
 ---
 
@@ -77,9 +95,9 @@ Không đo bằng:
 
 Đo bằng:
 
-- **TTQC** (Time To Qualified Candidate),
+- **TTIZ** (Time To Inbox Zero) — North Star Product,
+- **TTQC** (Time To Qualified Candidate) — metric vận hành,
 - tỷ lệ quay lại sử dụng,
-- tỷ lệ hoàn thành review,
 - việc recruiter có còn mở Excel không.
 
 ---
@@ -90,9 +108,9 @@ Sprint 1 trả lời:
 
 > "Recruiter có hoàn thành được một CV không?"
 
-Sprint 2 có thể là:
+Sprint 2 trả lời:
 
-> "Recruiter có quản lý được cả pipeline không?"
+> "Working mode nào (Focus vs Flexible) thực sự giảm ma sát cho recruiter?"
 
 Sprint 3 có thể là:
 
@@ -118,9 +136,45 @@ Nếu một tính năng không làm tăng niềm tin, giảm thời gian hoặc 
 
 ---
 
-## North Star (nhắc lại)
+## 11. The Product removes friction from recruiter workflows.
 
-> **AI chuẩn bị tri thức. Recruiter xác nhận tri thức.**
+Review Flow, Session, Focus Mode — **implementation**, không phải philosophy.
+
+Workflow có thể đổi. Triết lý thì không.
+
+Mọi quyết định UX hỏi:
+
+> **Điều này có giảm ma sát trong quy trình recruiter không?**
+
+---
+
+## North Star
+
+| Metric | Vai trò |
+|--------|---------|
+| **TTIZ** | Time To Inbox Zero — kết quả Review Session |
+| **CV Processing Velocity** | CV/giờ · avg sec/CV — recruiter cảm nhận |
+| **TTQC** | Vận hành — founder `/internal` |
+
+**Triết lý:** AI chuẩn bị tri thức. Recruiter xác nhận tri thức.
+
+**Flow (giả thuyết — Alpha validates):**
+
+```text
+Mode A: Focus Review Session
+Mode B: Flexible Inbox Review
+  → Ready → Knowledge Library
+```
+
+Trung tâm: **giảm ma sát** — không đóng băng một workflow cụ thể.
+
+### Đóng băng vs Giả thuyết
+
+| Layer | Trạng thái |
+|-------|------------|
+| Business Philosophy | FROZEN |
+| Domain / Knowledge Model | FROZEN |
+| **UX Vision** | **EXPERIMENTAL** — wireframe = hypothesis |
 
 ---
 
@@ -129,6 +183,7 @@ Nếu một tính năng không làm tăng niềm tin, giảm thời gian hoặc 
 | Tài liệu | Vai trò |
 |----------|---------|
 | [FOUNDATION-FROZEN.md](./FOUNDATION-FROZEN.md) | Tuyên bố đóng băng v1.0 |
+| [founder-questions.md](./founder-questions.md) | 10 câu trước mỗi Sprint |
 | [weekly-product-review.md](./weekly-product-review.md) | Nghi thức 60 phút/tuần |
 | [PLAYBOOK.md](../PLAYBOOK.md) | Cách làm việc hàng ngày |
 | [sprints/](../sprints/) | Câu hỏi từng Sprint |

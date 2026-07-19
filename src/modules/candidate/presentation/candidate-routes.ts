@@ -9,26 +9,23 @@ import {
   type ResumePreviewService,
 } from "../application/resume-preview-service.js";
 import { ImportResumeError } from "../application/import-resume-command.js";
-import type { Clock } from "../../../shared/clock/index.js";
-import { createTelemetryEvent, type TelemetryStore } from "../../../shared/telemetry/index.js";
 import { renderCandidateReviewPage } from "./candidate-review-page.js";
 import {
   EDITABLE_FIELDS,
   KNOWLEDGE_REVIEW_ACTIONS,
 } from "../domain/knowledge/verified-knowledge.js";
-
-const MIME_BY_EXTENSION: Record<string, string> = {
-  pdf: "application/pdf",
-  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-};
-
-function detectMimeType(filename: string, reported?: string): string {
-  if (reported && reported !== "application/octet-stream") {
-    return reported;
-  }
-  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
-  return MIME_BY_EXTENSION[ext] ?? reported ?? "application/octet-stream";
-}
+import {
+  getLogger,
+  setRequestCandidateId,
+  withOperation,
+  type Logger,
+} from "../../../shared/logging/index.js";
+import {
+  cleanupMultipartTemp,
+  pickAllowedFields,
+  SecurityError,
+  validateResumeUpload,
+} from "../../../shared/security/index.js";
 
 export function registerCandidateRoutes(
   app: FastifyInstance,
@@ -36,69 +33,64 @@ export function registerCandidateRoutes(
   editService: CandidateEditService,
   resumePreviewService: ResumePreviewService,
   defaultWorkspaceId: string,
-  telemetry: TelemetryStore,
-  clock: Clock,
+  logger: Logger = getLogger(),
+  maxFileSizeBytes = 10 * 1024 * 1024,
 ): void {
+  app.get("/api/v1/candidates", async (request) => {
+    const query = request.query as { ready?: string; q?: string };
+    let ready: boolean | undefined;
+    if (query.ready === "true") ready = true;
+    if (query.ready === "false") ready = false;
+    return editService.listCandidates({ ready, q: query.q });
+  });
+
   app.post("/api/v1/candidates/import-resume", async (request, reply) => {
     const data = await request.file();
     if (!data) {
       return reply.status(400).send({ error: "FILE_REQUIRED", message: "file is required" });
     }
 
-    const buffer = await data.toBuffer();
-    const filename = data.filename;
-    const mimeType = detectMimeType(filename, data.mimetype);
-    const traceId = `trace_route_${Date.now()}`;
-
     try {
-      const result = await importService.importResume({
-        file: buffer,
-        filename,
-        mimeType,
-        sourceType: "manual_upload",
-        workspaceId: defaultWorkspaceId,
-        actorId: "recruiter_alpha",
+      const buffer = await data.toBuffer();
+      const validated = await validateResumeUpload({
+        buffer,
+        filename: data.filename,
+        reportedMime: data.mimetype,
+        maxFileSizeBytes,
       });
+
+      const result = await withOperation(logger, "resume_import", async () =>
+        importService.importResume({
+          file: validated.buffer,
+          filename: validated.filename,
+          mimeType: validated.mimeType,
+          sourceType: "manual_upload",
+          workspaceId: defaultWorkspaceId,
+          actorId: "recruiter_alpha",
+        }),
+      );
+      setRequestCandidateId(result.candidateId);
 
       return reply.status(201).send({
         ...result,
         reviewUrl: `/api/v1/candidates/${result.candidateId}/review/ui`,
       });
     } catch (error) {
+      if (error instanceof SecurityError) {
+        return reply.status(error.statusCode).send({ error: error.code, message: error.message });
+      }
       if (error instanceof ImportResumeError) {
-        telemetry.record(
-          createTelemetryEvent(
-            {
-              event_type: "resume_import_failed",
-              trace_id: traceId,
-              workspace_id: defaultWorkspaceId,
-              actor_id: "recruiter_alpha",
-              latency_ms: 0,
-              error_code: error.code,
-              outcome: "failed",
-            },
-            clock,
-          ),
-        );
-        const status = error.code === "UNSUPPORTED_FORMAT" ? 400 : 422;
+        const status =
+          error.code === "UNSUPPORTED_FORMAT" || error.code === "EMPTY_FILE"
+            ? 400
+            : error.code === "FILE_TOO_LARGE"
+              ? 413
+              : 422;
         return reply.status(status).send({ error: error.code, message: error.message });
       }
-      telemetry.record(
-        createTelemetryEvent(
-          {
-            event_type: "resume_import_failed",
-            trace_id: traceId,
-            workspace_id: defaultWorkspaceId,
-            actor_id: "recruiter_alpha",
-            latency_ms: 0,
-            error_code: "INTERNAL_ERROR",
-            outcome: "failed",
-          },
-          clock,
-        ),
-      );
-      request.log.error(error);
       return reply.status(500).send({ error: "INTERNAL_ERROR", message: "Import failed" });
+    } finally {
+      await cleanupMultipartTemp(data as { filepath?: string });
     }
   });
 
@@ -135,8 +127,11 @@ export function registerCandidateRoutes(
 
   app.get("/api/v1/candidates/:id/review", async (request, reply) => {
     const { id } = request.params as { id: string };
+    setRequestCandidateId(id);
     try {
-      return await editService.getReview(id);
+      return await withOperation(logger, "review_session", async () => editService.getReview(id), {
+        candidateId: id,
+      });
     } catch (error) {
       if (error instanceof CandidateEditError && error.code === "NOT_FOUND") {
         return reply.status(404).send({ error: error.code, message: error.message });
@@ -160,13 +155,27 @@ export function registerCandidateRoutes(
 
   app.post("/api/v1/candidates/:id/knowledge/review", async (request, reply) => {
     const { id } = request.params as { id: string };
-    const body = request.body as {
+    let body: {
       field?: string;
       action?: string;
       humanValue?: string;
       reason?: string | null;
       editDurationMs?: number;
     };
+    try {
+      body = pickAllowedFields(request.body, [
+        "field",
+        "action",
+        "humanValue",
+        "reason",
+        "editDurationMs",
+      ]);
+    } catch (error) {
+      if (error instanceof SecurityError) {
+        return reply.status(error.statusCode).send({ error: error.code, message: error.message });
+      }
+      throw error;
+    }
 
     if (!body?.field || !body?.action) {
       return reply.status(400).send({
@@ -213,12 +222,20 @@ export function registerCandidateRoutes(
 
   app.patch("/api/v1/candidates/:id/knowledge", async (request, reply) => {
     const { id } = request.params as { id: string };
-    const body = request.body as {
+    let body: {
       field?: string;
       humanValue?: string;
       reason?: string | null;
       editDurationMs?: number;
     };
+    try {
+      body = pickAllowedFields(request.body, ["field", "humanValue", "reason", "editDurationMs"]);
+    } catch (error) {
+      if (error instanceof SecurityError) {
+        return reply.status(error.statusCode).send({ error: error.code, message: error.message });
+      }
+      throw error;
+    }
 
     if (!body?.field || body.humanValue === undefined) {
       return reply.status(400).send({
@@ -255,7 +272,15 @@ export function registerCandidateRoutes(
 
   app.post("/api/v1/candidates/:id/knowledge/verify", async (request, reply) => {
     const { id } = request.params as { id: string };
-    const body = request.body as { field?: string };
+    let body: { field?: string };
+    try {
+      body = pickAllowedFields(request.body, ["field"]);
+    } catch (error) {
+      if (error instanceof SecurityError) {
+        return reply.status(error.statusCode).send({ error: error.code, message: error.message });
+      }
+      throw error;
+    }
 
     if (!body?.field) {
       return reply.status(400).send({
@@ -289,10 +314,23 @@ export function registerCandidateRoutes(
 
   app.post("/api/v1/candidates/:id/mark-ready", async (request, reply) => {
     const { id } = request.params as { id: string };
+    let body: { reviewMode?: "focus" | "flexible" };
+    try {
+      body = pickAllowedFields(request.body, ["reviewMode"]);
+    } catch (error) {
+      if (error instanceof SecurityError) {
+        return reply.status(error.statusCode).send({ error: error.code, message: error.message });
+      }
+      throw error;
+    }
     try {
       const review = await editService.markCandidateReady({
         candidateId: id,
         actorId: "recruiter_alpha",
+        reviewMode:
+          body.reviewMode === "focus" || body.reviewMode === "flexible"
+            ? body.reviewMode
+            : undefined,
       });
       return review;
     } catch (error) {

@@ -1,40 +1,72 @@
+# Founder Alpha — production compose
+# Services: api + postgres. Foundation Freeze — deploy only.
+#
+# Prefer: docker compose --env-file .env.production up -d --build
+# Do not point production at local .env (dev may use memory/sqlite).
+# Cloudflare Tunnel expects host http://localhost:3000 → set PORT=3000.
+#
+# Postgres is NOT published to the host (internal network only).
+
 services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
+  postgres:
+    image: postgres:16-alpine
+    restart: always
     environment:
-      PORT: 3000
-      NODE_ENV: production
-      STORAGE_PATH: /app/data/resumes
-      TELEMETRY_PATH: /app/data/telemetry/events.jsonl
-      DEFAULT_WORKSPACE_ID: ws_default
-      FEATURE_FLAGS_FILE: feature-flags/sprint-1.yaml
-      OPERATIONS_DASHBOARD_ENABLED: "true"
+      POSTGRES_USER: ${POSTGRES_USER:-recruiter}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
+      POSTGRES_DB: ${POSTGRES_DB:-recruiter_copilot}
     volumes:
-      - resume_data:/app/data/resumes
-      - telemetry_data:/app/data/telemetry
+      - postgres-data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
-
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: recruiter
-      POSTGRES_PASSWORD: recruiter
-      POSTGRES_DB: recruiter_copilot
     ports:
-      - "5432:5432"
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      PERSISTENCE_DRIVER: prisma
+      DATABASE_URL: postgresql://${POSTGRES_USER:-recruiter}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-recruiter_copilot}?schema=public
+      STORAGE_PATH: /app/data/resumes
+      TELEMETRY_PATH: /app/data/telemetry/events.jsonl
+      DEFAULT_WORKSPACE_ID: ${DEFAULT_WORKSPACE_ID:-ws_default}
+      FEATURE_FLAGS_FILE: feature-flags/sprint-1.yaml
+      LOG_FORMAT: json
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-120}
+      MAX_FILE_SIZE_BYTES: ${MAX_FILE_SIZE_BYTES:-10485760}
+      OPERATIONS_DASHBOARD_ENABLED: ${OPERATIONS_DASHBOARD_ENABLED:-false}
+      APP_VERSION: ${APP_VERSION:-0.1.0}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - api-resumes:/app/data/resumes
+      - api-telemetry:/app/data/telemetry
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U recruiter -d recruiter_copilot"]
-      interval: 5s
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:3000/health | grep -q '\"status\":\"ok\"' || exit 1",
+        ]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 12
+      start_period: 40s
 
 volumes:
-  postgres_data:
-  resume_data:
-  telemetry_data:
+  postgres-data:
+  api-resumes:
+  api-telemetry:

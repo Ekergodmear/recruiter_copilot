@@ -49,9 +49,38 @@ export function renderOperationsDashboardPage(): string {
       return '<div class="card"><h2>' + title + '</h2><div class="metric"><div class="value">' + today +
         '</div>' + fmtRateTrend(metric, asPercent) + '</div></div>';
     }
+    function ttqcByModeCard(rows) {
+      const body = rows.length
+        ? rows.map(r => '<tr><td>' + r.mode + '</td><td>' + r.avg_ttqc_formatted + '</td><td>' + r.count + '</td></tr>').join('')
+        : '<tr><td colspan="3">No data yet</td></tr>';
+      return '<div class="card"><h2>TTQC by Mode (EPIC-002)</h2><table><thead><tr><th>Mode</th><th>Avg TTQC</th><th>Count</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+    }
     function tableCard(title, rows, col1, col2) {
       const body = rows.length ? rows.map(r => '<tr><td>' + r[col1] + '</td><td><span class="badge">' + r[col2] + '</span></td></tr>').join('') : '<tr><td colspan="2">No data yet</td></tr>';
       return '<div class="card"><h2>' + title + '</h2><table><thead><tr><th>' + col1 + '</th><th>Count</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+    }
+    function fieldReviewStatsCard(rows) {
+      const body = rows.length
+        ? rows.map(r => '<tr><td>' + r.field + '</td><td>' + r.reviewed_count + '</td><td>' + fmtPct(r.override_rate) + '</td><td>' + fmtPct(r.acceptance_rate) + '</td></tr>').join('')
+        : '<tr><td colspan="4">No data yet</td></tr>';
+      return '<div class="card"><h2>Field Review Stats (Q1–Q3)</h2><table><thead><tr><th>Field</th><th>Reviewed</th><th>Override %</th><th>Accept %</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+    }
+    function fieldDurationCard(rows) {
+      const body = rows.length
+        ? rows.map(r => '<tr><td>' + r.field + '</td><td>' + r.avg_duration_formatted + '</td><td>' + r.count + '</td></tr>').join('')
+        : '<tr><td colspan="3">No data yet</td></tr>';
+      return '<div class="card"><h2>Avg Time-on-Field (Q5)</h2><table><thead><tr><th>Field</th><th>Avg Duration</th><th>Count</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+    }
+    function reviewModeSplitCard(rows) {
+      const body = rows.length
+        ? rows.map(r => '<tr><td>' + r.mode + '</td><td>' + r.count + '</td><td>' + fmtPct(r.percent_of_reviews) + '</td><td>' + fmtPct(r.abandon_rate) + '</td></tr>').join('')
+        : '<tr><td colspan="4">No data yet</td></tr>';
+      return '<div class="card"><h2>Review Mode Split (EPIC-002)</h2><table><thead><tr><th>Mode</th><th>Uses</th><th>% of Reviews</th><th>Abandon %</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+    }
+      const body = rows.length
+        ? rows.map(r => '<tr><td>' + r.priority + '</td><td>' + r.reviewed_count + '</td><td>' + fmtPct(r.percent_of_reviews) + '</td><td>' + fmtPct(r.override_rate) + '</td></tr>').join('')
+        : '<tr><td colspan="4">No data yet</td></tr>';
+      return '<div class="card"><h2>Review Queue Activity by Priority (Q4)</h2><table><thead><tr><th>Priority</th><th>Reviewed</th><th>% of Reviews</th><th>Override %</th></tr></thead><tbody>' + body + '</tbody></table></div>';
     }
     fetch('/internal/operations-dashboard').then(r => r.json()).then(d => {
       const root = document.getElementById('root');
@@ -62,6 +91,7 @@ export function renderOperationsDashboardPage(): string {
         trendCard('Qualified Candidates', d.business.qualified_candidates_created, false),
         durationCard('Average TTQC', d.business.average_ttqc),
         durationCard('Median TTQC', d.business.median_ttqc),
+        ttqcByModeCard(d.business.ttqc_by_mode),
         durationCard('Average Parse Time', d.ai.average_parse_time),
         trendCard('LLM Usage Rate', d.ai.llm_usage_rate, true),
         trendCard('Human Override Rate', d.ai.average_human_override_rate, true),
@@ -70,6 +100,9 @@ export function renderOperationsDashboardPage(): string {
         trendCard('Review Completion Rate', d.ai.average_review_completion_rate, true),
         trendCard('Average Confidence', d.ai.average_confidence, true),
         tableCard('Top Missing Fields', d.ai.top_missing_fields, 'field', 'count'),
+        fieldReviewStatsCard(d.ai.field_review_stats),
+        fieldDurationCard(d.ai.field_edit_duration),
+        reviewByPriorityCard(d.ai.review_by_priority),
         trendCard('Import Success Rate', d.reliability.import_success_rate, true),
         trendCard('Import Failure Rate', d.reliability.import_failure_rate, true),
         durationCard('Avg Processing Time', d.reliability.average_processing_time),
@@ -78,6 +111,7 @@ export function renderOperationsDashboardPage(): string {
         trendCard('Daily Active Recruiters', d.usage.daily_active_recruiters, false),
         trendCard('Avg CVs / Day', d.usage.average_cvs_imported_per_day, false),
         tableCard('Imports per Recruiter', d.usage.imports_per_recruiter, 'recruiter_id', 'count'),
+        reviewModeSplitCard(d.usage.review_mode_split),
       ].join('');
     }).catch(err => { document.getElementById('root').textContent = 'Failed to load: ' + err; });
   </script>

@@ -26,6 +26,23 @@ export class Candidate {
     );
   }
 
+  /** Persistence rehydrate — preserves stored status without business transitions. */
+  static restore(params: {
+    id: CandidateId;
+    workspaceId: string;
+    status: CandidateStatus;
+    profile: CandidateProfile;
+    createdAt: string;
+  }): Candidate {
+    return new Candidate(
+      params.id,
+      params.workspaceId,
+      params.status,
+      params.profile,
+      params.createdAt,
+    );
+  }
+
   get idValue(): string {
     return this.id.toString();
   }
