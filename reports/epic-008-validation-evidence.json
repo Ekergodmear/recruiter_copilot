@@ -1,0 +1,309 @@
+{
+  "epic": "EPIC-008",
+  "title": "Automation / Actions",
+  "generatedAt": "2026-07-19T09:07:57.022Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-008-validate-idgHAs",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 22,
+    "passed": 22,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-9b",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      },
+      {
+        "ac": "AC-11",
+        "pass": true
+      },
+      {
+        "ac": "AC-12",
+        "pass": true
+      },
+      {
+        "ac": "AC-13",
+        "pass": true
+      },
+      {
+        "ac": "AC-14",
+        "pass": true
+      },
+      {
+        "ac": "AC-15",
+        "pass": true
+      },
+      {
+        "ac": "AC-16",
+        "pass": true
+      },
+      {
+        "ac": "AC-17",
+        "pass": true
+      }
+    ],
+    "note": "AC-18 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "health",
+      "ac": "AC-17",
+      "description": "GET /health returns status ok",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "import",
+      "ac": "AC-16",
+      "description": "Resume Import works (no regression)",
+      "pass": true,
+      "detail": {
+        "c1": "candidate_6cc49bcf3001"
+      }
+    },
+    {
+      "id": "authorization",
+      "ac": "AC-4",
+      "description": "Authorization enforced — confirmed + actorId required",
+      "pass": true,
+      "detail": {
+        "noConfirm": 403,
+        "noActor": 403
+      }
+    },
+    {
+      "id": "stage-move",
+      "ac": "AC-1",
+      "description": "Execute Stage Move with confirmation via Workflow",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "stage": "Screening"
+      }
+    },
+    {
+      "id": "action-result",
+      "ac": "AC-7",
+      "description": "Action Result returned with attribution fields",
+      "pass": true,
+      "detail": {
+        "actionId": "action_9b9fa5b10e22",
+        "actorId": "recruiter_alpha",
+        "executedAt": "2026-07-19T09:07:56.994Z"
+      }
+    },
+    {
+      "id": "attribution",
+      "ac": "AC-9",
+      "description": "Execution attributable (actor, time, action, result)",
+      "pass": true,
+      "detail": {
+        "actionType": "stage_move"
+      }
+    },
+    {
+      "id": "read-sot",
+      "ac": "AC-5",
+      "description": "Action reads relationship/workflow state before mutation",
+      "pass": true,
+      "detail": {
+        "before": "Sourced",
+        "after": "Screening"
+      }
+    },
+    {
+      "id": "assign",
+      "ac": "AC-3",
+      "description": "Execute Assignment of Relationship",
+      "pass": true,
+      "detail": {
+        "assigneeId": "recruiter_beta"
+      }
+    },
+    {
+      "id": "send-outreach",
+      "ac": "AC-2",
+      "description": "Execute Send Outreach from existing Copilot draft (no draft authorship)",
+      "pass": true,
+      "detail": {
+        "draftLen": 128,
+        "fingerprint": "d572c2e843e1084e"
+      }
+    },
+    {
+      "id": "no-implicit",
+      "ac": "AC-6",
+      "description": "No implicit execution without confirmed:true",
+      "pass": true,
+      "detail": {
+        "statusCode": 403
+      }
+    },
+    {
+      "id": "failure-recoverable",
+      "ac": "AC-8",
+      "description": "Failure returns error Action Result; state unchanged for bad stage",
+      "pass": true,
+      "detail": {
+        "statusCode": 400,
+        "error": {
+          "code": "INVALID_STAGE",
+          "message": "Invalid stage: NotARealStage"
+        }
+      }
+    },
+    {
+      "id": "idempotency",
+      "ac": "AC-9b",
+      "description": "Idempotent assign/move; duplicate send → ALREADY_SENT",
+      "pass": true,
+      "detail": {
+        "moveNoop": true,
+        "assignNoop": true,
+        "sendDup": 409
+      }
+    },
+    {
+      "id": "atomicity-stage-move",
+      "description": "Failed Stage Move leaves no new Stage History",
+      "pass": true,
+      "detail": {
+        "histBeforeFail": 2,
+        "histAfterFail": 2
+      }
+    },
+    {
+      "id": "atomicity-assign",
+      "description": "Failed Assignment does not update assigneeId on existing relationship",
+      "pass": true,
+      "detail": {
+        "assigneeBefore": "recruiter_beta",
+        "assigneeAfter": "recruiter_beta",
+        "error": {
+          "code": "NOT_FOUND",
+          "message": "Relationship not found"
+        },
+        "statusCode": 404
+      }
+    },
+    {
+      "id": "atomicity-send",
+      "description": "Failed Send adapter does not record successful send / ALREADY_SENT lock",
+      "pass": true,
+      "detail": {
+        "success": false,
+        "error": {
+          "code": "SEND_FAILED",
+          "message": "adapter boom"
+        },
+        "priorSuccess": false
+      }
+    },
+    {
+      "id": "candidate-workspace",
+      "ac": "AC-10",
+      "description": "Candidate Workspace no regression",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "job-workspace",
+      "ac": "AC-11",
+      "description": "Job Workspace no regression",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "relationship-workflow",
+      "ac": "AC-12",
+      "description": "Relationship / Workflow Foundations no regression",
+      "pass": true,
+      "detail": {
+        "list": 200
+      }
+    },
+    {
+      "id": "matching",
+      "ac": "AC-13",
+      "description": "Matching Foundation no regression",
+      "pass": true,
+      "detail": {
+        "score": 93
+      }
+    },
+    {
+      "id": "copilot-draft-only",
+      "ac": "AC-14",
+      "description": "Copilot remains draft/read-only (no send endpoint)",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "analytics",
+      "ac": "AC-15",
+      "description": "Analytics no regression",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-17",
+      "description": "GET /health still ok after automation",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    }
+  ]
+}
