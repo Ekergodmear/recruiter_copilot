@@ -1,0 +1,269 @@
+{
+  "epic": "EPIC-011",
+  "title": "Integrations",
+  "generatedAt": "2026-07-19T11:09:11.936Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-011-validate-KyMre0",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 18,
+    "passed": 18,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-7b",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      },
+      {
+        "ac": "AC-11",
+        "pass": true
+      },
+      {
+        "ac": "AC-12",
+        "pass": true
+      },
+      {
+        "ac": "AC-13",
+        "pass": true
+      }
+    ],
+    "note": "AC-14 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "health-before",
+      "ac": "AC-13",
+      "description": "GET /health ok before validation",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "import-resume",
+      "ac": "AC-12",
+      "description": "Resume Import works for authorized Recruiter",
+      "pass": true,
+      "detail": {
+        "c1": "candidate_930a6cc209f6"
+      }
+    },
+    {
+      "id": "provider-port",
+      "ac": "AC-2",
+      "description": "Provider Interface registered for csv, webhook, ats_mock",
+      "pass": true,
+      "detail": {
+        "keys": [
+          "csv",
+          "webhook",
+          "ats_mock"
+        ]
+      }
+    },
+    {
+      "id": "registry",
+      "ac": "AC-1",
+      "description": "Integration Registry create + list",
+      "pass": true,
+      "detail": {
+        "csvId": "intg_ec9555996523",
+        "listTotal": 1
+      }
+    },
+    {
+      "id": "preview-no-persist",
+      "ac": "AC-7",
+      "description": "Preview does not persist; Execute requires confirm",
+      "pass": true,
+      "detail": {
+        "rowCount": 2,
+        "jobsBeforePreview": 0,
+        "jobsAfterPreview": 0
+      }
+    },
+    {
+      "id": "preview-determinism",
+      "description": "Preview deterministic ×3 with same input; no side effects",
+      "pass": true,
+      "detail": {
+        "previewStable": true,
+        "jobsUnchanged": true
+      }
+    },
+    {
+      "id": "confirm-required",
+      "ac": "AC-7",
+      "description": "Execute without confirmed → 403",
+      "pass": true,
+      "detail": {
+        "statusCode": 403
+      }
+    },
+    {
+      "id": "manual-import-csv",
+      "ac": "AC-4",
+      "description": "Manual CSV Import via JobService (confirmed)",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "createdIds": [
+          "job_850335a0c447",
+          "job_171fa67cdfd0"
+        ],
+        "jobsAfterImport": 2
+      }
+    },
+    {
+      "id": "import-atomicity",
+      "ac": "AC-7b",
+      "description": "Failed Execute leaves no partial import",
+      "pass": true,
+      "detail": {
+        "statusCode": 400,
+        "beforeAtomic": 2,
+        "afterAtomic": 2,
+        "error": {
+          "code": "INVALID_STATUS",
+          "message": "Invalid status: NotARealStatus"
+        }
+      }
+    },
+    {
+      "id": "enable-disable",
+      "ac": "AC-3",
+      "description": "Disabled integration rejects execute",
+      "pass": true,
+      "detail": {
+        "statusCode": 403
+      }
+    },
+    {
+      "id": "manual-export",
+      "ac": "AC-5",
+      "description": "Manual Export CSV and Webhook JSON",
+      "pass": true,
+      "detail": {
+        "csvStatus": 200,
+        "webhookStatus": 200
+      }
+    },
+    {
+      "id": "test-connection",
+      "ac": "AC-6",
+      "description": "Test Connection ok/fail without mutating SoT",
+      "pass": true,
+      "detail": {
+        "ok": true,
+        "jobsUnchanged": true
+      }
+    },
+    {
+      "id": "ats-mock-import",
+      "ac": "AC-4",
+      "description": "ATS Mock manual import via same execute path",
+      "pass": true,
+      "detail": {
+        "createdIds": [
+          "job_2cdc173fa1ee",
+          "job_58e12442621c"
+        ]
+      }
+    },
+    {
+      "id": "authorization",
+      "ac": "AC-8",
+      "description": "integration.read/execute via AuthorizationService",
+      "pass": true,
+      "detail": {
+        "viewerCreate": 403,
+        "viewerList": 200,
+        "ghostList": 403
+      }
+    },
+    {
+      "id": "no-direct-db-and-no-business-rules",
+      "ac": "AC-9",
+      "description": "Import creates Jobs via Application Services; Matching semantics unchanged",
+      "pass": true,
+      "detail": {
+        "score": 100,
+        "createdViaImport": [
+          "job_850335a0c447",
+          "job_171fa67cdfd0"
+        ]
+      }
+    },
+    {
+      "id": "no-business-rules",
+      "ac": "AC-10",
+      "description": "Matching score stable under Integrations usage",
+      "pass": true,
+      "detail": {
+        "score": 100
+      }
+    },
+    {
+      "id": "regression",
+      "ac": "AC-11",
+      "description": "Authorized happy-path regression (Job/Rel/Match/Analytics/Notifications)",
+      "pass": true,
+      "detail": {
+        "job": 201,
+        "rel": 201,
+        "match": 200,
+        "analytics": 200,
+        "notifications": 200
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-13",
+      "description": "GET /health still public after integration checks",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    }
+  ]
+}
