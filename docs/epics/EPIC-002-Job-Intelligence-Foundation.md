@@ -1,12 +1,12 @@
 # EPIC-002 — Job Intelligence Foundation
 
-| Field             | Value                                  |
-| ----------------- | -------------------------------------- |
-| Status            | **SPEC** (PR-1 docs-only)              |
-| Baseline          | `founder-alpha-2` + EPIC-001 COMPLETED |
-| Type              | Product EPIC (user value)              |
-| Foundation Freeze | Intact                                 |
-| TECH required     | None                                   |
+| Field             | Value                                           |
+| ----------------- | ----------------------------------------------- |
+| Status            | **PASS** (Spec #13 → Impl #14 → Validation #15) |
+| Baseline          | `founder-alpha-2` + EPIC-001 COMPLETED          |
+| Type              | Product EPIC (user value)                       |
+| Foundation Freeze | Intact                                          |
+| TECH required     | None                                            |
 
 ---
 
