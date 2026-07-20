@@ -1,0 +1,307 @@
+{
+  "epic": "EPIC-013",
+  "title": "Search & Discovery",
+  "generatedAt": "2026-07-20T03:17:38.811Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-013-validate-PX48H4",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 18,
+    "passed": 18,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      },
+      {
+        "ac": "AC-10b",
+        "pass": true
+      },
+      {
+        "ac": "AC-10c",
+        "pass": true
+      },
+      {
+        "ac": "AC-11",
+        "pass": true
+      },
+      {
+        "ac": "AC-12",
+        "pass": true
+      },
+      {
+        "ac": "AC-13",
+        "pass": true
+      }
+    ],
+    "note": "AC-14 (pnpm run ci) recorded separately in Validation Report",
+    "orderingConvention": "type asc, then id asc; Matching filter: score desc then id asc",
+    "paginationConvention": "sort full filtered set, then slice limit/offset"
+  },
+  "steps": [
+    {
+      "id": "health-before",
+      "ac": "AC-13",
+      "description": "GET /health ok before validation",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "seed-candidates",
+      "ac": "AC-12",
+      "description": "Resume Import seeds candidates for search validation",
+      "pass": true,
+      "detail": {
+        "c1": "candidate_31f274f357bd",
+        "c2": "candidate_3dbb9d991290"
+      }
+    },
+    {
+      "id": "search-service",
+      "ac": "AC-1",
+      "description": "SearchService is wired and callable via API",
+      "pass": true,
+      "detail": {
+        "hasSearch": true
+      }
+    },
+    {
+      "id": "global-search",
+      "ac": "AC-2",
+      "description": "Global Search returns Candidate and/or Job hits for q",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "types": [
+          "candidate",
+          "job"
+        ],
+        "ids": [
+          "candidate_31f274f357bd",
+          "job_ec382b0897c2"
+        ]
+      }
+    },
+    {
+      "id": "candidate-filters",
+      "ac": "AC-3",
+      "description": "Candidate skills filter narrows results",
+      "pass": true,
+      "detail": {
+        "ids": [
+          "candidate_31f274f357bd"
+        ]
+      }
+    },
+    {
+      "id": "job-filters",
+      "ac": "AC-4",
+      "description": "Job status filter narrows results",
+      "pass": true,
+      "detail": {
+        "ids": [
+          "job_f9fe202e4c43"
+        ]
+      }
+    },
+    {
+      "id": "workflow-filter",
+      "ac": "AC-5",
+      "description": "Workflow stage filter narrows via Relationship",
+      "pass": true,
+      "detail": {
+        "ids": [
+          "candidate_31f274f357bd"
+        ]
+      }
+    },
+    {
+      "id": "matching-filter",
+      "ac": "AC-6",
+      "description": "Matching filter uses MatchingService; does not persist / mutate Job",
+      "pass": true,
+      "detail": {
+        "score": 93,
+        "statusBefore": "Open",
+        "statusAfter": "Open"
+      }
+    },
+    {
+      "id": "unified-result-model",
+      "ac": "AC-7",
+      "description": "Unified SearchHit shape (type, id, title, subtitle, score, meta)",
+      "pass": true,
+      "detail": {
+        "keys": [
+          "type",
+          "id",
+          "title",
+          "subtitle",
+          "score",
+          "meta"
+        ]
+      }
+    },
+    {
+      "id": "saved-searches",
+      "ac": "AC-8",
+      "description": "Saved Searches save/list/delete; actor-owned; query definition only",
+      "pass": true,
+      "detail": {
+        "saved": 201,
+        "listed": 1,
+        "other": 0,
+        "delete": 204
+      }
+    },
+    {
+      "id": "authorization",
+      "ac": "AC-9",
+      "description": "search.read via AuthorizationService; Viewer allowed; unknown denied",
+      "pass": true,
+      "detail": {
+        "ghost": 403,
+        "viewer": 200
+      }
+    },
+    {
+      "id": "read-only",
+      "ac": "AC-10",
+      "description": "Search does not mutate Workflow / Job state",
+      "pass": true,
+      "detail": {
+        "stageBefore": "Screening",
+        "stageAfter": "Screening"
+      }
+    },
+    {
+      "id": "determinism",
+      "ac": "AC-10b",
+      "description": "Same data + query → same result set and default order",
+      "pass": true,
+      "detail": {
+        "keys1": [
+          "candidate:candidate_31f274f357bd",
+          "candidate:candidate_3dbb9d991290",
+          "job:job_ec382b0897c2",
+          "job:job_f9fe202e4c43"
+        ],
+        "total": 4
+      }
+    },
+    {
+      "id": "pagination-stability",
+      "ac": "AC-10c",
+      "description": "limit/offset pages do not duplicate or skip records",
+      "pass": true,
+      "detail": {
+        "pageIds": [
+          "candidate:candidate_31f274f357bd",
+          "candidate:candidate_3dbb9d991290"
+        ],
+        "fullKeys": [
+          "candidate:candidate_31f274f357bd",
+          "candidate:candidate_3dbb9d991290"
+        ]
+      }
+    },
+    {
+      "id": "result-type-stability",
+      "ac": "AC-7",
+      "description": "Result Type Stability: same query → same hit types and shape (candidate|job) across runs",
+      "pass": true,
+      "detail": {
+        "types1": [
+          "candidate",
+          "candidate",
+          "job",
+          "job"
+        ],
+        "types2": [
+          "candidate",
+          "candidate",
+          "job",
+          "job"
+        ]
+      }
+    },
+    {
+      "id": "sot-preserved",
+      "ac": "AC-11",
+      "description": "Saved Search stores query definition only — not SoT snapshots",
+      "pass": true,
+      "detail": {
+        "keys": [
+          "savedSearchId",
+          "actorId",
+          "name",
+          "query",
+          "createdAt"
+        ]
+      }
+    },
+    {
+      "id": "regression",
+      "ac": "AC-12",
+      "description": "Authorized happy-path regression (Match/Analytics/Notif/Audit/Integrations)",
+      "pass": true,
+      "detail": {
+        "job": 201,
+        "rel": 201,
+        "match": 200,
+        "analytics": 200,
+        "notifications": 200,
+        "audit": 200,
+        "integrations": 200
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-13",
+      "description": "GET /health still public after search checks",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    }
+  ]
+}
