@@ -257,8 +257,10 @@ See also Quiet AI (D11) and Artifact-first (D13).
 - Async **Ingestion Job** + Quiet progress % (D11); report = imported / duplicate / error / skipped.
 - Mixed package: detect CV vs JD vs other → Confirm scope before Act.
 
-**EPIC:** [EPIC-015 — Intelligent Ingestion](../epics/EPIC-015-Intelligent-Ingestion.md) (DRAFT SPEC — Founder sign before implement).  
+**EPIC:** [EPIC-015 — Intelligent Ingestion Engine](../epics/EPIC-015-Intelligent-Ingestion.md) (**SPEC SIGNED** · Founder PR #58).  
 **Roadmap:** [ASSISTANT-CAPABILITY-ROADMAP.md](./ASSISTANT-CAPABILITY-ROADMAP.md) (015→018).
+
+**UX constitution freeze:** D10–D14 only. No D15+ unless Product RFC — avoid principle bloat.
 
 ---
 
@@ -319,7 +321,8 @@ Không dump toàn bộ Knowledge Object lên timeline. Recruiter đào sâu khi 
 
 **✅ SIGNED** as UX Foundation — [SPRINT-0-SIGNED.md](./sprint-0/SPRINT-0-SIGNED.md)
 
-**PR #57 Discovery:** Founder **APPROVED FOR MERGE** (D10–D13; D14 added pre-merge, non-blocking).  
+**PR #57 Discovery:** ✅ **MERGED** — UX constitution D10–D14 (no D15).  
+Next: EPIC-015 Spec → Impl → Validation.  
 Interaction changes require a Product RFC. Visual polish OK.
 
 **North star copy:** *Don't make recruiters manage software. Let them recruit.* · *Recruiters express intent. RecruiterSup orchestrates the work.*
