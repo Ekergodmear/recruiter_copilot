@@ -123,6 +123,10 @@ export const AUTHORIZED_ROUTES: RouteRule[] = [
   { method: "GET", path: "/api/v1/search/saved", permission: "search.read" },
   { method: "POST", path: "/api/v1/search/saved", permission: "search.read" },
   { method: "DELETE", path: "/api/v1/search/saved/:id", permission: "search.read" },
+
+  // Reports (EPIC-014) — read-only overview + CSV export
+  { method: "GET", path: "/api/v1/reports/overview", permission: "report.read" },
+  { method: "GET", path: "/api/v1/reports/export", permission: "report.read" },
 ];
 
 function pathToRegex(path: string): RegExp {

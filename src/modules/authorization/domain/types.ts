@@ -25,7 +25,8 @@ export type Permission =
   | "integration.read"
   | "integration.execute"
   | "audit.read"
-  | "search.read";
+  | "search.read"
+  | "report.read";
 
 export const PERMISSIONS: Permission[] = [
   "candidate.read",
@@ -46,6 +47,7 @@ export const PERMISSIONS: Permission[] = [
   "integration.execute",
   "audit.read",
   "search.read",
+  "report.read",
 ];
 
 /** Fixed Role → Permissions map (MVP — not user-editable). */
@@ -69,6 +71,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "integration.execute",
     "audit.read",
     "search.read",
+    "report.read",
   ],
   Viewer: [
     "candidate.read",
@@ -80,6 +83,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "notification.read",
     "integration.read",
     "search.read",
+    "report.read",
   ],
 };
 

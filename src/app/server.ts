@@ -47,6 +47,8 @@ import { registerAuditRoutes } from "../modules/audit/presentation/audit-routes.
 import { SearchService } from "../modules/search/application/search-service.js";
 import { FileSavedSearchRepository } from "../modules/search/infrastructure/saved-search-repository.js";
 import { registerSearchRoutes } from "../modules/search/presentation/search-routes.js";
+import { ReportService } from "../modules/report/application/report-service.js";
+import { registerReportRoutes } from "../modules/report/presentation/report-routes.js";
 import { RecruitmentService } from "../modules/recruitment/application/recruitment-service.js";
 import { join } from "node:path";
 import { registerRecruitmentRoutes } from "../modules/recruitment/presentation/recruitment-routes.js";
@@ -101,6 +103,7 @@ export type AppDependencies = {
   integrationService: IntegrationService;
   auditService: AuditService;
   searchService: SearchService;
+  reportService: ReportService;
   recruitmentService: RecruitmentService;
   knowledgeEvolutionService: KnowledgeEvolutionService;
   candidateInsightService: CandidateInsightService;
@@ -266,10 +269,11 @@ export function createAppDependencies(
     actors: actorRegistry,
   });
 
+  const auditRepository = new FileAuditRepository(join(config.storagePath, "audit-log.jsonl"));
   const auditService = new AuditService({
     clock,
     idGenerator,
-    repository: new FileAuditRepository(join(config.storagePath, "audit-log.jsonl")),
+    repository: auditRepository,
     authorizationService,
   });
 
@@ -319,6 +323,14 @@ export function createAppDependencies(
     jobRepository,
     relationshipRepository,
     matchingService,
+  });
+
+  const reportService = new ReportService({
+    authorizationService,
+    analyticsService,
+    auditRepository,
+    candidateRepository,
+    jobRepository,
   });
 
   const automationService = new AutomationService({
@@ -387,6 +399,7 @@ export function createAppDependencies(
     integrationService,
     auditService,
     searchService,
+    reportService,
     recruitmentService,
     knowledgeEvolutionService,
     candidateInsightService,
@@ -467,6 +480,7 @@ export async function buildApp(deps?: AppDependencies) {
   registerIntegrationRoutes(app, resolved.integrationService);
   registerAuditRoutes(app, resolved.auditService);
   registerSearchRoutes(app, resolved.searchService);
+  registerReportRoutes(app, resolved.reportService);
   registerRecruitmentRoutes(app, resolved.recruitmentService);
 
   registerOperationsDashboardRoutes(app, {
