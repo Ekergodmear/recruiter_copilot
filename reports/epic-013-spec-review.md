@@ -29,6 +29,7 @@ After Audit & Governance, the platform has full SoT + AuthZ + Integrations + Aud
 | Matching filter via MatchingService read-only                             | **Adopt**                  |
 | AuthZ `search.read`                                                       | **Adopt**                  |
 | **AC-10b Search Determinism**                                             | **Adopt**                  |
+| **AC-10c Search Pagination Stability**                                    | **Adopt**                  |
 
 Architecture fit:
 
@@ -57,7 +58,7 @@ SearchService  (compose / filter / order)
 | Saved Searches (save/list/delete, not shared)                   | Yes      |
 | Authorization table                                             | Yes      |
 | Baseline honesty (greenfield Search, reuse SoT/Matching)        | Explicit |
-| AC-1…AC-14 + AC-10b                                             | Yes      |
+| AC-1…AC-14 + AC-10b + AC-10c                                    | Yes      |
 | Out of Scope                                                    | Yes      |
 | DoD + lifecycle                                                 | Yes      |
 

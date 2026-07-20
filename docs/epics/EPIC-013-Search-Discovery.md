@@ -150,7 +150,8 @@ Query parameters (shape for PR-2 — names may refine, intent locked):
 | `stage`          | Workflow current stage                      |
 | `jobId`          | Anchor job for Matching filter              |
 | `minMatchScore`  | Matching threshold (0..1 or 0..100 — lock in PR-2 to Matching scale) |
-| `limit`          | Page size (MVP cap)                         |
+| `limit`          | Page size (MVP cap; default documented in PR-2) |
+| `offset`         | Skip count for pagination (default `0`)     |
 
 Response: `{ items: SearchHit[]; total: number }` with normalized hits:
 
@@ -233,6 +234,10 @@ When Matching filter applies, secondary sort may use `score` descending then `id
 
 > **AC-10b:** With the same underlying data and the same query, Search returns the same result set in the same default order.
 
+> **AC-10c — Search Pagination Stability:** With the same query and unchanged data, page boundaries (`limit`/`offset`) are stable — the same record must not appear twice across pages or be skipped between pages.
+
+Pagination applies **after** deterministic sort (AC-10b). Implementation must sort the full filtered set, then slice.
+
 ### 8. Baseline honesty (Implementation must respect)
 
 | Surface                    | Reality today                         | EPIC-013 approach                          |
@@ -254,7 +259,8 @@ When Matching filter applies, secondary sort may use `score` descending then `id
 3. Matching scores used in filters are **ephemeral reads** — not Search-owned persisted truth.  
 4. Saved Searches are personal query definitions; executing them always re-queries live data.  
 5. Default result order is deterministic (AC-10b).  
-6. No search-engine product, vector index, or AI ranking in MVP.  
+6. Pagination boundaries are stable for unchanged data (AC-10c).  
+7. No search-engine product, vector index, or AI ranking in MVP.  
 
 ---
 
@@ -273,6 +279,7 @@ When Matching filter applies, secondary sort may use `score` descending then `id
 | **AC-9**   | Authorization via `search.read` on AuthorizationService.                  |
 | **AC-10**  | Search is read-only w.r.t. SoT (no Candidate/Job/Workflow/Matching/Automation mutations via Search). |
 | **AC-10b** | Search Determinism — same data + same query → same result set and default order. |
+| **AC-10c** | Search Pagination Stability — with same query and unchanged data, `limit`/`offset` pages do not duplicate or skip records. |
 | **AC-11**  | Source of Truth preserved — Search is not a second Candidate/Job store.   |
 | **AC-12**  | EPIC-001…012 authorized happy-paths have no regression.                   |
 | **AC-13**  | `GET /health` returns `"status":"ok"` (still public).                     |
@@ -316,6 +323,7 @@ No new TECH ticket inside this EPIC.
 | -------------------------------------------- | ----------------------------------------------------------------------- |
 | Search becomes a second SoT / cache of truth | Locked principles + AC-11; no persistent entity copies                  |
 | Non-deterministic ordering confuses UI       | AC-10b + documented default sort                                        |
+| Unstable pagination across pages             | AC-10c — sort full set then slice                                       |
 | Matching filter treated as stored score      | AC-6 — ephemeral MatchingService read only                              |
 | Scope creep into vector / ES                 | Explicit Out of Scope                                                   |
 | Saved Search sharing / ACL complexity        | MVP actor-owned only                                                    |
@@ -348,7 +356,7 @@ No new TECH ticket inside this EPIC.
 
 EPIC-013 is done when:
 
-- AC-1…AC-14 (+ **AC-10b**) **PASS**  
+- AC-1…AC-14 (+ **AC-10b**, **AC-10c**) **PASS**  
 - Regressions for authorized happy-paths on EPIC-001…012: **NONE**  
 - Confirmed: Search discovers only; never mutates SoT via Search APIs  
 - Confirmed: Search is not a second Source of Truth  
