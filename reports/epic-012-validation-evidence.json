@@ -1,0 +1,273 @@
+{
+  "epic": "EPIC-012",
+  "title": "Audit & Governance",
+  "generatedAt": "2026-07-19T11:27:46.307Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-012-validate-oPkaVR",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 17,
+    "passed": 17,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-6b",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      },
+      {
+        "ac": "AC-11",
+        "pass": true
+      },
+      {
+        "ac": "AC-12",
+        "pass": true
+      },
+      {
+        "ac": "AC-13",
+        "pass": true
+      }
+    ],
+    "note": "AC-14 (pnpm run ci) recorded separately in Validation Report",
+    "orderingConvention": "newest-first by occurredAt (descending); query is read-only"
+  },
+  "steps": [
+    {
+      "id": "health-before",
+      "ac": "AC-13",
+      "description": "GET /health ok before validation",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "import-resume",
+      "ac": "AC-12",
+      "description": "Resume Import works for authorized Recruiter",
+      "pass": true,
+      "detail": {
+        "candidateId": "candidate_7f1d694bb61d"
+      }
+    },
+    {
+      "id": "audit-record-model",
+      "ac": "AC-1",
+      "description": "Audit Record has required attribution fields",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "keys": [
+          "auditId",
+          "occurredAt",
+          "actorId",
+          "action",
+          "source",
+          "outcome",
+          "target",
+          "summary",
+          "error",
+          "correlation"
+        ]
+      }
+    },
+    {
+      "id": "audit-service-append",
+      "ac": "AC-2",
+      "description": "AuditService.record appends immutable records (visible via query)",
+      "pass": true,
+      "detail": {
+        "total": 1,
+        "sampleAuditId": "audit_8c767b55cc36"
+      }
+    },
+    {
+      "id": "query-newest-first",
+      "ac": "AC-3",
+      "description": "Audit Query lists records newest-first (occurredAt desc)",
+      "pass": true,
+      "detail": {
+        "total": 1,
+        "first": "2026-07-19T11:27:46.270Z",
+        "last": "2026-07-19T11:27:46.270Z"
+      }
+    },
+    {
+      "id": "automation-producer",
+      "ac": "AC-4",
+      "description": "Automation outcomes produce audit linked to ActionResult",
+      "pass": true,
+      "detail": {
+        "assignStatus": 200,
+        "actionId": "action_816d3c9e693a",
+        "auditCount": 1,
+        "correlation": {
+          "actionId": "action_816d3c9e693a"
+        }
+      }
+    },
+    {
+      "id": "completeness-automation-assign",
+      "ac": "AC-6b",
+      "description": "Exactly one audit for automation.assign (no relationship.assign duplicate)",
+      "pass": true,
+      "detail": {
+        "automationAssign": 1,
+        "relationshipAssign": 0
+      }
+    },
+    {
+      "id": "workflow-producer",
+      "ac": "AC-6",
+      "description": "Workflow stage change produces audit record",
+      "pass": true,
+      "detail": {
+        "stageStatus": 200,
+        "count": 1,
+        "source": "workflow"
+      }
+    },
+    {
+      "id": "completeness-automation-stage",
+      "ac": "AC-6b",
+      "description": "automation.stage_move adds exactly one audit (suppress Relationship)",
+      "pass": true,
+      "detail": {
+        "before": 2,
+        "after": 3,
+        "autoStageStatus": 200
+      }
+    },
+    {
+      "id": "integration-producer",
+      "ac": "AC-5",
+      "description": "Integration execute produces audit record",
+      "pass": true,
+      "detail": {
+        "execStatus": 200,
+        "count": 1,
+        "action": "integration.import.execute"
+      }
+    },
+    {
+      "id": "audit-ordering",
+      "ac": "AC-3",
+      "description": "Audit Ordering: newest-first by occurredAt; repeated query stable; query does not mutate store",
+      "pass": true,
+      "detail": {
+        "total": 4,
+        "newestFirst": true,
+        "stableIds": true,
+        "storeBytesBefore": 1591,
+        "storeBytesAfter": 1591
+      }
+    },
+    {
+      "id": "immutability",
+      "ac": "AC-7",
+      "description": "No POST/PATCH/DELETE audit routes; store unchanged after attempts",
+      "pass": true,
+      "detail": {
+        "post": 404,
+        "patch": 404,
+        "delete": 404,
+        "totalBefore": 4,
+        "totalAfter": 4
+      }
+    },
+    {
+      "id": "authorization",
+      "ac": "AC-8",
+      "description": "audit.read via AuthorizationService; Viewer/unknown denied",
+      "pass": true,
+      "detail": {
+        "viewer": 403,
+        "ghost": 403,
+        "adminAllowed": true,
+        "recruiterAllowed": true
+      }
+    },
+    {
+      "id": "record-only",
+      "ac": "AC-9",
+      "description": "Audit never executes business actions (query-only surface)",
+      "pass": true,
+      "detail": {
+        "post": 404,
+        "currentStage": "Technical Interview"
+      }
+    },
+    {
+      "id": "no-business-rules",
+      "ac": "AC-10",
+      "description": "Matching/Workflow semantics unchanged under Audit usage",
+      "pass": true,
+      "detail": {
+        "score": 100,
+        "currentStage": "Technical Interview"
+      }
+    },
+    {
+      "id": "regression",
+      "ac": "AC-11",
+      "description": "Authorized happy-path regression (Job/Rel/Match/Analytics/Notif/Integrations)",
+      "pass": true,
+      "detail": {
+        "job": 201,
+        "rel": 201,
+        "match": 200,
+        "analytics": 200,
+        "notifications": 200,
+        "integrations": 200
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-13",
+      "description": "GET /health still public after audit checks",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    }
+  ]
+}
