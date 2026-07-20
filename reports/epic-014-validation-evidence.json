@@ -1,0 +1,173 @@
+{
+  "epic": "EPIC-014",
+  "title": "Reporting & Export",
+  "generatedAt": "2026-07-20T05:29:27.951Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-014-validate-UXJgO5",
+  "verdict": "PASS",
+  "allStepsPass": true,
+  "summary": {
+    "totalSteps": 12,
+    "passed": 12,
+    "failed": [],
+    "acceptanceCriteria": [
+      {
+        "ac": "AC-1",
+        "pass": true
+      },
+      {
+        "ac": "AC-2",
+        "pass": true
+      },
+      {
+        "ac": "AC-3",
+        "pass": true
+      },
+      {
+        "ac": "AC-4",
+        "pass": true
+      },
+      {
+        "ac": "AC-5",
+        "pass": true
+      },
+      {
+        "ac": "AC-6",
+        "pass": true
+      },
+      {
+        "ac": "AC-7",
+        "pass": true
+      },
+      {
+        "ac": "AC-8",
+        "pass": true
+      },
+      {
+        "ac": "AC-9",
+        "pass": true
+      },
+      {
+        "ac": "AC-10",
+        "pass": true
+      },
+      {
+        "ac": "AC-11",
+        "pass": true
+      }
+    ],
+    "note": "AC-12 (pnpm run ci) recorded separately in Validation Report"
+  },
+  "steps": [
+    {
+      "id": "health-before",
+      "ac": "AC-11",
+      "description": "GET /health ok before validation",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "report-service",
+      "ac": "AC-1",
+      "description": "ReportService wired",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "id": "overview-json",
+      "ac": "AC-2",
+      "description": "GET /reports/overview returns Analytics-derived JSON",
+      "pass": true,
+      "detail": {
+        "statusCode": 200,
+        "counts": {
+          "candidates": 1,
+          "jobs": 1,
+          "relationships": 1
+        }
+      }
+    },
+    {
+      "id": "csv-overview",
+      "ac": "AC-3",
+      "description": "CSV kind=overview deterministic metric rows",
+      "pass": true,
+      "detail": {
+        "bytes": 303
+      }
+    },
+    {
+      "id": "csv-audit",
+      "ac": "AC-4",
+      "description": "CSV kind=audit exports Audit records",
+      "pass": true,
+      "detail": {
+        "bytes": 284
+      }
+    },
+    {
+      "id": "csv-entities",
+      "ac": "AC-5",
+      "description": "CSV candidates + jobs SoT projections",
+      "pass": true,
+      "detail": {
+        "candidateId": "candidate_bd49bb8855bf",
+        "jobId": "job_34f3a59fbf39"
+      }
+    },
+    {
+      "id": "authorization",
+      "ac": "AC-6",
+      "description": "report.read via AuthorizationService",
+      "pass": true,
+      "detail": {
+        "ghost": 403,
+        "viewer": 200
+      }
+    },
+    {
+      "id": "read-only",
+      "ac": "AC-7",
+      "description": "Reporting does not mutate SoT",
+      "pass": true,
+      "detail": {
+        "status": "Open"
+      }
+    },
+    {
+      "id": "no-warehouse",
+      "ac": "AC-8",
+      "description": "No report warehouse — on-demand export only",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "id": "determinism",
+      "ac": "AC-9",
+      "description": "Same data + query → same CSV",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "id": "regression",
+      "ac": "AC-10",
+      "description": "Regression Analytics/Search/Audit happy-paths",
+      "pass": true,
+      "detail": {
+        "analytics": 200,
+        "search": 200,
+        "audit": 200
+      }
+    },
+    {
+      "id": "health-after",
+      "ac": "AC-11",
+      "description": "GET /health still public",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    }
+  ]
+}
