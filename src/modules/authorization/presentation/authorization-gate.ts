@@ -24,6 +24,10 @@ export const AUTHORIZED_ROUTES: RouteRule[] = [
   { method: "GET", path: "/api/v1/candidates/:id/review/ui", permission: "candidate.read" },
   { method: "PATCH", path: "/api/v1/candidates/:id", permission: "candidate.write" },
   { method: "POST", path: "/api/v1/candidates/import-resume", permission: "candidate.write" },
+  { method: "POST", path: "/api/v1/ingestion/jobs", permission: "candidate.write" },
+  { method: "POST", path: "/api/v1/ingestion/jobs/:id/confirm", permission: "candidate.write" },
+  { method: "GET", path: "/api/v1/ingestion/jobs", permission: "candidate.read" },
+  { method: "GET", path: "/api/v1/ingestion/jobs/:id", permission: "candidate.read" },
   {
     method: "POST",
     path: "/api/v1/candidates/:id/knowledge/review",
