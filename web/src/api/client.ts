@@ -42,6 +42,34 @@ async function parseJson<T>(resPromise: Promise<Response>): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export type IngestionJobView = {
+  jobId: string;
+  status: string;
+  sourceKind: string;
+  sourceLabel: string;
+  preview: {
+    cv: number;
+    jd: number;
+    salary: number;
+    other: number;
+    unsupported: number;
+    total: number;
+  };
+  scope?: string;
+  progress: { processed: number; total: number; percent: number };
+  report?: {
+    imported: number;
+    duplicate: number;
+    skipped: number;
+    unsupported: number;
+    failed: number;
+    durationMs: number;
+    candidateIds?: string[];
+  };
+  createdAt: string;
+  completedAt?: string;
+};
+
 export const api = {
   listCandidates(params?: { ready?: boolean; q?: string; sort?: "updated" | "created" }) {
     const sp = new URLSearchParams();
@@ -132,6 +160,39 @@ export const api = {
     form.append("file", file);
     return parseJson<ImportResult>(
       fetch("/api/v1/candidates/import-resume", { method: "POST", body: form }),
+    );
+  },
+
+  createIngestionJob(files: File[], opts?: { sourceKind?: string; scope?: string }) {
+    const form = new FormData();
+    for (const f of files) {
+      const path = (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name;
+      form.append("files", f, path);
+    }
+    if (opts?.sourceKind) form.append("sourceKind", opts.sourceKind);
+    if (opts?.scope) form.append("scope", opts.scope);
+    return parseJson<IngestionJobView>(
+      fetch("/api/v1/ingestion/jobs", { method: "POST", body: form }),
+    );
+  },
+
+  confirmIngestionJob(jobId: string, scope: "cv" | "cv_jd" | "all" = "cv") {
+    return parseJson<IngestionJobView>(
+      fetch(`/api/v1/ingestion/jobs/${jobId}/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scope }),
+      }),
+    );
+  },
+
+  getIngestionJob(jobId: string) {
+    return parseJson<IngestionJobView>(fetch(`/api/v1/ingestion/jobs/${jobId}`));
+  },
+
+  listIngestionJobs(limit = 20) {
+    return parseJson<{ items: IngestionJobView[] }>(
+      fetch(`/api/v1/ingestion/jobs?limit=${limit}`),
     );
   },
 

@@ -2,7 +2,7 @@
 
 | Field             | Value                                                    |
 | ----------------- | -------------------------------------------------------- |
-| Status            | **SPEC SIGNED** (Founder) — 2026-07-20 · ready for Impl PR C |
+| Status            | **SPEC SIGNED** · **Implementation PR C in progress** |
 | Type              | Product EPIC (capability)                                |
 | Vision            | AI Recruiting Workspace — Assistant-first                |
 | UX law            | D10–D14 ([UX-PRINCIPLES-CORE](../product-discovery/UX-PRINCIPLES-CORE.md)) |

@@ -16,6 +16,13 @@ import { CandidateEditService } from "../modules/candidate/application/candidate
 import { ResumePreviewService } from "../modules/candidate/application/resume-preview-service.js";
 import { LocalStorageAdapter } from "../modules/candidate/infrastructure/storage/local-storage-adapter.js";
 import { registerCandidateRoutes } from "../modules/candidate/presentation/candidate-routes.js";
+import { IngestionEngine } from "../modules/ingestion/application/ingestion-engine.js";
+import {
+  FileFingerprintStore,
+  FileIngestionJobRepository,
+} from "../modules/ingestion/infrastructure/ingestion-job-repository.js";
+import { IngestStagingStore } from "../modules/ingestion/infrastructure/ingest-staging-store.js";
+import { registerIngestionRoutes } from "../modules/ingestion/presentation/ingestion-routes.js";
 import { registerOperationsDashboardRoutes } from "../modules/operations/operations-dashboard-routes.js";
 import { registerUxTelemetryRoutes } from "../modules/product/ux-telemetry-routes.js";
 import { JobService } from "../modules/job/application/job-service.js";
@@ -91,6 +98,7 @@ import { logStartupReport } from "./startup-report.js";
 export type AppDependencies = {
   config: AppConfig;
   candidateImportService: CandidateImportService;
+  ingestionEngine: IngestionEngine;
   candidateEditService: CandidateEditService;
   resumePreviewService: ResumePreviewService;
   jobService: JobService;
@@ -212,6 +220,19 @@ export function createAppDependencies(
     providerRegistry,
     telemetry: telemetryStore,
     knowledgeEvolution: knowledgeEvolutionService,
+  });
+
+  const ingestionEngine = new IngestionEngine({
+    clock,
+    idGenerator,
+    jobs: new FileIngestionJobRepository(join(config.storagePath, "ingestion-jobs.json")),
+    fingerprints: new FileFingerprintStore(
+      join(config.storagePath, "ingestion-fingerprints.json"),
+    ),
+    candidateImport: candidateImportService,
+    workspaceId: config.defaultWorkspaceId,
+    actorId: "recruiter_alpha",
+    staging: new IngestStagingStore(join(config.storagePath, "ingest-staging")),
   });
 
   const reviewSessionMetrics = new ReviewSessionMetricsService({
@@ -387,6 +408,7 @@ export function createAppDependencies(
   return {
     config,
     candidateImportService,
+    ingestionEngine,
     candidateEditService,
     resumePreviewService,
     jobService,
@@ -436,8 +458,8 @@ export async function buildApp(deps?: AppDependencies) {
     limits: {
       fileSize: resolved.config.maxFileSizeBytes,
       fieldSize: resolved.config.maxJsonBodyBytes,
-      files: 1,
-      fields: 20,
+      files: 100,
+      fields: 40,
     },
   });
 
@@ -459,6 +481,12 @@ export async function buildApp(deps?: AppDependencies) {
     resolved.resumePreviewService,
     resolved.config.defaultWorkspaceId,
     resolved.logger,
+    resolved.config.maxFileSizeBytes,
+  );
+
+  registerIngestionRoutes(
+    app,
+    resolved.ingestionEngine,
     resolved.config.maxFileSizeBytes,
   );
 

@@ -50,6 +50,7 @@ export function AssistantScreen() {
   const navigate = useNavigate();
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const fileCvRef = useRef<HTMLInputElement>(null);
+  const fileFolderRef = useRef<HTMLInputElement>(null);
   const fileJdRef = useRef<HTMLInputElement>(null);
 
   const [conv, setConv] = useState<Conversation>(() => {
@@ -235,6 +236,36 @@ export function AssistantScreen() {
           why: "MATCH_JOB · search until job context is bound",
           emptyActions: ["Upload CV", "Upload JD", "Tạo Job"],
         });
+      } else if (parsed.intent === "LIST_INGEST_JOBS") {
+        const { items } = await api.listIngestionJobs(10);
+        const lines =
+          items.length === 0
+            ? "Chưa có Ingestion Job nào."
+            : items
+                .map((j) => {
+                  const r = j.report;
+                  const counts = r
+                    ? `${r.imported} imported`
+                    : j.status;
+                  return `• ${j.sourceLabel} — ${counts} (${j.status})`;
+                })
+                .join("\n");
+        patchAssistant({
+          progress: [],
+          artifacts: [
+            {
+              type: "answer",
+              text: `Import Jobs\n\n${lines}`,
+            },
+          ],
+          nextActions: ["Upload CV", "java hcm 60m"],
+          transparency: {
+            tools: ["Ingestion Job history"],
+            data: "ingestion-jobs store",
+            why: "Assistant reads jobs — does not run import",
+            intent: "LIST_INGEST_JOBS",
+          },
+        });
       } else if (parsed.intent === "ANALYZE_CV") {
         patchAssistant({
           progress: [],
@@ -362,19 +393,28 @@ export function AssistantScreen() {
     }
   };
 
-  const onUploadCv = async (file: File) => {
+  const onUploadCv = async (fileOrFiles: File | FileList | File[]) => {
+    const files = Array.isArray(fileOrFiles)
+      ? fileOrFiles
+      : fileOrFiles instanceof FileList
+        ? Array.from(fileOrFiles)
+        : [fileOrFiles];
+    if (!files.length) return;
+
     setBusy(true);
+    const label =
+      files.length === 1 ? files[0].name : `${files.length} files`;
     const userMsg: TimelineMessage = {
       id: `u_${Date.now()}`,
       role: "user",
       createdAt: new Date().toISOString(),
-      text: `Upload CV · ${file.name}`,
+      text: `Ingest · ${label}`,
     };
     const assistantId = `a_${Date.now()}`;
     let base = getConversation(conv.id) ?? conv;
     base = {
       ...base,
-      title: base.messages.length === 0 ? `CV · ${file.name}` : base.title,
+      title: base.messages.length === 0 ? `Ingest · ${label}` : base.title,
       messages: [
         ...base.messages,
         userMsg,
@@ -382,8 +422,8 @@ export function AssistantScreen() {
           id: assistantId,
           role: "assistant",
           createdAt: new Date().toISOString(),
-          mode: "Analyze",
-          patternId: "P-AN-CV",
+          mode: "Act",
+          patternId: "P-ACT-INGEST",
           progress: [],
         },
       ],
@@ -399,13 +439,80 @@ export function AssistantScreen() {
       });
     };
 
+    const isZip = files.length === 1 && files[0].name.toLowerCase().endsWith(".zip");
+    const isFolder = files.some(
+      (f) => !!(f as File & { webkitRelativePath?: string }).webkitRelativePath,
+    );
+
     try {
       const t0 = Date.now();
       patch({
-        progress: [{ id: "run", label: "Analyzing CV", done: false }],
+        progress: [
+          {
+            id: "run",
+            label: `Đã nhận ${files.length} tài liệu. Đang phân tích`,
+            done: false,
+          },
+        ],
       });
-      await sleep(200);
-      const imported = await api.importResume(file);
+
+      const job = await api.createIngestionJob(files, {
+        sourceKind: isZip ? "zip" : isFolder ? "folder" : "multi_file",
+      });
+
+      if (job.status === "AwaitingConfirmation") {
+        patch(
+          {
+            progress: [],
+            elapsedMs: Date.now() - t0,
+            artifacts: [
+              {
+                type: "answer",
+                text: `Đã phát hiện ${job.preview.total} tài liệu trong “${job.sourceLabel}”. Chọn phạm vi trước khi ghi Knowledge.`,
+              },
+              {
+                type: "ingest_preview",
+                jobId: job.jobId,
+                sourceLabel: job.sourceLabel,
+                preview: job.preview,
+              },
+            ],
+            nextActions: [],
+            transparency: {
+              tools: ["Ingestion Engine", "Classifier"],
+              data: job.sourceLabel,
+              why: "Import Preview — Confirm before persist",
+              intent: "INGEST",
+            },
+          },
+          {
+            files: [...(base.context.files ?? []), label].slice(-5),
+            recentActions: [...(base.context.recentActions ?? []), "ingest_preview"].slice(-5),
+          },
+        );
+        return;
+      }
+
+      let current = job;
+      while (
+        current.status === "Queued" ||
+        current.status === "Running" ||
+        current.status === "Created"
+      ) {
+        patch({
+          progress: [
+            {
+              id: "run",
+              label: `Đang phân tích… (${current.progress.percent}%)`,
+              done: false,
+            },
+          ],
+        });
+        await sleep(400);
+        current = await api.getIngestionJob(current.jobId);
+      }
+
+      const report = current.report;
       patch(
         {
           progress: [],
@@ -413,35 +520,142 @@ export function AssistantScreen() {
           artifacts: [
             {
               type: "answer",
-              text: "Đã import CV. Mở review để xem scorecard và chỉnh field trước khi dùng.",
+              text: report
+                ? `Hoàn tất.\n\nImported ${report.imported}\nDuplicate ${report.duplicate}\nSkipped ${report.skipped}`
+                : `Job ${current.status}`,
             },
-            {
-              type: "import_result",
-              candidateId: imported.candidateId,
-              name: file.name,
-              reviewPath: `/review/${imported.candidateId}`,
-            },
+            ...(report
+              ? [
+                  {
+                    type: "ingest_report" as const,
+                    jobId: current.jobId,
+                    sourceLabel: current.sourceLabel,
+                    report: {
+                      imported: report.imported,
+                      duplicate: report.duplicate,
+                      skipped: report.skipped,
+                      unsupported: report.unsupported,
+                      failed: report.failed,
+                      durationMs: report.durationMs,
+                    },
+                  },
+                ]
+              : []),
           ],
-          nextActions: ["Tìm ứng viên tương tự", "Câu hỏi phỏng vấn", "Tạo Job"],
+          nextActions: [
+            "java hcm 60m",
+            "Có bao nhiêu Java Senior?",
+            "Hôm qua mình import gì?",
+          ],
           transparency: {
-            tools: ["Resume Import", "Knowledge Extraction"],
-            data: "resume file → candidate profile",
-            why: "Analyze CV",
-            intent: "ANALYZE_CV",
-            model: "rules+workspace",
+            tools: ["Ingestion Engine"],
+            data: current.sourceLabel,
+            why: "Ingestion Job complete",
+            intent: "INGEST",
           },
         },
         {
-          candidateId: imported.candidateId,
-          files: [...(base.context.files ?? []), file.name].slice(-5),
-          recentActions: [...(base.context.recentActions ?? []), "import_cv"].slice(-5),
+          files: [...(base.context.files ?? []), label].slice(-5),
+          recentActions: [...(base.context.recentActions ?? []), "ingest"].slice(-5),
         },
       );
     } catch (err) {
       patch({
         progress: [],
         artifacts: [
-          { type: "answer", text: err instanceof Error ? err.message : "Import thất bại" },
+          { type: "answer", text: err instanceof Error ? err.message : "Ingest thất bại" },
+        ],
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const confirmIngest = async (jobId: string, scope: "cv" | "cv_jd" | "all") => {
+    setBusy(true);
+    const assistantId = `a_${Date.now()}`;
+    let base = getConversation(conv.id) ?? conv;
+    base = {
+      ...base,
+      messages: [
+        ...base.messages,
+        {
+          id: `u_${Date.now()}`,
+          role: "user",
+          createdAt: new Date().toISOString(),
+          text: `Confirm ingest · ${scope}`,
+        },
+        {
+          id: assistantId,
+          role: "assistant",
+          createdAt: new Date().toISOString(),
+          mode: "Act",
+          patternId: "P-ACT-INGEST",
+          progress: [{ id: "run", label: "Đang import…", done: false }],
+        },
+      ],
+    };
+    persist(base);
+    const patch = (partial: Partial<TimelineMessage>) => {
+      const cur = getConversation(conv.id) ?? base;
+      persist({
+        ...cur,
+        messages: cur.messages.map((m) => (m.id === assistantId ? { ...m, ...partial } : m)),
+      });
+    };
+    try {
+      const t0 = Date.now();
+      await api.confirmIngestionJob(jobId, scope);
+      let current = await api.getIngestionJob(jobId);
+      while (current.status === "Queued" || current.status === "Running") {
+        patch({
+          progress: [
+            {
+              id: "run",
+              label: `Đang phân tích… (${current.progress.percent}%)`,
+              done: false,
+            },
+          ],
+        });
+        await sleep(400);
+        current = await api.getIngestionJob(jobId);
+      }
+      const report = current.report;
+      patch({
+        progress: [],
+        elapsedMs: Date.now() - t0,
+        artifacts: [
+          {
+            type: "answer",
+            text: report
+              ? `Hoàn tất.\n\nImported ${report.imported}\nDuplicate ${report.duplicate}\nSkipped ${report.skipped}`
+              : `Job ${current.status}`,
+          },
+          ...(report
+            ? [
+                {
+                  type: "ingest_report" as const,
+                  jobId: current.jobId,
+                  sourceLabel: current.sourceLabel,
+                  report: {
+                    imported: report.imported,
+                    duplicate: report.duplicate,
+                    skipped: report.skipped,
+                    unsupported: report.unsupported,
+                    failed: report.failed,
+                    durationMs: report.durationMs,
+                  },
+                },
+              ]
+            : []),
+        ],
+        nextActions: ["java hcm 60m", "Có bao nhiêu Java Senior?", "Hôm qua mình import gì?"],
+      });
+    } catch (err) {
+      patch({
+        progress: [],
+        artifacts: [
+          { type: "answer", text: err instanceof Error ? err.message : "Confirm failed" },
         ],
       });
     } finally {
@@ -566,6 +780,15 @@ export function AssistantScreen() {
                         elapsedMs={m.elapsedMs}
                         nextActions={m.nextActions}
                         onNextAction={(action) => {
+                          const m = /^confirm-ingest:([^:]+):(cv|cv_jd|all)$/.exec(action);
+                          if (m) {
+                            void confirmIngest(m[1], m[2] as "cv" | "cv_jd" | "all");
+                            return;
+                          }
+                          if (action === "Upload CV") {
+                            fileCvRef.current?.click();
+                            return;
+                          }
                           setPrompt(action);
                           focusComposer();
                         }}
@@ -579,6 +802,15 @@ export function AssistantScreen() {
                         elapsedMs={m.elapsedMs}
                         nextActions={m.nextActions}
                         onNextAction={(action) => {
+                          const m = /^confirm-ingest:([^:]+):(cv|cv_jd|all)$/.exec(action);
+                          if (m) {
+                            void confirmIngest(m[1], m[2] as "cv" | "cv_jd" | "all");
+                            return;
+                          }
+                          if (action === "Upload CV") {
+                            fileCvRef.current?.click();
+                            return;
+                          }
                           setPrompt(action);
                           focusComposer();
                         }}
@@ -608,7 +840,14 @@ export function AssistantScreen() {
                   onClick={() => fileCvRef.current?.click()}
                   className="rounded-md border border-[var(--color-rs-border)] px-2 py-1 text-xs font-medium hover:bg-[var(--color-rs-subtle)]"
                 >
-                  Upload CV
+                  Upload CV / ZIP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileFolderRef.current?.click()}
+                  className="rounded-md border border-[var(--color-rs-border)] px-2 py-1 text-xs font-medium hover:bg-[var(--color-rs-subtle)]"
+                >
+                  Folder
                 </button>
                 <button
                   type="button"
@@ -620,11 +859,25 @@ export function AssistantScreen() {
                 <input
                   ref={fileCvRef}
                   type="file"
-                  accept=".pdf,.doc,.docx,.txt"
+                  accept=".pdf,.doc,.docx,.zip"
+                  multiple
                   className="hidden"
                   onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) void onUploadCv(f);
+                    const list = e.target.files;
+                    if (list?.length) void onUploadCv(list);
+                    e.target.value = "";
+                  }}
+                />
+                <input
+                  ref={fileFolderRef}
+                  type="file"
+                  // @ts-expect-error webkitdirectory is non-standard but supported in Chromium
+                  webkitdirectory=""
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const list = e.target.files;
+                    if (list?.length) void onUploadCv(list);
                     e.target.value = "";
                   }}
                 />

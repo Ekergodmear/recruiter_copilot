@@ -37,6 +37,34 @@ export type ImportArtifact = {
   reviewPath: string;
 };
 
+export type IngestPreviewArtifact = {
+  type: "ingest_preview";
+  jobId: string;
+  sourceLabel: string;
+  preview: {
+    cv: number;
+    jd: number;
+    salary: number;
+    other: number;
+    unsupported: number;
+    total: number;
+  };
+};
+
+export type IngestReportArtifact = {
+  type: "ingest_report";
+  jobId: string;
+  sourceLabel: string;
+  report: {
+    imported: number;
+    duplicate: number;
+    skipped: number;
+    unsupported: number;
+    failed: number;
+    durationMs: number;
+  };
+};
+
 export type ActPreviewArtifact = {
   type: "act_preview";
   title: string;
@@ -50,7 +78,9 @@ export type Artifact =
   | CandidateCardArtifact
   | AnswerArtifact
   | ImportArtifact
-  | ActPreviewArtifact;
+  | ActPreviewArtifact
+  | IngestPreviewArtifact
+  | IngestReportArtifact;
 
 /** Technical metadata — hidden behind Show details (D11). */
 export type Transparency = {

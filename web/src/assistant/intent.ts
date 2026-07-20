@@ -12,6 +12,7 @@ export type IntentName =
   | "MATCH_JOB"
   | "CREATE_JOB"
   | "INGEST_CV_WORKFLOW"
+  | "LIST_INGEST_JOBS"
   | "HELP";
 
 export type CandidateSearchSlots = {
@@ -138,6 +139,14 @@ function isUrgent(text: string): boolean {
 function detectIntentName(normalized: string): IntentName {
   const p = normalized;
 
+  if (
+    /hôm\s*qua.*import|import\s*gì|ingestion\s*jobs?|lịch\s*sử\s*import|what\s*did\s*i\s*import/i.test(
+      p,
+    )
+  ) {
+    return "LIST_INGEST_JOBS";
+  }
+
   // Mixed workflow: review + create candidate
   if (
     (/\b(review|đánh\s*giá|xem\s*cv|phân\s*tích)\b/i.test(p) || /\bcv\b/i.test(p)) &&
@@ -219,6 +228,8 @@ function modeForIntent(intent: IntentName): { mode: IntentMode; patternId: strin
       return { mode: "Act", patternId: "P-ACT-CREATE" };
     case "INGEST_CV_WORKFLOW":
       return { mode: "Mixed", patternId: "P-MIX-HIRE" };
+    case "LIST_INGEST_JOBS":
+      return { mode: "Ask", patternId: "P-ASK-INGEST-STATUS" };
     default:
       return { mode: "Ask", patternId: "P-ASK-FIND" };
   }

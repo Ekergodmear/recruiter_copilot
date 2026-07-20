@@ -204,6 +204,82 @@ export function ArtifactRenderer({
             </div>
           );
         }
+        if (a.type === "ingest_preview") {
+          return (
+            <div
+              key={idx}
+              className="rounded-lg border border-[var(--color-rs-border)] bg-white px-3 py-3 text-sm"
+            >
+              <p className="font-medium">Đã phát hiện · {a.sourceLabel}</p>
+              <ul className="mt-2 space-y-0.5 text-[var(--color-rs-muted)]">
+                <li>{a.preview.cv} CV</li>
+                <li>{a.preview.jd} JD</li>
+                <li>{a.preview.salary} Salary sheet</li>
+                <li>{a.preview.other + a.preview.unsupported} file khác</li>
+              </ul>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded-md bg-[var(--color-rs-accent)] px-3 py-1.5 text-xs font-semibold text-white"
+                  onClick={() => onNextAction?.(`confirm-ingest:${a.jobId}:cv`)}
+                >
+                  Chỉ import CV
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md border border-[var(--color-rs-border)] px-3 py-1.5 text-xs font-medium"
+                  onClick={() => onNextAction?.(`confirm-ingest:${a.jobId}:cv_jd`)}
+                >
+                  CV + JD
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md border border-[var(--color-rs-border)] px-3 py-1.5 text-xs font-medium"
+                  onClick={() => onNextAction?.(`confirm-ingest:${a.jobId}:all`)}
+                >
+                  Import tất cả
+                </button>
+              </div>
+            </div>
+          );
+        }
+        if (a.type === "ingest_report") {
+          const r = a.report;
+          const secs = Math.round(r.durationMs / 1000);
+          return (
+            <div
+              key={idx}
+              className="rounded-lg border border-[var(--color-rs-border)] bg-white px-3 py-3 text-sm"
+            >
+              <p className="font-medium">Import completed · {a.sourceLabel}</p>
+              <ul className="mt-2 grid grid-cols-2 gap-1 text-[var(--color-rs-muted)]">
+                <li>Imported · {r.imported}</li>
+                <li>Duplicate · {r.duplicate}</li>
+                <li>Skipped · {r.skipped}</li>
+                <li>Unsupported · {r.unsupported}</li>
+                <li>Failed · {r.failed}</li>
+                <li>
+                  Duration · {secs >= 60 ? `${Math.floor(secs / 60)}m ${secs % 60}s` : `${secs}s`}
+                </li>
+              </ul>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link
+                  to="/candidates"
+                  className="rounded-md bg-[var(--color-rs-accent)] px-3 py-1.5 text-xs font-semibold text-white"
+                >
+                  Open Imported Candidates
+                </Link>
+                <button
+                  type="button"
+                  className="rounded-md border border-[var(--color-rs-border)] px-3 py-1.5 text-xs font-medium"
+                  onClick={() => onNextAction?.("Review Failed Files")}
+                >
+                  Review Failed Files
+                </button>
+              </div>
+            </div>
+          );
+        }
         if (a.type === "act_preview") {
           return (
             <div
