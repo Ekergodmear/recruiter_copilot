@@ -76,8 +76,15 @@ export class AppConfig {
 
     const maxFileSizeBytes = Number(env.MAX_FILE_SIZE_BYTES ?? 10 * 1024 * 1024);
     const maxJsonBodyBytes = Number(env.MAX_JSON_BODY_BYTES ?? 1 * 1024 * 1024);
+    // EPIC-015: multi-file / ZIP packages need headroom beyond a single file.
     const maxRequestBodyBytes = Number(
-      env.MAX_REQUEST_BODY_BYTES ?? Math.max(maxFileSizeBytes + 64 * 1024, maxJsonBodyBytes),
+      env.MAX_REQUEST_BODY_BYTES ??
+        Math.max(
+          maxFileSizeBytes * 50,
+          maxFileSizeBytes + 64 * 1024,
+          maxJsonBodyBytes,
+          100 * 1024 * 1024,
+        ),
     );
 
     const rateLimitExplicit = env.RATE_LIMIT_ENABLED?.toLowerCase();

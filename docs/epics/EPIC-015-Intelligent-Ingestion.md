@@ -2,7 +2,7 @@
 
 | Field             | Value                                                    |
 | ----------------- | -------------------------------------------------------- |
-| Status            | **SPEC SIGNED** · **Implementation PR C in progress** |
+| Status            | **PASS** (Spec #58 → Impl #59 → Validation #60) |
 | Type              | Product EPIC (capability)                                |
 | Vision            | AI Recruiting Workspace — Assistant-first                |
 | UX law            | D10–D14 ([UX-PRINCIPLES-CORE](../product-discovery/UX-PRINCIPLES-CORE.md)) |
@@ -285,9 +285,9 @@ Evaluation: fixture ZIP with known class counts + expected report. Gate: preview
 | PR | Content |
 |----|---------|
 | **A** Discovery D10–D14 | ✅ Merged (#57) |
-| **B** This Spec | ✅ Founder SIGNED (PR #58) |
-| **C** Implementation | Engine + MVP adapters + Preview + Report + Quiet UI + idempotent + job history |
-| **D** Validation | AC evidence PASS/FAIL |
+| **B** Spec | ✅ Founder SIGNED (PR #58) |
+| **C** Implementation | ✅ Founder APPROVED (PR #59) |
+| **D** Validation | ✅ PASS — [reports/epic-015-validation.md](../reports/epic-015-validation.md) |
 
 ---
 

@@ -128,7 +128,10 @@ export function AssistantScreen() {
     };
     persist(base);
 
-    const patchAssistant = (partial: Partial<TimelineMessage>, ctx?: Partial<Conversation["context"]>) => {
+    const patchAssistant = (
+      partial: Partial<TimelineMessage>,
+      ctx?: Partial<Conversation["context"]>,
+    ) => {
       const cur = getConversation(conv.id) ?? base;
       const next: Conversation = {
         ...cur,
@@ -138,11 +141,7 @@ export function AssistantScreen() {
       persist(next);
     };
 
-    const runSearch = async (opts: {
-      status: string;
-      why: string;
-      emptyActions: string[];
-    }) => {
+    const runSearch = async (opts: { status: string; why: string; emptyActions: string[] }) => {
       const t0 = Date.now();
       patchAssistant({
         progress: [{ id: "run", label: opts.status, done: false }],
@@ -170,10 +169,7 @@ export function AssistantScreen() {
               `Tìm thấy ${limited.length} ứng viên phù hợp.`,
               "",
               "Top 3:",
-              ...top.map(
-                (c, i) =>
-                  `• ${c.name} — ${scoreForIndex(i, limited.length)}%`,
-              ),
+              ...top.map((c, i) => `• ${c.name} — ${scoreForIndex(i, limited.length)}%`),
             ].join("\n");
 
       patchAssistant(
@@ -210,9 +206,7 @@ export function AssistantScreen() {
             intent: parsed.intent,
             slots: filters,
             confidence:
-              limited.length > 0
-                ? String(scoreForIndex(0, limited.length) / 100)
-                : undefined,
+              limited.length > 0 ? String(scoreForIndex(0, limited.length) / 100) : undefined,
             model: "rules+workspace",
           },
         },
@@ -244,9 +238,7 @@ export function AssistantScreen() {
             : items
                 .map((j) => {
                   const r = j.report;
-                  const counts = r
-                    ? `${r.imported} imported`
-                    : j.status;
+                  const counts = r ? `${r.imported} imported` : j.status;
                   return `• ${j.sourceLabel} — ${counts} (${j.status})`;
                 })
                 .join("\n");
@@ -339,7 +331,10 @@ export function AssistantScreen() {
               model: "rules+workspace",
             },
           },
-          { jobDraft: text, recentActions: [...(base.context.recentActions ?? []), "draft_job"].slice(-5) },
+          {
+            jobDraft: text,
+            recentActions: [...(base.context.recentActions ?? []), "draft_job"].slice(-5),
+          },
         );
       }
     } catch (err) {
@@ -402,8 +397,7 @@ export function AssistantScreen() {
     if (!files.length) return;
 
     setBusy(true);
-    const label =
-      files.length === 1 ? files[0].name : `${files.length} files`;
+    const label = files.length === 1 ? files[0].name : `${files.length} files`;
     const userMsg: TimelineMessage = {
       id: `u_${Date.now()}`,
       role: "user",
@@ -446,6 +440,20 @@ export function AssistantScreen() {
 
     try {
       const t0 = Date.now();
+      const totalBytes = files.reduce((n, f) => n + f.size, 0);
+      const maxHint = 100 * 1024 * 1024;
+      if (totalBytes > maxHint) {
+        patch({
+          progress: [],
+          artifacts: [
+            {
+              type: "answer",
+              text: `Gói quá lớn (${Math.round(totalBytes / (1024 * 1024))}MB). Hãy tách nhỏ hơn 100MB hoặc dùng ZIP.`,
+            },
+          ],
+        });
+        return;
+      }
       patch({
         progress: [
           {
@@ -542,11 +550,7 @@ export function AssistantScreen() {
                 ]
               : []),
           ],
-          nextActions: [
-            "java hcm 60m",
-            "Có bao nhiêu Java Senior?",
-            "Hôm qua mình import gì?",
-          ],
+          nextActions: ["java hcm 60m", "Có bao nhiêu Java Senior?", "Hôm qua mình import gì?"],
           transparency: {
             tools: ["Ingestion Engine"],
             data: current.sourceLabel,
@@ -665,7 +669,9 @@ export function AssistantScreen() {
 
   const onUploadJd = async (file: File) => {
     const text = await file.text().catch(() => file.name);
-    setPrompt((p) => (p ? `${p}\n\n${text.slice(0, 2000)}` : `Create job from JD:\n${text.slice(0, 2000)}`));
+    setPrompt((p) =>
+      p ? `${p}\n\n${text.slice(0, 2000)}` : `Create job from JD:\n${text.slice(0, 2000)}`,
+    );
     focusComposer();
   };
 
@@ -926,7 +932,10 @@ export function AssistantScreen() {
               Command
             </p>
             {[
-              { label: "New conversation", run: () => navigate(`/assistant/c/${newConversationId()}`) },
+              {
+                label: "New conversation",
+                run: () => navigate(`/assistant/c/${newConversationId()}`),
+              },
               { label: "Focus composer", run: () => focusComposer() },
               { label: "Open Knowledge · Candidates", run: () => navigate("/candidates") },
               { label: "Review queue (legacy inbox)", run: () => navigate("/inbox") },

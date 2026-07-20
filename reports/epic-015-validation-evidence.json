@@ -1,0 +1,253 @@
+{
+  "epic": "EPIC-015",
+  "verdict": "PASS",
+  "generatedAt": "2026-07-20T10:19:58.081Z",
+  "storagePath": "C:\\Users\\Admin\\AppData\\Local\\Temp\\epic-015-validate-LUrasZ",
+  "steps": [
+    {
+      "id": "health",
+      "ac": "AC-REG-1",
+      "description": "GET /health ok",
+      "pass": true,
+      "detail": {
+        "statusCode": 200
+      }
+    },
+    {
+      "id": "multi-file",
+      "ac": "AC-MVP-1",
+      "description": "Multi-file → one job → imported count",
+      "pass": true,
+      "detail": {
+        "statusCode": 202,
+        "report": {
+          "imported": 2,
+          "duplicate": 0,
+          "skipped": 0,
+          "unsupported": 0,
+          "failed": 0,
+          "durationMs": 242,
+          "candidateIds": [
+            "candidate_2a5608126d45",
+            "candidate_a546662aed68"
+          ],
+          "jobIds": [],
+          "failures": []
+        },
+        "status": "Completed"
+      }
+    },
+    {
+      "id": "idempotent-package",
+      "ac": "AC-IDEMPOTENT-1",
+      "description": "Same package twice → 0 imported, duplicates",
+      "pass": true,
+      "detail": {
+        "report": {
+          "imported": 0,
+          "duplicate": 2,
+          "skipped": 0,
+          "unsupported": 0,
+          "failed": 0,
+          "durationMs": 0,
+          "candidateIds": [
+            "candidate_2a5608126d45",
+            "candidate_a546662aed68"
+          ],
+          "jobIds": [],
+          "failures": []
+        },
+        "status": "Completed"
+      }
+    },
+    {
+      "id": "preview-mixed",
+      "ac": "AC-PREVIEW-1",
+      "description": "Mixed package → AwaitingConfirmation, no premature complete import",
+      "pass": true,
+      "detail": {
+        "status": "AwaitingConfirmation",
+        "preview": {
+          "cv": 1,
+          "jd": 1,
+          "salary": 0,
+          "other": 0,
+          "unsupported": 1,
+          "total": 3
+        }
+      }
+    },
+    {
+      "id": "confirm-scope",
+      "ac": "AC-PREVIEW-2",
+      "description": "Confirm scope cv → job completes",
+      "pass": true,
+      "detail": {
+        "confirmStatus": 202,
+        "final": "CompletedWithWarnings",
+        "report": {
+          "imported": 0,
+          "duplicate": 1,
+          "skipped": 2,
+          "unsupported": 1,
+          "failed": 0,
+          "durationMs": 5,
+          "candidateIds": [
+            "candidate_2a5608126d45"
+          ],
+          "jobIds": [],
+          "failures": []
+        }
+      }
+    },
+    {
+      "id": "zip-nested",
+      "ac": "AC-MVP-2",
+      "description": "ZIP nested → recursive import",
+      "pass": true,
+      "detail": {
+        "report": {
+          "imported": 1,
+          "duplicate": 0,
+          "skipped": 1,
+          "unsupported": 1,
+          "failed": 0,
+          "durationMs": 21,
+          "candidateIds": [
+            "candidate_206d252e1d7b"
+          ],
+          "jobIds": [],
+          "failures": []
+        },
+        "preview": {
+          "cv": 1,
+          "jd": 0,
+          "salary": 0,
+          "other": 0,
+          "unsupported": 1,
+          "total": 2
+        },
+        "status": "CompletedWithWarnings"
+      }
+    },
+    {
+      "id": "unsupported-counted",
+      "ac": "AC-MVP-4",
+      "description": "Unsupported files counted (txt in zip/mixed)",
+      "pass": true,
+      "detail": {
+        "mixedPreview": {
+          "cv": 1,
+          "jd": 1,
+          "salary": 0,
+          "other": 0,
+          "unsupported": 1,
+          "total": 3
+        },
+        "zipPreview": {
+          "cv": 1,
+          "jd": 0,
+          "salary": 0,
+          "other": 0,
+          "unsupported": 1,
+          "total": 2
+        }
+      }
+    },
+    {
+      "id": "async-http",
+      "ac": "AC-MVP-7",
+      "description": "HTTP returns 202 without long block",
+      "pass": true,
+      "detail": {
+        "statusCode": 202,
+        "httpMs": 5
+      }
+    },
+    {
+      "id": "audit-list",
+      "ac": "AC-AUDIT-1",
+      "description": "Ingestion jobs listable (Ask history)",
+      "pass": true,
+      "detail": {
+        "count": 5,
+        "labels": [
+          "async.docx",
+          "Recruitment_July.zip",
+          "CV/ (3 files)",
+          "2 files",
+          "2 files"
+        ]
+      }
+    },
+    {
+      "id": "report-shape",
+      "ac": "AC-REPORT-1",
+      "description": "Report has imported/duplicate/skipped/unsupported/duration",
+      "pass": true,
+      "detail": {
+        "report": {
+          "imported": 2,
+          "duplicate": 0,
+          "skipped": 0,
+          "unsupported": 0,
+          "failed": 0,
+          "durationMs": 242,
+          "candidateIds": [
+            "candidate_2a5608126d45",
+            "candidate_a546662aed68"
+          ],
+          "jobIds": [],
+          "failures": []
+        }
+      }
+    },
+    {
+      "id": "single-file-regression",
+      "ac": "AC-REG-1",
+      "description": "Single-file import-resume still works",
+      "pass": true,
+      "detail": {
+        "statusCode": 201
+      }
+    },
+    {
+      "id": "close-loop-knowledge",
+      "ac": "AC-CLOSE-1",
+      "description": "Knowledge Objects exist after ingest (list candidates)",
+      "pass": true,
+      "detail": {
+        "candidateCount": 5
+      }
+    },
+    {
+      "id": "oos-adapters",
+      "ac": "AC-OOS-1",
+      "description": "MVP adapters only zip/folder/multi-file",
+      "pass": true,
+      "detail": {
+        "adapters": [
+          "folder-adapter.ts",
+          "multi-file-adapter.ts",
+          "source-adapter.ts",
+          "zip-adapter.ts"
+        ]
+      }
+    },
+    {
+      "id": "engine-adapters",
+      "ac": "AC-ENGINE-1",
+      "description": "SourceAdapter files present; engine module exists",
+      "pass": true,
+      "detail": {
+        "adapters": [
+          "folder-adapter.ts",
+          "multi-file-adapter.ts",
+          "source-adapter.ts",
+          "zip-adapter.ts"
+        ]
+      }
+    }
+  ],
+  "failed": []
+}

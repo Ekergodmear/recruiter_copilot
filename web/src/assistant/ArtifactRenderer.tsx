@@ -276,6 +276,23 @@ export function ArtifactRenderer({
                 >
                   Review Failed Files
                 </button>
+                <button
+                  type="button"
+                  className="rounded-md border border-[var(--color-rs-border)] px-3 py-1.5 text-xs font-medium"
+                  onClick={() => {
+                    const blob = new Blob([JSON.stringify(a, null, 2)], {
+                      type: "application/json",
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const el = document.createElement("a");
+                    el.href = url;
+                    el.download = `ingest-report-${a.jobId}.json`;
+                    el.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  Download Report
+                </button>
               </div>
             </div>
           );
