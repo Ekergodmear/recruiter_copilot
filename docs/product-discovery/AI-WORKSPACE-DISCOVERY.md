@@ -343,10 +343,10 @@ Candidate / Job / Pipeline / Search / Analytics / Reports are **capabilities** r
 | Sprint | Focus |
 |--------|--------|
 | **0** | Discovery + decisions + PNG wireframes |
-| **1** | CV Review → JD Parsing → Candidate Search → Candidate Matching |
-| **2** | Interview Questions → JD Generator → Candidate Summary → Reports |
-| **3** | Pipeline → Automation → Email → Calendar → Scheduling |
-| **4** | Deep Research → Market Salary → Boolean → LinkedIn / Company Intelligence |
+| **1** | CV Review → JD Parsing → Search → Matching · start **EPIC-015 Intelligent Ingestion** (after D10–D12 on main) |
+| **2** | Interview / JD gen / Summary / Reports · **EPIC-016 Knowledge Workspace** |
+| **3** | Pipeline · Automation · Email · **EPIC-017 Tool Orchestration** beginnings |
+| **4** | Deep Research / Market · **EPIC-018 AI Automation** |
 
 **Out of scope until Sprint 0 wireframes approved:** Assistant UI code, Memory Bank edits, renaming routes in app.
 
@@ -371,5 +371,8 @@ Candidate / Job / Pipeline / Search / Analytics / Reports are **capabilities** r
 | 4 | Tools | Sprint 1–4 as §7 |
 | 5 | Name | **Recruiter Assistant** |
 | 6 | Modes | Ask · Analyze · Act |
+| 7 | Language | D10 — Intent → slots (VI/EN/mixed/shorthand) |
+| 8 | Quiet AI | D11 — outcomes first; details on demand |
+| 9 | Intelligent Ingestion | D12 · [EPIC-015](../epics/EPIC-015-Intelligent-Ingestion.md) DRAFT · [Capability roadmap 015–018](./ASSISTANT-CAPABILITY-ROADMAP.md) |
 
-**Remaining for Sprint 0:** Sign PNG wireframes WF-01…10 (Ask/Analyze/Act + nav), then open implementation EPICs.
+**Remaining:** Merge UX triad (D10–D12) → Spec-sign EPIC-015 → Impl → Validation → 016+.

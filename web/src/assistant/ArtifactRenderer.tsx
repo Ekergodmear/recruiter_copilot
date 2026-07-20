@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { Artifact, ActPreviewArtifact, Transparency } from "./conversation-store";
 
@@ -12,6 +13,115 @@ type Props = {
   confirming?: boolean;
 };
 
+function formatElapsed(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+function TechnicalDetails({
+  transparency,
+  elapsedMs,
+}: {
+  transparency: Transparency;
+  elapsedMs?: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const seconds =
+    typeof elapsedMs === "number" ? formatElapsed(elapsedMs) : null;
+
+  return (
+    <div className="border-t border-[var(--color-rs-border)] pt-2">
+      <div className="flex items-center gap-2 text-[11px] text-[var(--color-rs-subtle-fg)]">
+        <span>AI response{seconds ? ` · ${seconds}` : ""}</span>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="inline-flex items-center gap-1 rounded px-1 py-0.5 hover:bg-[var(--color-rs-subtle)] hover:text-[var(--color-rs-muted)]"
+          aria-expanded={open}
+          title="Show details"
+        >
+          <span aria-hidden>ⓘ</span>
+          <span>{open ? "Hide details" : "Show details"}</span>
+        </button>
+      </div>
+      {open ? (
+        <dl className="mt-2 space-y-1 font-mono text-[10px] leading-relaxed text-[var(--color-rs-muted)]">
+          {transparency.intent ? (
+            <div>
+              <dt className="inline font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
+                Intent{" "}
+              </dt>
+              <dd className="inline">{transparency.intent}</dd>
+            </div>
+          ) : null}
+          {transparency.slots?.length ? (
+            <div>
+              <dt className="mb-0.5 font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
+                Slots
+              </dt>
+              <dd>
+                <ul className="space-y-0.5">
+                  {transparency.slots.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ) : null}
+          <div>
+            <dt className="mb-0.5 font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
+              Tools
+            </dt>
+            <dd>
+              <ul className="space-y-0.5">
+                {transparency.tools.map((t) => (
+                  <li key={t}>{t}</li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+          <div>
+            <dt className="inline font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
+              Sources{" "}
+            </dt>
+            <dd className="inline">{transparency.data}</dd>
+          </div>
+          <div>
+            <dt className="inline font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
+              Why{" "}
+            </dt>
+            <dd className="inline">{transparency.why}</dd>
+          </div>
+          {transparency.confidence ? (
+            <div>
+              <dt className="inline font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
+                Confidence{" "}
+              </dt>
+              <dd className="inline">{transparency.confidence}</dd>
+            </div>
+          ) : null}
+          {typeof elapsedMs === "number" ? (
+            <div>
+              <dt className="inline font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
+                Time{" "}
+              </dt>
+              <dd className="inline">{formatElapsed(elapsedMs)}</dd>
+            </div>
+          ) : null}
+          {transparency.model ? (
+            <div>
+              <dt className="inline font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
+                Model{" "}
+              </dt>
+              <dd className="inline">{transparency.model}</dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+    </div>
+  );
+}
+
 export function ArtifactRenderer({
   artifacts,
   transparency,
@@ -23,29 +133,22 @@ export function ArtifactRenderer({
   confirming,
 }: Props) {
   return (
-    <div className="mt-3 space-y-3">
+    <div className="mt-1 space-y-3">
       {artifacts.map((a, idx) => {
         if (a.type === "answer") {
           return (
-            <p key={idx} className="text-sm leading-relaxed text-[var(--color-rs-fg)]">
+            <p
+              key={idx}
+              className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-rs-fg)]"
+            >
               {a.text}
             </p>
           );
         }
         if (a.type === "candidate_cards") {
+          if (a.items.length === 0) return null;
           return (
-            <div
-              key={idx}
-              className="overflow-hidden rounded-lg border border-[var(--color-rs-border)] bg-white"
-            >
-              <div className="flex items-center justify-between border-b border-[var(--color-rs-border)] bg-[var(--color-rs-subtle)] px-3 py-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-rs-muted)]">
-                  {a.headline ?? "Search result"}
-                </p>
-                <p className="text-xs font-medium text-[var(--color-rs-fg)]">
-                  {a.items.length} candidate{a.items.length === 1 ? "" : "s"}
-                </p>
-              </div>
+            <div key={idx} className="overflow-hidden rounded-lg border border-[var(--color-rs-border)] bg-white">
               <ul className="divide-y divide-[var(--color-rs-border)]">
                 {a.items.map((item) => (
                   <li
@@ -62,7 +165,7 @@ export function ArtifactRenderer({
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       {typeof item.score === "number" ? (
-                        <span className="font-mono text-xs font-semibold text-[var(--color-rs-accent)]">
+                        <span className="text-xs font-semibold text-[var(--color-rs-accent)]">
                           {item.score}%
                         </span>
                       ) : null}
@@ -91,16 +194,12 @@ export function ArtifactRenderer({
               key={idx}
               className="rounded-lg border border-[var(--color-rs-border)] bg-white px-3 py-3 text-sm"
             >
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-rs-muted)]">
-                Review artifact
-              </p>
-              <p className="mt-1 font-medium">Imported · {a.name}</p>
-              <p className="mt-1 text-xs text-[var(--color-rs-muted)]">{a.candidateId}</p>
+              <p className="font-medium">Đã import · {a.name}</p>
               <Link
                 to={a.reviewPath}
                 className="mt-3 inline-flex rounded-md bg-[var(--color-rs-accent)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--color-rs-accent-hover)]"
               >
-                Open review
+                Mở review
               </Link>
             </div>
           );
@@ -111,9 +210,7 @@ export function ArtifactRenderer({
               key={idx}
               className="rounded-lg border border-[var(--color-rs-border)] border-l-4 border-l-[#9a6700] bg-white px-3 py-3 text-sm"
             >
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#9a6700]">
-                Preview · Confirm required
-              </p>
+              <p className="text-xs font-semibold text-[#9a6700]">Cần xác nhận trước khi tạo</p>
               <p className="mt-1 font-medium">{a.title}</p>
               <p className="mt-1 text-[var(--color-rs-muted)]">{a.summary}</p>
               {a.confirmed && a.resultId ? (
@@ -121,7 +218,7 @@ export function ArtifactRenderer({
                   to={`/jobs/${a.resultId}`}
                   className="mt-3 inline-flex text-xs font-semibold text-[var(--color-rs-analyze)]"
                 >
-                  Open job →
+                  Mở job →
                 </Link>
               ) : (
                 <div className="mt-3 flex gap-2">
@@ -131,7 +228,7 @@ export function ArtifactRenderer({
                     onClick={() => onConfirmAct?.(a)}
                     className="rounded-md bg-[var(--color-rs-accent)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--color-rs-accent-hover)] disabled:opacity-50"
                   >
-                    {confirming ? "Executing…" : "Confirm"}
+                    {confirming ? "Đang tạo…" : "Confirm"}
                   </button>
                   <button
                     type="button"
@@ -150,55 +247,23 @@ export function ArtifactRenderer({
       })}
 
       {nextActions && nextActions.length > 0 ? (
-        <div>
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
-            Suggested next actions
-          </p>
-          <ul className="flex flex-wrap gap-1.5">
-            {nextActions.map((action) => (
-              <li key={action}>
-                <button
-                  type="button"
-                  onClick={() => onNextAction?.(action)}
-                  className="rounded-full border border-[var(--color-rs-border)] bg-white px-2.5 py-1 text-xs font-medium text-[var(--color-rs-fg)] hover:bg-[var(--color-rs-subtle)]"
-                >
-                  ○ {action}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ul className="flex flex-wrap gap-1.5">
+          {nextActions.map((action) => (
+            <li key={action}>
+              <button
+                type="button"
+                onClick={() => onNextAction?.(action)}
+                className="rounded-full border border-[var(--color-rs-border)] bg-white px-2.5 py-1 text-xs font-medium text-[var(--color-rs-fg)] hover:bg-[var(--color-rs-subtle)]"
+              >
+                {action}
+              </button>
+            </li>
+          ))}
+        </ul>
       ) : null}
 
       {transparency ? (
-        <div className="border-t border-[var(--color-rs-border)] pt-2 font-mono text-[10px] leading-relaxed text-[var(--color-rs-muted)]">
-          <p className="mb-1 font-sans text-[11px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
-            Used
-          </p>
-          <ul className="mb-2 space-y-0.5">
-            {transparency.tools.map((t) => (
-              <li key={t}>✓ {t}</li>
-            ))}
-          </ul>
-          <div>Data · {transparency.data}</div>
-          <div>Why · {transparency.why}</div>
-          {transparency.confidence ? <div>Confidence · {transparency.confidence}</div> : null}
-          {typeof elapsedMs === "number" ? <div>Time · {elapsedMs} ms</div> : null}
-          <div>
-            Generated ·{" "}
-            {artifacts
-              .map((a) =>
-                a.type === "candidate_cards"
-                  ? "Candidate List"
-                  : a.type === "act_preview"
-                    ? "Job Preview"
-                    : a.type === "import_result"
-                      ? "Review Artifact"
-                      : "Answer",
-              )
-              .join(", ")}
-          </div>
-        </div>
+        <TechnicalDetails transparency={transparency} elapsedMs={elapsedMs} />
       ) : null}
     </div>
   );

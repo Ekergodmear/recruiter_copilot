@@ -198,6 +198,65 @@ See [sprint-0/SPRINT-0-SIGNED.md](./sprint-0/SPRINT-0-SIGNED.md). `/` focus · `
 
 ---
 
+## D10 — Language-agnostic interaction (LOCKED)
+
+**Principle:** Intent → Structured Parameters → Tool — not “learn English prompts”.
+
+- Understand Vietnamese, English, mixed, and shorthand.
+- Users do **not** learn fixed syntax.
+- Every utterance becomes `Intent + slots` before tools run.
+- Same intent for:
+  - `Tìm Java HCM dưới 60M`
+  - `Find Java in HCM under 60M`
+  - `java hcm 60m`
+  - `Có ai Java lương khoảng 60 triệu không?`
+  → `SEARCH_CANDIDATE` + shared filters.
+
+Ask · Analyze · Act stay language-independent.
+
+Implementation: `web/src/assistant/intent.ts` · tests: `tests/assistant/intent.test.ts`
+
+---
+
+## D11 — Quiet AI (LOCKED)
+
+> The assistant should expose **outcomes**, not implementation details.
+
+**Default UI (90% of time) shows only:**
+
+1. Answer (colleague tone — not system logs)
+2. Artifacts (when they help act)
+3. Suggested next actions
+
+**While running:** one status line only (`Searching candidates…` / `Analyzing CV…` / `Matching JD…`). No multi-step tool theatre.
+
+**On demand:** `Show details` / ⓘ reveals tools, sources, intent, slots, timing, confidence, model.
+
+**Do not surface by default:** tool chain checkmarks, Intent/Slots chips, Confidence scores, “Used / Why / Generated” blocks.
+
+Recruiter feels Linear / GitHub / Notion AI — not an AI pipeline demo.
+
+Design notes: [sprint-0/DESIGN-SYSTEM.md](./sprint-0/DESIGN-SYSTEM.md) · Quiet AI
+
+---
+
+## D12 — Intelligent Ingestion (LOCKED · capability)
+
+> AI tiếp nhận tri thức tuyển dụng từ bất kỳ nguồn nào — không chỉ “bulk upload”.
+
+**Triad:** D10 nói tự nhiên · D11 nghe tự nhiên · D12 thao tác / đưa dữ liệu tự nhiên.  
+See [UX-PRINCIPLES-TRIAD.md](./UX-PRINCIPLES-TRIAD.md).
+
+- **Pipeline (source-agnostic):** Source → Ingestion → Classification → Dedup → Extraction → Knowledge Objects → Assistant.
+- **MVP sources:** ZIP · folder · multi-file. Later: Drive / Dropbox / email / CSV / ATS / webhook — same pipeline.
+- Async **Ingestion Job** + Quiet progress % (D11); report = imported / duplicate / error / skipped.
+- Mixed package: detect CV vs JD vs other → Confirm scope before Act.
+
+**EPIC:** [EPIC-015 — Intelligent Ingestion](../epics/EPIC-015-Intelligent-Ingestion.md) (DRAFT SPEC — Founder sign before implement).  
+**Roadmap:** [ASSISTANT-CAPABILITY-ROADMAP.md](./ASSISTANT-CAPABILITY-ROADMAP.md) (015→018).
+
+---
+
 ## Sprint 0 status
 
 **✅ SIGNED** as UX Foundation — [SPRINT-0-SIGNED.md](./sprint-0/SPRINT-0-SIGNED.md)

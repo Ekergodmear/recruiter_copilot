@@ -14,6 +14,24 @@
 
 ---
 
+## 0. Language layer (D10)
+
+```
+VI | EN | Mixed | Shorthand
+        ↓
+   Intent + Structured Parameters
+        ↓
+   Ask | Analyze | Act | Mixed
+        ↓
+   Tool → Artifact
+```
+
+Users never learn “prompts”. `java hcm 60m` ≡ `Tìm Senior Java ở HCM dưới 60 triệu`.
+
+**Quiet AI (D11):** User sees Answer + Artifacts + Next actions. Tool plan / intent / slots / confidence stay behind Show details.
+
+---
+
 ## 1. Turn structure
 
 ```
