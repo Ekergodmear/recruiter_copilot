@@ -22,6 +22,8 @@ describe("EPIC-009 AuthorizationService", () => {
     expect(authz.authorize("recruiter_alpha", "audit.read").allowed).toBe(true);
     expect(authz.authorize("viewer_alpha", "search.read").allowed).toBe(true);
     expect(authz.authorize("recruiter_alpha", "search.read").allowed).toBe(true);
+    expect(authz.authorize("viewer_alpha", "report.read").allowed).toBe(true);
+    expect(authz.authorize("recruiter_alpha", "report.read").allowed).toBe(true);
     expect(authz.authorize("viewer_alpha", "automation.execute").allowed).toBe(false);
     expect(authz.authorize("viewer_alpha", "candidate.write").allowed).toBe(false);
   });
