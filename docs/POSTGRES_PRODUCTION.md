@@ -95,5 +95,6 @@ See `docs/DEPLOY_ROLLBACK.md`.
 
 - `.github/workflows/ci.yml` — Postgres service + migrate + `pnpm run ci`
 - `.github/workflows/deploy.yml` — build/migrate smoke; SSH deploy when `DEPLOY_HOST` / `DEPLOY_SSH_KEY` secrets are set
+- Full Windows + Tunnel guide: [`docs/GITHUB_ACTIONS_SSH_DEPLOY.md`](./GITHUB_ACTIONS_SSH_DEPLOY.md)
 
-Required secrets for remote deploy: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, optional `DEPLOY_PATH`.
+Required secrets: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PATH`, `DEPLOY_SSH_KEY`.

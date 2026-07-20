@@ -44,31 +44,52 @@ jobs:
       - name: Build Docker image
         run: docker build -t recruiter-copilot:ci .
 
-  # Manual / secrets-gated remote deploy (set repository secrets DEPLOY_*).
+  # Windows production host (Docker Desktop + Cloudflare Tunnel).
+  # Requires secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH, DEPLOY_SSH_KEY
+  # Host must be reachable on TCP 22 from GitHub (port-forward / CF TCP / VPN).
+  # See docs/GITHUB_ACTIONS_SSH_DEPLOY.md
   deploy-ssh:
     needs: build-and-migrate-smoke
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      secrets.DEPLOY_HOST != '' &&
+      secrets.DEPLOY_SSH_KEY != ''
     steps:
-      - uses: actions/checkout@v4
-      - name: Deploy over SSH
+      - name: Deploy over SSH (Windows PowerShell)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: 22
+          # Windows OpenSSH DefaultShell should be powershell.exe (install script sets this).
+          script_stop: true
+          command_timeout: 25m
           script: |
-            set -euo pipefail
-            cd "${{ secrets.DEPLOY_PATH }}"
+            $ErrorActionPreference = 'Stop'
+            $deployPath = '${{ secrets.DEPLOY_PATH }}'
+            if (-not (Test-Path $deployPath)) { throw "DEPLOY_PATH missing: $deployPath" }
+            Set-Location $deployPath
             git fetch origin main
             git checkout main
             git pull --ff-only origin main
+            if (-not (Test-Path .env.production)) { throw "Missing .env.production" }
             docker compose --env-file .env.production up -d --build
-            for i in $(seq 1 36); do
-              BODY="$(curl -sf http://127.0.0.1:3000/health || true)"
-              echo "$BODY" | grep -q '"persistence":"postgres"' && echo "Health OK" && exit 0
-              sleep 5
-            done
-            echo "Health check failed" >&2
-            docker compose --env-file .env.production logs --tail=120 api
-            exit 1
+            $ok = $false
+            for ($i = 1; $i -le 36; $i++) {
+              Start-Sleep -Seconds 5
+              try {
+                $body = (Invoke-WebRequest -Uri 'http://127.0.0.1:3000/health' -UseBasicParsing -TimeoutSec 5).Content
+                if ($body -match '"persistence"\s*:\s*"postgres"' -and $body -match '"status"\s*:\s*"ok"') {
+                  Write-Host "Health OK"
+                  Write-Host $body
+                  $ok = $true
+                  break
+                }
+              } catch {}
+            }
+            if (-not $ok) {
+              docker compose --env-file .env.production logs --tail 120 api
+              throw "Health check failed"
+            }
