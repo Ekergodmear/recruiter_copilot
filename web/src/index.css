@@ -1,5 +1,30 @@
+/* Recruiter Assistant — Design System v2 (GitHub quiet UI) */
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-rs-bg: #ffffff;
+  --color-rs-subtle: #f6f8fa;
+  --color-rs-border: #d0d7de;
+  --color-rs-fg: #1f2328;
+  --color-rs-muted: #656d76;
+  --color-rs-subtle-fg: #8c959f;
+  --color-rs-accent: #238636;
+  --color-rs-accent-hover: #1a7f37;
+  --color-rs-danger: #cf222e;
+  --color-rs-analyze: #0969da;
+  --color-rs-analyze-bg: #ddf4ff;
+}
+
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-rs-subtle);
+  color: var(--color-rs-fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
 }
