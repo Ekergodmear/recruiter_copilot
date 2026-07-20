@@ -1,5 +1,5 @@
 import { describe, expect, it, afterAll } from "vitest";
-import { mkdtempSync, mkdirSync } from "node:fs";
+import { mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execSync } from "node:child_process";
@@ -9,21 +9,26 @@ import { InMemoryTelemetryStore } from "../../src/shared/telemetry/index.js";
 import { createTestDocx } from "../helpers/create-test-docx.js";
 import { disconnectPrisma } from "../../src/infrastructure/persistence/prisma/prisma-client.js";
 
-describe("Prisma persistence (integration)", () => {
+/**
+ * Requires PostgreSQL:
+ *   TEST_DATABASE_URL=postgresql://recruiter:recruiter@localhost:5432/recruiter_copilot_test?schema=public
+ * CI provides this via the postgres service. Local unit CI without Postgres skips.
+ */
+const databaseUrl = process.env.TEST_DATABASE_URL?.trim();
+const describePostgres = databaseUrl?.startsWith("postgres") ? describe : describe.skip;
+
+describePostgres("Prisma persistence (PostgreSQL integration)", () => {
   afterAll(async () => {
     await disconnectPrisma();
   });
 
   it("persists candidate import across repository reads", async () => {
-    const root = mkdtempSync(join(tmpdir(), "prisma-it-"));
-    mkdirSync(join(root, "db"), { recursive: true });
-    const dbPath = join(root, "db", "it.db").replace(/\\/g, "/");
-    const databaseUrl = `file:${dbPath}`;
-    execSync("pnpm exec prisma db push --skip-generate", {
+    execSync("pnpm exec prisma migrate deploy", {
       stdio: "pipe",
-      env: { ...process.env, DATABASE_URL: databaseUrl },
+      env: { ...process.env, DATABASE_URL: databaseUrl! },
     });
 
+    const root = mkdtempSync(join(tmpdir(), "prisma-it-"));
     const config = AppConfig.fromEnv({
       ...process.env,
       STORAGE_PATH: join(root, "storage"),
@@ -31,7 +36,7 @@ describe("Prisma persistence (integration)", () => {
       DEFAULT_WORKSPACE_ID: "ws_prisma",
       NODE_ENV: "development",
       PERSISTENCE_DRIVER: "prisma",
-      DATABASE_URL: databaseUrl,
+      DATABASE_URL: databaseUrl!,
     });
     const deps = createAppDependencies(config, new InMemoryTelemetryStore());
     expect(deps.persistenceDriver).toBe("prisma");
@@ -58,6 +63,6 @@ describe("Prisma persistence (integration)", () => {
     expect(review.candidateId).toBe(imported.candidateId);
 
     const integrity = await deps.dataIntegrityChecker.check();
-    expect(integrity.errorCount).toBe(0);
-  }, 20_000);
+    expect(integrity.ok).toBe(true);
+  });
 });

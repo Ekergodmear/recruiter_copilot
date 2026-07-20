@@ -1,11 +1,14 @@
-# Founder Alpha — production compose
-# Services: api + postgres. Foundation Freeze — deploy only.
+# Production compose — PostgreSQL persistence + API (+ optional nginx/SSL).
 #
-# Prefer: docker compose --env-file .env.production up -d --build
-# Do not point production at local .env (dev may use memory/sqlite).
-# Cloudflare Tunnel expects host http://localhost:3000 → set PORT=3000.
+# Core:
+#   docker compose --env-file .env.production up -d --build
 #
-# Postgres is NOT published to the host (internal network only).
+# With reverse proxy (HTTP):
+#   docker compose --env-file .env.production --profile proxy up -d --build
+#
+# With TLS (Let's Encrypt) after DOMAIN + CERTBOT_EMAIL set and DNS pointed:
+#   docker compose --env-file .env.production --profile proxy --profile ssl up -d --build
+#   Then issue cert once (see docs/POSTGRES_PRODUCTION.md)
 
 x-app-logging: &app-logging
   driver: json-file
@@ -42,6 +45,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # Publish only when not using nginx profile; with proxy, traffic goes via nginx.
     ports:
       - "${PORT:-3000}:3000"
     environment:
@@ -60,6 +64,7 @@ services:
       MAX_FILE_SIZE_BYTES: ${MAX_FILE_SIZE_BYTES:-10485760}
       OPERATIONS_DASHBOARD_ENABLED: ${OPERATIONS_DASHBOARD_ENABLED:-false}
       APP_VERSION: ${APP_VERSION:-0.1.0}
+      RUN_DB_SEED: ${RUN_DB_SEED:-false}
     volumes:
       - api-resumes:/app/data/resumes
       - api-telemetry:/app/data/telemetry
@@ -72,9 +77,36 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
-      start_period: 40s
+      start_period: 60s
+
+  nginx:
+    profiles: ["proxy", "ssl"]
+    image: nginx:1.27-alpine
+    restart: always
+    logging: *app-logging
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/nginx.http-only.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot-www:/var/www/certbot:ro
+      - certbot-certs:/etc/letsencrypt:ro
+    # After certificates exist, switch mount to nginx.conf (TLS) — see docs.
+
+  certbot:
+    profiles: ["ssl"]
+    image: certbot/certbot:latest
+    volumes:
+      - certbot-www:/var/www/certbot
+      - certbot-certs:/etc/letsencrypt
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h; done"
 
 volumes:
   postgres-data:
   api-resumes:
   api-telemetry:
+  certbot-www:
+  certbot-certs:

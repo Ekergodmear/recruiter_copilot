@@ -1,6 +1,4 @@
-# TECH / Deploy — Founder Alpha production image
-# Foundation Freeze intact — no business logic in this file.
-# Build-time overlay: Prisma provider → postgresql (repo stays sqlite for local/tests).
+# Production image — PostgreSQL via Prisma (schema provider = postgresql).
 
 FROM node:22-bookworm-slim AS base
 WORKDIR /app
@@ -24,11 +22,12 @@ COPY feature-flags ./feature-flags
 COPY telemetry ./telemetry
 COPY contracts ./contracts
 COPY evaluation ./evaluation
-# Production image targets Postgres (compose). Does not modify host checkout.
-RUN sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma \
-  && pnpm exec prisma generate \
+# prisma seed needs tsx in image for optional RUN_DB_SEED
+ENV DATABASE_URL="postgresql://recruiter:recruiter@localhost:5432/recruiter_copilot?schema=public"
+RUN pnpm exec prisma generate \
   && pnpm run build \
   && pnpm prune --prod
+
 
 FROM base AS runner
 WORKDIR /app
@@ -46,6 +45,7 @@ COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/feature-flags ./feature-flags
 COPY --from=build /app/telemetry ./telemetry
 COPY --from=build /app/contracts ./contracts
+COPY prisma/seed.mjs ./prisma/seed.mjs
 COPY scripts/docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh \
   && PRISMA_CLI="$(find /app/node_modules/.pnpm -path '*/prisma@*/node_modules/prisma/build/index.js' | head -n1)" \

@@ -6,7 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  // Production / Alpha: PostgreSQL. Local unit tests default to PERSISTENCE_DRIVER=memory.
+  // Integration tests use TEST_DATABASE_URL (postgres) when available.
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

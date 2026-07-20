@@ -98,7 +98,10 @@ async function main() {
     const res = await app.inject({ method: "GET", url: "/health" });
     const body = res.json();
     log("Health", {
-      ok: res.statusCode === 200 && body.status === "ok" && body.persistence === "prisma",
+      ok:
+        res.statusCode === 200 &&
+        body.status === "ok" &&
+        (body.persistence === "postgres" || body.persistence === "prisma"),
       detail: `status=${res.statusCode} epic=${body.epic ?? "?"} persistence=${body.persistence ?? "?"}`,
     });
   }

@@ -1,0 +1,74 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-migrate-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: recruiter
+          POSTGRES_PASSWORD: recruiter
+          POSTGRES_DB: recruiter_copilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U recruiter -d recruiter_copilot"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://recruiter:recruiter@localhost:5432/recruiter_copilot?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install
+      - run: pnpm exec prisma generate
+      - run: pnpm exec prisma migrate deploy
+      - run: pnpm exec prisma db seed
+      - name: Build Docker image
+        run: docker build -t recruiter-copilot:ci .
+
+  # Manual / secrets-gated remote deploy (set repository secrets DEPLOY_*).
+  deploy-ssh:
+    needs: build-and-migrate-smoke
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.DEPLOY_PATH }}"
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+            docker compose --env-file .env.production up -d --build
+            for i in $(seq 1 36); do
+              BODY="$(curl -sf http://127.0.0.1:3000/health || true)"
+              echo "$BODY" | grep -q '"persistence":"postgres"' && echo "Health OK" && exit 0
+              sleep 5
+            done
+            echo "Health check failed" >&2
+            docker compose --env-file .env.production logs --tail=120 api
+            exit 1

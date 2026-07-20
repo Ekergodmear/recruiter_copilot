@@ -32,11 +32,11 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "node prisma/seed.mjs",
     "ci": "pnpm run db:generate && pnpm run format:check && pnpm run lint && pnpm run build && pnpm run test && pnpm run test:contracts && pnpm run eval:resume && pnpm run verify:data && pnpm run security:smoke"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "node prisma/seed.mjs"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",
