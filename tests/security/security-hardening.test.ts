@@ -46,9 +46,10 @@ describe("TECH-005 security hardening", () => {
     const res = await app.inject({ method: "GET", url: "/health" });
     expect(res.statusCode).toBe(200);
     expect(res.headers["x-content-type-options"]).toBe("nosniff");
-    expect(res.headers["x-frame-options"]).toBe("DENY");
+    expect(res.headers["x-frame-options"]).toBe("SAMEORIGIN");
     expect(res.headers["referrer-policy"]).toBe("no-referrer");
-    expect(res.headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+    expect(res.headers["content-security-policy"]).toContain("frame-ancestors 'self'");
+    expect(res.headers["content-security-policy"]).toContain("frame-src 'self'");
     expect(res.headers["permissions-policy"]).toContain("camera=()");
     expect(res.headers["x-powered-by"]).toBeUndefined();
     await app.close();
