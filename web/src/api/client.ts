@@ -172,7 +172,12 @@ export const api = {
     if (opts?.sourceKind) form.append("sourceKind", opts.sourceKind);
     if (opts?.scope) form.append("scope", opts.scope);
     return parseJson<IngestionJobView>(
-      fetch("/api/v1/ingestion/jobs", { method: "POST", body: form }),
+      fetch("/api/v1/ingestion/jobs", { method: "POST", body: form }).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : "Network error";
+        throw new Error(
+          `${msg}. Kiểm tra API :3000 đang chạy và tổng dung lượng gói < giới hạn upload.`,
+        );
+      }),
     );
   },
 
@@ -191,9 +196,7 @@ export const api = {
   },
 
   listIngestionJobs(limit = 20) {
-    return parseJson<{ items: IngestionJobView[] }>(
-      fetch(`/api/v1/ingestion/jobs?limit=${limit}`),
-    );
+    return parseJson<{ items: IngestionJobView[] }>(fetch(`/api/v1/ingestion/jobs?limit=${limit}`));
   },
 
   listJobs(params?: {
