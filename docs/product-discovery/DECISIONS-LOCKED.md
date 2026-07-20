@@ -244,8 +244,8 @@ Design notes: [sprint-0/DESIGN-SYSTEM.md](./sprint-0/DESIGN-SYSTEM.md) · Quiet 
 
 > AI tiếp nhận tri thức tuyển dụng từ bất kỳ nguồn nào — không chỉ “bulk upload”.
 
-**Triad:** D10 nói tự nhiên · D11 nghe tự nhiên · D12 thao tác / đưa dữ liệu tự nhiên.  
-See [UX-PRINCIPLES-TRIAD.md](./UX-PRINCIPLES-TRIAD.md).
+**Triad → Core:** D10–D13 — [UX-PRINCIPLES-CORE.md](./UX-PRINCIPLES-CORE.md).  
+See also Quiet AI (D11) and Artifact-first (D13).
 
 - **Pipeline (source-agnostic):** Source → Ingestion → Classification → Dedup → Extraction → Knowledge Objects → Assistant.
 - **MVP sources:** ZIP · folder · multi-file. Later: Drive / Dropbox / email / CSV / ATS / webhook — same pipeline.
@@ -257,8 +257,39 @@ See [UX-PRINCIPLES-TRIAD.md](./UX-PRINCIPLES-TRIAD.md).
 
 ---
 
+## D13 — Artifact-first responses (LOCKED)
+
+> Assistant trả lời bằng **artifact phù hợp**, không bằng đoạn văn dài kiểu chatbot.
+
+| Intent / work | Primary artifact |
+|---------------|------------------|
+| Search | Candidate Cards |
+| Review CV | Scorecard |
+| JD | Requirement Summary |
+| Analytics | Chart |
+| Compare | Comparison Table |
+| Automation / Write | Preview (then Confirm) |
+| Ingestion done | Import / Ingestion Report |
+
+**Text** = một–hai câu giải thích ngắn (đồng nghiệp), rồi artifact + next actions.
+
+```
+✓  Tìm thấy 12 ứng viên phù hợp.
+   → Candidate Cards
+
+✗  Tôi đã tìm kiếm trong database…
+   Tôi sử dụng matching engine…
+   Dựa trên các tiêu chí…
+```
+
+Workspace feel = Question → Answer (short) → **Artifact** → Next Action.  
+Completes the core set with D10–D12: [UX-PRINCIPLES-CORE.md](./UX-PRINCIPLES-CORE.md).
+
+---
+
 ## Sprint 0 status
 
 **✅ SIGNED** as UX Foundation — [SPRINT-0-SIGNED.md](./sprint-0/SPRINT-0-SIGNED.md)
 
+**PR #57 Discovery:** Founder **APPROVED** (D10–D12; D13 added pre-merge).  
 Interaction changes require a Product RFC. Visual polish OK.

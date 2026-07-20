@@ -28,7 +28,10 @@ VI | EN | Mixed | Shorthand
 
 Users never learn “prompts”. `java hcm 60m` ≡ `Tìm Senior Java ở HCM dưới 60 triệu`.
 
-**Quiet AI (D11):** User sees Answer + Artifacts + Next actions. Tool plan / intent / slots / confidence stay behind Show details.
+**Quiet AI (D11):** User sees short Answer + Artifacts + Next actions. Tool plan / intent / slots / confidence stay behind Show details.
+
+**Artifact-first (D13):** The **artifact** is the response. Text only frames it (one–two sentences). Search → Cards; Review → Scorecard; Write → Preview.
+
 
 ---
 

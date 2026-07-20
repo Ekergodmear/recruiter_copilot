@@ -374,5 +374,6 @@ Candidate / Job / Pipeline / Search / Analytics / Reports are **capabilities** r
 | 7 | Language | D10 — Intent → slots (VI/EN/mixed/shorthand) |
 | 8 | Quiet AI | D11 — outcomes first; details on demand |
 | 9 | Intelligent Ingestion | D12 · [EPIC-015](../epics/EPIC-015-Intelligent-Ingestion.md) DRAFT · [Capability roadmap 015–018](./ASSISTANT-CAPABILITY-ROADMAP.md) |
+| 10 | Artifact-first | D13 — short answer + primary artifact |
 
-**Remaining:** Merge UX triad (D10–D12) → Spec-sign EPIC-015 → Impl → Validation → 016+.
+**Remaining:** Merge UX core (D10–D13) → Spec-sign EPIC-015 → Impl → Validation → 016+.

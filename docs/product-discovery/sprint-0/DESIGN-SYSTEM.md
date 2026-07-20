@@ -135,7 +135,11 @@ Default footer: one quiet line — `AI response · 1.1s` + ⓘ
 
 Details (tools, sources, intent, slots, confidence, model) **only** after **Show details**.
 
-Default surface: Answer · Artifacts · Next actions — speak like a skilled colleague, not a system log.
+Default surface: short Answer · **primary Artifact** · Next actions — colleague tone, not a system log or chatbot essay (D13).
+
+### Artifact-first (D13)
+
+Map work → artifact (Cards, Scorecard, Requirement Summary, Chart, Comparison, Preview, Ingestion Report). Do not bury the result in paragraphs.
 
 ### Read vs Write
 

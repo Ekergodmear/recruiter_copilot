@@ -14,12 +14,12 @@ Không mở rộng ATS theo màn hình. Mỗi EPIC thêm **năng lực** cho Rec
 
 ### Shared UX law
 
-D10 Language-agnostic · D11 Quiet AI · D12 Intelligent Ingestion — [UX-PRINCIPLES-TRIAD.md](./UX-PRINCIPLES-TRIAD.md)
+D10 Language-agnostic · D11 Quiet AI · D12 Intelligent Ingestion · D13 Artifact-first — [UX-PRINCIPLES-CORE.md](./UX-PRINCIPLES-CORE.md)
 
 ### Sequencing
 
 ```
-D10–D12 locked on main
+D10–D13 locked on main
         ↓
 EPIC-015 Spec → Impl → Validation
         ↓
