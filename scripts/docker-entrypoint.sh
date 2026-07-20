@@ -1,10 +1,13 @@
 #!/bin/sh
 set -e
 
-# TODO(Alpha only): prisma db push on startup is acceptable for Founder Alpha.
-# Replace with `prisma migrate deploy` before Beta. Do not keep db push in production long-term.
-echo "[entrypoint] Waiting for database schema (prisma db push — Alpha only)…"
-node /app/prisma-cli.js db push --skip-generate
+echo "[entrypoint] Applying Prisma migrations (migrate deploy)…"
+node /app/prisma-cli.js migrate deploy
+
+if [ "${RUN_DB_SEED:-false}" = "true" ]; then
+  echo "[entrypoint] Running db seed…"
+  node /app/prisma/seed.mjs || true
+fi
 
 echo "[entrypoint] Starting API on port ${PORT:-3000}…"
 exec node dist/src/app/server.js

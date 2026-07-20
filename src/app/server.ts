@@ -39,7 +39,7 @@ import { NotificationService } from "../modules/notification/application/notific
 import { FileNotificationRepository } from "../modules/notification/infrastructure/notification-repository.js";
 import { registerNotificationRoutes } from "../modules/notification/presentation/notification-routes.js";
 import { IntegrationService } from "../modules/integration/application/integration-service.js";
-import { InMemoryIntegrationRepository } from "../modules/integration/infrastructure/integration-repository.js";
+import { FileIntegrationRepository } from "../modules/integration/infrastructure/integration-repository.js";
 import { registerIntegrationRoutes } from "../modules/integration/presentation/integration-routes.js";
 import { AuditService } from "../modules/audit/application/audit-service.js";
 import { FileAuditRepository } from "../modules/audit/infrastructure/audit-repository.js";
@@ -84,6 +84,7 @@ import {
 import { registerRequestLogging } from "./request-logging.js";
 import { registerSecurityPlugin } from "./security-plugin.js";
 import { buildHealthBody } from "./health.js";
+import { registerWebSpa } from "./serve-web.js";
 import { registerGracefulShutdown } from "./graceful-shutdown.js";
 import { logStartupReport } from "./startup-report.js";
 
@@ -350,7 +351,7 @@ export function createAppDependencies(
   const integrationService = new IntegrationService({
     clock,
     idGenerator,
-    repository: new InMemoryIntegrationRepository(),
+    repository: new FileIntegrationRepository(join(config.storagePath, "integrations.jsonl")),
     jobService,
     authorizationService,
     auditService,
@@ -496,6 +497,9 @@ export async function buildApp(deps?: AppDependencies) {
     resolved.config.defaultWorkspaceId,
     resolved.reviewSessionMetrics,
   );
+
+  // After API routes — SPA assets + HTML fallback for recruiter UI (production image).
+  await registerWebSpa(app);
 
   return app;
 }

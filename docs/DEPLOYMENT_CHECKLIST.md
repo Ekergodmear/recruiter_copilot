@@ -31,7 +31,7 @@ docker compose ps
 curl -s http://localhost:3000/health
 ```
 
-Expect `"status":"ok"` and `"persistence":"prisma"` with `database.connected: true`.
+Expect `"status":"ok"` and `"persistence":"postgres"` with `database.configured: true`, `database.connected: true`.
 
 ---
 
@@ -67,7 +67,7 @@ See **[DEPLOY_ROLLBACK.md](./DEPLOY_ROLLBACK.md)** (TECH-006 WP-3).
 
 Always verify: `docker compose ps` + `curl -s http://localhost:3000/health`.
 
-Entrypoint runs `prisma db push` on each start (schema sync). No separate migrate step for Founder Alpha. Data/schema damage → WP-1 restore.
+Entrypoint runs `prisma migrate deploy` on each start. Data/schema damage → WP-1 restore. See `docs/POSTGRES_PRODUCTION.md`.
 
 ---
 
@@ -165,7 +165,7 @@ docker inspect --format '{{.State.Health.Status}}' aiheadhunter-api-1
 
 - [ ] `docker compose ps` → `api` and `postgres` both **healthy**
 - [ ] `curl http://localhost:3000/health` → `"status":"ok"`
-- [ ] Health JSON: `persistence` = `prisma`, `database.connected` = `true`, `database.dialect` = `postgres`
+- [ ] Health JSON: `persistence` = `postgres`, `database.configured` = `true`, `database.connected` = `true`, `database.dialect` = `postgres`
 - [ ] `docker compose exec api printenv NODE_ENV` → `production`
 - [ ] `docker compose exec api printenv PERSISTENCE_DRIVER` → `prisma`
 - [ ] Ports: `0.0.0.0:3000->3000/tcp`
