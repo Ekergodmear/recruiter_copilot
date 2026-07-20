@@ -2,27 +2,28 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import { ArtifactRenderer } from "./ArtifactRenderer";
-import { ModeBadge, ProgressSteps } from "./AssistantChrome";
+import { QuietStatus } from "./AssistantChrome";
 import { ContextPanel } from "./ContextPanel";
 import { useAssistantKeyboard } from "./useAssistantKeyboard";
 import {
-  classifyIntent,
   createEmptyConversation,
-  extractSearchQuery,
   getConversation,
   newConversationId,
   titleFromPrompt,
   upsertConversation,
   type ActPreviewArtifact,
+  type AssistantMode,
   type Conversation,
   type TimelineMessage,
 } from "./conversation-store";
+import { parseIntent } from "./intent";
 
 const SUGGESTIONS = [
-  "Find Senior Java candidates in HCM",
-  "Review this CV",
+  "java hcm 60m",
+  "Tìm Senior Java ở HCM dưới 60 triệu",
+  "Review CV này",
+  "JD này có ai phù hợp không?",
   "Create Backend Job from this JD",
-  "Summarize today's recruiting work",
 ];
 
 function sleep(ms: number) {
@@ -37,23 +38,6 @@ function greetingName(): string {
     /* ignore */
   }
   return "Khôi";
-}
-
-/** Surface filter chips for working memory (best-effort from NL). */
-function parseSearchFilters(prompt: string): string[] {
-  const filters: string[] = [];
-  const p = prompt;
-  if (/\bjava\b/i.test(p)) filters.push("Java");
-  if (/\breact\b/i.test(p)) filters.push("React");
-  if (/\bnode\b/i.test(p)) filters.push("Node");
-  if (/\bkubernetes|k8s\b/i.test(p)) filters.push("Kubernetes");
-  if (/\bhcm|hồ chí minh|saigon|sài gòn\b/i.test(p)) filters.push("HCM");
-  if (/\bhanoi|hà nội\b/i.test(p)) filters.push("Hanoi");
-  const salary = p.match(/under\s+(\d+)\s*m/i) || p.match(/<\s*(\d+)\s*m/i);
-  if (salary) filters.push(`<${salary[1]}M`);
-  if (/\bsenior\b/i.test(p)) filters.push("Senior");
-  if (filters.length === 0 && prompt.trim()) filters.push(prompt.trim().slice(0, 40));
-  return filters;
 }
 
 function scoreForIndex(i: number, total: number): number {
@@ -118,7 +102,7 @@ export function AssistantScreen() {
     setLastUserPrompt(text);
     setPrompt("");
 
-    const intent = classifyIntent(text);
+    const parsed = parseIntent(text);
     const userMsg: TimelineMessage = {
       id: `u_${Date.now()}`,
       role: "user",
@@ -130,8 +114,8 @@ export function AssistantScreen() {
       id: assistantId,
       role: "assistant",
       createdAt: new Date().toISOString(),
-      mode: intent.mode,
-      patternId: intent.patternId,
+      mode: parsed.mode as AssistantMode,
+      patternId: parsed.patternId,
       progress: [],
     };
 
@@ -153,129 +137,175 @@ export function AssistantScreen() {
       persist(next);
     };
 
-    try {
-      if (intent.kind === "find" || intent.kind === "help") {
-        const q = intent.kind === "help" ? text : extractSearchQuery(text);
-        const t0 = Date.now();
-        const steps = [
-          "Searching candidate database",
-          "Reading knowledge",
-          "Matching skills",
-          "Ranking",
-          "Preparing shortlist",
-        ];
-        for (let i = 0; i < steps.length; i++) {
-          patchAssistant({
-            progress: steps.map((label, j) => ({
-              id: `s${j}`,
-              label,
-              done: j <= i,
-            })),
-          });
-          await sleep(220);
-        }
-        const { items } = await api.listCandidates({
-          q: intent.kind === "help" ? undefined : q,
-          ready: true,
-        });
-        const limited = items.slice(0, 12);
-        const filters = parseSearchFilters(text);
-        patchAssistant(
-          {
-            progress: steps.map((label, j) => ({ id: `s${j}`, label, done: true })),
-            elapsedMs: Date.now() - t0,
-            artifacts: [
-              {
-                type: "answer",
-                text:
-                  limited.length === 0
-                    ? `No ready candidates matched. Try uploading CVs or broaden the query.`
-                    : `Top ${limited.length} candidates found.`,
-              },
-              {
-                type: "candidate_cards",
-                headline: "Search result",
-                items: limited.map((c, i) => ({
-                  candidateId: c.candidateId,
-                  name: c.name,
-                  subtitle: [c.currentTitle, c.company, c.skillsPreview]
-                    .filter(Boolean)
-                    .join(" · ")
-                    .slice(0, 80),
-                  score: scoreForIndex(i, limited.length),
-                })),
-              },
-            ],
-            nextActions:
+    const runSearch = async (opts: {
+      status: string;
+      why: string;
+      emptyActions: string[];
+    }) => {
+      const t0 = Date.now();
+      patchAssistant({
+        progress: [{ id: "run", label: opts.status, done: false }],
+      });
+      await sleep(280);
+      const q = parsed.searchQuery || undefined;
+      const { items } = await api.listCandidates({
+        q: parsed.intent === "HELP" ? undefined : q,
+        ready: true,
+      });
+      const limited = items.slice(0, 12);
+      const top = limited.slice(0, 3);
+      const filters = parsed.filterLabels.length ? parsed.filterLabels : [];
+      const answerText =
+        limited.length === 0
+          ? [
+              "Không tìm thấy ứng viên phù hợp.",
+              "",
+              "Thử:",
+              "• Upload thêm CV",
+              "• Nâng mức lương / nới tiêu chí",
+              "• Mở rộng khu vực sang Hybrid hoặc Remote",
+            ].join("\n")
+          : [
+              `Tìm thấy ${limited.length} ứng viên phù hợp.`,
+              "",
+              "Top 3:",
+              ...top.map(
+                (c, i) =>
+                  `• ${c.name} — ${scoreForIndex(i, limited.length)}%`,
+              ),
+            ].join("\n");
+
+      patchAssistant(
+        {
+          progress: [],
+          elapsedMs: Date.now() - t0,
+          artifacts: [
+            { type: "answer", text: answerText },
+            ...(limited.length > 0
+              ? [
+                  {
+                    type: "candidate_cards" as const,
+                    items: limited.map((c, i) => ({
+                      candidateId: c.candidateId,
+                      name: c.name,
+                      subtitle: [c.currentTitle, c.company, c.skillsPreview]
+                        .filter(Boolean)
+                        .join(" · ")
+                        .slice(0, 80),
+                      score: scoreForIndex(i, limited.length),
+                    })),
+                  },
+                ]
+              : []),
+          ],
+          nextActions:
+            limited.length > 0
+              ? ["So sánh top 5", "Lưu search", "Tạo Job", "Câu hỏi phỏng vấn"]
+              : opts.emptyActions,
+          transparency: {
+            tools: ["Candidate Search", "Matching Engine", "Knowledge"],
+            data: "workspace ready candidates · list API",
+            why: opts.why,
+            intent: parsed.intent,
+            slots: filters,
+            confidence:
               limited.length > 0
-                ? [
-                    "Compare top 5",
-                    "Export shortlist",
-                    "Save search",
-                    "Generate interview questions",
-                    "Create Backend Job from this JD",
-                  ]
-                : ["Upload CV", "Review this CV", "Find Senior Java candidates in HCM"],
-            transparency: {
-              tools: ["Candidate Search", "Matching Engine", "Knowledge"],
-              data: "workspace ready candidates · list API",
-              why: `Intent find · filters ${filters.join(", ") || "ready"}`,
-              confidence: limited.length ? `${scoreForIndex(0, limited.length)}% top match` : "—",
-            },
+                ? String(scoreForIndex(0, limited.length) / 100)
+                : undefined,
+            model: "rules+workspace",
           },
-          {
-            filters,
-            recentActions: [...(base.context.recentActions ?? []), "search"].slice(-5),
-          },
-        );
-      } else if (intent.kind === "review") {
+        },
+        {
+          filters: filters.length ? filters : undefined,
+          recentActions: [...(base.context.recentActions ?? []), "search"].slice(-5),
+        },
+      );
+    };
+
+    try {
+      if (parsed.intent === "SEARCH_CANDIDATE" || parsed.intent === "HELP") {
+        await runSearch({
+          status: "Searching candidates",
+          why: "Language-agnostic SEARCH_CANDIDATE (D10)",
+          emptyActions: ["Upload CV", "Mở rộng tiêu chí", "Tạo Job"],
+        });
+      } else if (parsed.intent === "MATCH_JOB") {
+        await runSearch({
+          status: "Matching JD",
+          why: "MATCH_JOB · search until job context is bound",
+          emptyActions: ["Upload CV", "Upload JD", "Tạo Job"],
+        });
+      } else if (parsed.intent === "ANALYZE_CV") {
         patchAssistant({
+          progress: [],
           artifacts: [
             {
               type: "answer",
-              text: "Try uploading a CV, or open Review from Knowledge. Analyze will produce a scorecard artifact.",
+              text: "Gửi CV lên để mình review giúp bạn — kéo thả hoặc bấm Upload CV.",
             },
           ],
-          nextActions: ["Upload CV", "Find Senior Java candidates in HCM", "Review this CV"],
+          nextActions: ["Upload CV", "java hcm 60m"],
           transparency: {
-            tools: ["—"],
+            tools: [],
             data: "none yet",
-            why: "Waiting for CV upload or candidate selection",
+            why: "Waiting for CV upload",
+            intent: "ANALYZE_CV",
+            model: "rules+workspace",
           },
-          progress: [{ id: "s0", label: "Waiting for CV…", done: false }],
         });
-      } else if (intent.kind === "create_job") {
+      } else if (parsed.intent === "INGEST_CV_WORKFLOW") {
+        patchAssistant({
+          mode: "Mixed",
+          progress: [],
+          artifacts: [
+            {
+              type: "answer",
+              text: "Ok — upload CV, mình sẽ parse, review, rồi xin Confirm trước khi tạo Candidate.",
+            },
+          ],
+          nextActions: ["Upload CV"],
+          transparency: {
+            tools: ["Ingest workflow"],
+            data: "pending upload",
+            why: "Mixed hire flow",
+            intent: "INGEST_CV_WORKFLOW",
+            model: "rules+workspace",
+          },
+        });
+      } else if (parsed.intent === "CREATE_JOB") {
         const t0 = Date.now();
-        const steps = [
-          "Reading JD intent",
-          "Extracting requirements",
-          "Prefilling job draft",
-          "Preparing preview",
-        ];
-        for (let i = 0; i < steps.length; i++) {
-          patchAssistant({
-            progress: steps.map((label, j) => ({ id: `s${j}`, label, done: j <= i })),
-          });
-          await sleep(200);
-        }
-        const titleMatch = text.match(/(?:job|vị trí)\s+(.+)$/i);
-        const title = titleMatch?.[1]?.trim() || "Backend Engineer";
+        patchAssistant({
+          progress: [{ id: "run", label: "Preparing job draft", done: false }],
+        });
+        await sleep(320);
+        const title =
+          parsed.search.role ||
+          (parsed.search.skills[0] ? `${parsed.search.skills[0]} Engineer` : "Backend Engineer");
         const preview: ActPreviewArtifact = {
           type: "act_preview",
-          title: `Create job · ${title}`,
-          summary: "Write requires Preview → Confirm → Execute. No job is created until you Confirm.",
+          title: `Tạo job · ${title}`,
+          summary: "Chưa tạo gì cả — Confirm mới ghi vào Knowledge.",
           payload: { kind: "create_job", title, text },
         };
         patchAssistant(
           {
-            progress: steps.map((label, j) => ({ id: `s${j}`, label, done: true })),
+            progress: [],
             elapsedMs: Date.now() - t0,
-            artifacts: [preview],
-            nextActions: ["Find candidates for this JD", "Upload JD"],
+            artifacts: [
+              {
+                type: "answer",
+                text: `Đã soạn sẵn draft job “${title}”. Xác nhận bên dưới nếu đúng.`,
+              },
+              preview,
+            ],
+            nextActions: ["JD này có ai phù hợp không?", "Upload JD"],
             transparency: {
               tools: ["JD Prefill"],
               data: "user prompt — not persisted until Confirm",
-              why: "Act mode · P-ACT-CREATE · confirmation required",
+              why: "Act · CREATE_JOB",
+              intent: "CREATE_JOB",
+              slots: parsed.filterLabels,
+              model: "rules+workspace",
             },
           },
           { jobDraft: text, recentActions: [...(base.context.recentActions ?? []), "draft_job"].slice(-5) },
@@ -286,10 +316,10 @@ export function AssistantScreen() {
         artifacts: [
           {
             type: "answer",
-            text: err instanceof Error ? err.message : "Something went wrong.",
+            text: err instanceof Error ? err.message : "Có lỗi — thử lại giúp mình.",
           },
         ],
-        progress: [{ id: "err", label: "Failed", done: true }],
+        progress: [],
       });
     } finally {
       setBusy(false);
@@ -369,29 +399,21 @@ export function AssistantScreen() {
       });
     };
 
-    const steps = [
-      "Reading file…",
-      "Importing resume",
-      "Extracting profile fields",
-      "Preparing review link",
-    ];
     try {
-      for (let i = 0; i < steps.length; i++) {
-        patch({
-          progress: steps.map((label, j) => ({ id: `s${j}`, label, done: j <= i })),
-        });
-        await sleep(140);
-      }
       const t0 = Date.now();
+      patch({
+        progress: [{ id: "run", label: "Analyzing CV", done: false }],
+      });
+      await sleep(200);
       const imported = await api.importResume(file);
       patch(
         {
-          progress: steps.map((label, j) => ({ id: `s${j}`, label, done: true })),
+          progress: [],
           elapsedMs: Date.now() - t0,
           artifacts: [
             {
               type: "answer",
-              text: "CV imported. Open review for the Analyze scorecard.",
+              text: "Đã import CV. Mở review để xem scorecard và chỉnh field trước khi dùng.",
             },
             {
               type: "import_result",
@@ -400,16 +422,13 @@ export function AssistantScreen() {
               reviewPath: `/review/${imported.candidateId}`,
             },
           ],
-          nextActions: [
-            "Find similar candidates",
-            "Generate interview questions",
-            "Create Backend Job from this JD",
-          ],
+          nextActions: ["Tìm ứng viên tương tự", "Câu hỏi phỏng vấn", "Tạo Job"],
           transparency: {
             tools: ["Resume Import", "Knowledge Extraction"],
             data: "resume file → candidate profile",
-            why: "Analyze · P-AN-CV",
-            confidence: "field confidence in Review",
+            why: "Analyze CV",
+            intent: "ANALYZE_CV",
+            model: "rules+workspace",
           },
         },
         {
@@ -420,8 +439,9 @@ export function AssistantScreen() {
       );
     } catch (err) {
       patch({
+        progress: [],
         artifacts: [
-          { type: "answer", text: err instanceof Error ? err.message : "Import failed" },
+          { type: "answer", text: err instanceof Error ? err.message : "Import thất bại" },
         ],
       });
     } finally {
@@ -537,18 +557,8 @@ export function AssistantScreen() {
                         : "max-w-full rounded-lg border border-[var(--color-rs-border)] bg-white px-3 py-3 text-sm"
                     }
                   >
-                    {m.role === "assistant" && m.mode ? (
-                      <div className="mb-2 flex items-center gap-2">
-                        <ModeBadge mode={m.mode} />
-                        {m.patternId ? (
-                          <span className="font-mono text-[10px] text-[var(--color-rs-subtle-fg)]">
-                            {m.patternId}
-                          </span>
-                        ) : null}
-                      </div>
-                    ) : null}
                     {m.text ? <p className="whitespace-pre-wrap">{m.text}</p> : null}
-                    {m.progress ? <ProgressSteps steps={m.progress} /> : null}
+                    {m.progress?.length ? <QuietStatus steps={m.progress} /> : null}
                     {m.artifacts ? (
                       <ArtifactRenderer
                         artifacts={m.artifacts}

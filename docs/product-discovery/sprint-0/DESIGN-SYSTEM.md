@@ -112,28 +112,39 @@ Review Result · Candidate List · Matching Report · Job Draft · Interview Que
 
 Artifacts stay **editable**. Conversation = **timeline**.
 
-### Show the AI working (trust)
+### Show the AI working (Quiet AI · D11)
 
-**Never** only: `Thinking...`
+**Never** only: `Thinking…`  
+**Never** multi-step tool theatre (Searching → Reading → Matching → Ranking…).
 
-**Instead** progressive steps, e.g.:
+**While running — one line only:**
 
 ```
-Searching candidates...
-✓ Reading database
-✓ Extracting skills
-✓ Calculating match
-✓ Ranking
-✓ Preparing shortlist
+Searching candidates…
 ```
+
+or `Analyzing CV…` / `Matching JD…`
 
 ### Working memory (right context)
 
 Always show when relevant: Current JD · Candidate · Filters · Conversation · Uploaded files · Recent actions.
 
-### Transparency (no magic)
+### Transparency (progressive disclosure · D11)
 
-Every answer should expose: tool used · data searched · why · confidence if applicable.
+Default footer: one quiet line — `AI response · 1.1s` + ⓘ  
+
+Details (tools, sources, intent, slots, confidence, model) **only** after **Show details**.
+
+Default surface: short Answer · **primary Artifact** · Next actions — colleague tone, not a system log or chatbot essay (D13).
+
+### Artifact-first (D13)
+
+Map work → artifact (Cards, Scorecard, Requirement Summary, Chart, Comparison, Preview, Ingestion Report). Do not bury the result in paragraphs.
+
+### Progressive disclosure (D14)
+
+Default view = summary depth only. Deeper layers (timeline, per-skill reasoning, ingest file errors, tool metadata) appear after Open / Details / Show details — never all at once on the timeline.
+
 
 ### Read vs Write
 

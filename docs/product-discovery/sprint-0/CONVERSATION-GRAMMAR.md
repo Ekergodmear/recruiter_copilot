@@ -14,6 +14,30 @@
 
 ---
 
+## 0. Language layer (D10)
+
+```
+VI | EN | Mixed | Shorthand
+        ↓
+   Intent + Structured Parameters
+        ↓
+   Ask | Analyze | Act | Mixed
+        ↓
+   Tool → Artifact
+```
+
+Users never learn “prompts”. `java hcm 60m` ≡ `Tìm Senior Java ở HCM dưới 60 triệu`.
+
+**Quiet AI (D11):** User sees short Answer + Artifacts + Next actions. Tool plan / intent / slots / confidence stay behind Show details.
+
+**Artifact-first (D13):** The **artifact** is the response. Text only frames it (one–two sentences). Search → Cards; Review → Scorecard; Write → Preview.
+
+**Progressive disclosure (D14):** Default artifact is *summary depth*. Open / Details / Show details reveal timeline, reasoning, job internals, ingest errors, etc.
+
+
+
+---
+
 ## 1. Turn structure
 
 ```

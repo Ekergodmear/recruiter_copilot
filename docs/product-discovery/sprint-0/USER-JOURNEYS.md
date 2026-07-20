@@ -27,6 +27,28 @@ Upload CV
 
 ---
 
+## Journey 1b — Intelligent Ingestion dump → coffee → report (EPIC-015 · D12)
+
+```text
+Drop ZIP / folder / multi-file (later: Drive / email / …)
+  → Mixed package? Confirm scope (CV only / JD / all)
+  → Act: Ingestion Job (P-ACT-INGEST)
+  → Quiet progress % (D11) — user can keep chatting
+  → Report artifact: imported · duplicate · error · skipped
+  → Next: Review now · Open candidates · Download report
+```
+
+| Step | Mode | Artifact |
+|------|------|----------|
+| 1 Drop / connect source | — | Source chip |
+| 2 Scope (if mixed) | Act Preview | Package detect → Confirm |
+| 3 Process | Act (async) | Quiet % status |
+| 4 Done | Ask-facing | Ingestion report + next actions |
+
+**Success:** Tri thức tuyển dụng vào Knowledge; recruiter không import từng file.
+
+---
+
 ## Journey 2 — Paste JD → Extract → Find → Shortlist
 
 ```text

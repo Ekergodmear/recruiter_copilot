@@ -22,7 +22,12 @@ From this point:
 7. UI communicates **trust**, not “intelligence theater”.  
 8. Eight-Hour Test always applies.  
 9. **Keyboard-first** (see below).  
-10. **Everything is deep-linkable** (see below).
+10. **Everything is deep-linkable** (see below).  
+11. **Language-agnostic** — Intent → slots → Tool (VI / EN / mixed / shorthand). See D10.  
+12. **Quiet AI** — outcomes first; tool chain / intent / confidence hidden behind Show details. See D11.  
+13. **Intelligent Ingestion** — mọi nguồn → cùng pipeline → Knowledge. See D12 · EPIC-015.  
+14. **Artifact-first** — short answer + primary artifact + next actions (not chatbot essays). See D13.  
+15. **Progressive disclosure** — default = enough for the step; depth on Open / Details / Show details. See D14.
 
 Full package: [README.md](./README.md) · Decisions: [../DECISIONS-LOCKED.md](../DECISIONS-LOCKED.md)
 

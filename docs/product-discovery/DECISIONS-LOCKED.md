@@ -14,8 +14,13 @@ Not: ATS + AI · chatbot-in-ATS · copilot beside ATS.
 
 > **Recruiters should accomplish recruiting work by expressing intent, not navigating software.**
 
+> **Don't make recruiters manage software. Let them recruit.**  
+> **Recruiters express intent. RecruiterSup orchestrates the work.**
+
 **Product name for primary surface:** Recruiter Assistant  
 (Not Command Center · Inbox · Home)
+
+**UX constitution:** D10–D14 — [UX-PRINCIPLES-CORE.md](./UX-PRINCIPLES-CORE.md)
 
 ---
 
@@ -198,8 +203,123 @@ See [sprint-0/SPRINT-0-SIGNED.md](./sprint-0/SPRINT-0-SIGNED.md). `/` focus · `
 
 ---
 
+## D10 — Language-agnostic interaction (LOCKED)
+
+**Principle:** Intent → Structured Parameters → Tool — not “learn English prompts”.
+
+- Understand Vietnamese, English, mixed, and shorthand.
+- Users do **not** learn fixed syntax.
+- Every utterance becomes `Intent + slots` before tools run.
+- Same intent for:
+  - `Tìm Java HCM dưới 60M`
+  - `Find Java in HCM under 60M`
+  - `java hcm 60m`
+  - `Có ai Java lương khoảng 60 triệu không?`
+  → `SEARCH_CANDIDATE` + shared filters.
+
+Ask · Analyze · Act stay language-independent.
+
+Implementation: `web/src/assistant/intent.ts` · tests: `tests/assistant/intent.test.ts`
+
+---
+
+## D11 — Quiet AI (LOCKED)
+
+> The assistant should expose **outcomes**, not implementation details.
+
+**Default UI (90% of time) shows only:**
+
+1. Answer (colleague tone — not system logs)
+2. Artifacts (when they help act)
+3. Suggested next actions
+
+**While running:** one status line only (`Searching candidates…` / `Analyzing CV…` / `Matching JD…`). No multi-step tool theatre.
+
+**On demand:** `Show details` / ⓘ reveals tools, sources, intent, slots, timing, confidence, model.
+
+**Do not surface by default:** tool chain checkmarks, Intent/Slots chips, Confidence scores, “Used / Why / Generated” blocks.
+
+Recruiter feels Linear / GitHub / Notion AI — not an AI pipeline demo.
+
+Design notes: [sprint-0/DESIGN-SYSTEM.md](./sprint-0/DESIGN-SYSTEM.md) · Quiet AI
+
+---
+
+## D12 — Intelligent Ingestion (LOCKED · capability)
+
+> AI tiếp nhận tri thức tuyển dụng từ bất kỳ nguồn nào — không chỉ “bulk upload”.
+
+**Triad → Core:** D10–D13 — [UX-PRINCIPLES-CORE.md](./UX-PRINCIPLES-CORE.md).  
+See also Quiet AI (D11) and Artifact-first (D13).
+
+- **Pipeline (source-agnostic):** Source → Ingestion → Classification → Dedup → Extraction → Knowledge Objects → Assistant.
+- **MVP sources:** ZIP · folder · multi-file. Later: Drive / Dropbox / email / CSV / ATS / webhook — same pipeline.
+- Async **Ingestion Job** + Quiet progress % (D11); report = imported / duplicate / error / skipped.
+- Mixed package: detect CV vs JD vs other → Confirm scope before Act.
+
+**EPIC:** [EPIC-015 — Intelligent Ingestion](../epics/EPIC-015-Intelligent-Ingestion.md) (DRAFT SPEC — Founder sign before implement).  
+**Roadmap:** [ASSISTANT-CAPABILITY-ROADMAP.md](./ASSISTANT-CAPABILITY-ROADMAP.md) (015→018).
+
+---
+
+## D13 — Artifact-first responses (LOCKED)
+
+> Assistant trả lời bằng **artifact phù hợp**, không bằng đoạn văn dài kiểu chatbot.
+
+| Intent / work | Primary artifact |
+|---------------|------------------|
+| Search | Candidate Cards |
+| Review CV | Scorecard |
+| JD | Requirement Summary |
+| Analytics | Chart |
+| Compare | Comparison Table |
+| Automation / Write | Preview (then Confirm) |
+| Ingestion done | Import / Ingestion Report |
+
+**Text** = một–hai câu giải thích ngắn (đồng nghiệp), rồi artifact + next actions.
+
+```
+✓  Tìm thấy 12 ứng viên phù hợp.
+   → Candidate Cards
+
+✗  Tôi đã tìm kiếm trong database…
+   Tôi sử dụng matching engine…
+   Dựa trên các tiêu chí…
+```
+
+Workspace feel = Question → Answer (short) → **Artifact** → Next Action.  
+Pairs with **D14** (how much of the artifact to show): [UX-PRINCIPLES-CORE.md](./UX-PRINCIPLES-CORE.md).
+
+---
+
+## D14 — Progressive disclosure (LOCKED)
+
+> **Chỉ hiển thị lượng thông tin cần thiết ở từng thời điểm.**
+
+D13 chọn *loại* artifact. D14 chọn *độ sâu* mặc định — phần còn lại sau Open / Details / Show details.
+
+| Surface | Default | On demand |
+|---------|---------|-----------|
+| **Search** | Count + top cards (A/B/C) | Open → timeline · AI summary · notes · activities |
+| **Review CV** | Overall · Strength · Weakness · Missing skills | Details → projects · skills · reasoning |
+| **Ingestion** | Count + % progress / summary totals | Details → duplicate · skipped · ZIP · timing · errors |
+| **Assistant** | Answer · Artifact · Next action | Show details → Intent · Tool · Latency · Confidence · Source |
+
+```
+D13 Artifact-first
+        ↓
+D14 Progressive Disclosure
+```
+
+Không dump toàn bộ Knowledge Object lên timeline. Recruiter đào sâu khi cần.
+
+---
+
 ## Sprint 0 status
 
 **✅ SIGNED** as UX Foundation — [SPRINT-0-SIGNED.md](./sprint-0/SPRINT-0-SIGNED.md)
 
+**PR #57 Discovery:** Founder **APPROVED FOR MERGE** (D10–D13; D14 added pre-merge, non-blocking).  
 Interaction changes require a Product RFC. Visual polish OK.
+
+**North star copy:** *Don't make recruiters manage software. Let them recruit.* · *Recruiters express intent. RecruiterSup orchestrates the work.*

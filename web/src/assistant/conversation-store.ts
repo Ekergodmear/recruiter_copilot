@@ -2,10 +2,12 @@
  * Phase 1 — Recruiter Assistant conversation store (client-side).
  * Deep-linkable via /assistant/c/:id. Persist in localStorage.
  * Pattern IDs: P-ASK-FIND, P-AN-CV, P-ACT-CREATE (Sprint 0 Grammar).
+ * D11 Quiet AI: transparency / intent / confidence are for Show details only.
  */
 
 export type AssistantMode = "Ask" | "Analyze" | "Act" | "Mixed";
 
+/** Single running status line (D11) — not a multi-step tool theatre. */
 export type ProgressStep = {
   id: string;
   label: string;
@@ -50,11 +52,15 @@ export type Artifact =
   | ImportArtifact
   | ActPreviewArtifact;
 
+/** Technical metadata — hidden behind Show details (D11). */
 export type Transparency = {
   tools: string[];
   data: string;
   why: string;
   confidence?: string;
+  intent?: string;
+  slots?: string[];
+  model?: string;
 };
 
 export type TimelineMessage = {
@@ -64,12 +70,13 @@ export type TimelineMessage = {
   text?: string;
   mode?: AssistantMode;
   patternId?: string;
+  /** While busy: one Quiet status step. Cleared or marked done when finished. */
   progress?: ProgressStep[];
   artifacts?: Artifact[];
   transparency?: Transparency;
   /** Suggested next intents (chips) — keeps the workspace loop open. */
   nextActions?: string[];
-  /** Elapsed ms for transparency footer. */
+  /** Elapsed ms — shown quietly as “AI response · Xs”. */
   elapsedMs?: number;
 };
 
@@ -136,35 +143,4 @@ export function createEmptyConversation(id = newConversationId()): Conversation 
 export function titleFromPrompt(prompt: string): string {
   const t = prompt.trim().replace(/\s+/g, " ");
   return t.length > 48 ? `${t.slice(0, 48)}…` : t || "New conversation";
-}
-
-/** Heuristic intent → mode + pattern (no LLM; Sprint 0 Phase 1). */
-export function classifyIntent(prompt: string): {
-  mode: AssistantMode;
-  patternId: string;
-  kind: "find" | "review" | "create_job" | "help";
-} {
-  const p = prompt.toLowerCase();
-  if (
-    /\b(create|tạo)\b.*\b(job|jd|vị trí)\b/.test(p) ||
-    /\b(job|jd)\b.*\b(create|tạo|from)\b/.test(p)
-  ) {
-    return { mode: "Act", patternId: "P-ACT-CREATE", kind: "create_job" };
-  }
-  if (/\b(review|phân tích|score)\b/.test(p) || /\bcv\b/.test(p)) {
-    return { mode: "Analyze", patternId: "P-AN-CV", kind: "review" };
-  }
-  if (
-    /\b(find|search|tìm|ai biết|senior|java|react|developer|hcm|candidate)\b/.test(p)
-  ) {
-    return { mode: "Ask", patternId: "P-ASK-FIND", kind: "find" };
-  }
-  return { mode: "Ask", patternId: "P-ASK-FIND", kind: "help" };
-}
-
-export function extractSearchQuery(prompt: string): string {
-  return prompt
-    .replace(/^(find|search|tìm|tìm kiếm)\s+/i, "")
-    .replace(/\s+under\s+\d+\s*m?/i, "")
-    .trim() || prompt.trim();
 }

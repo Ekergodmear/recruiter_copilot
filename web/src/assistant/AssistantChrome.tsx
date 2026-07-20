@@ -7,6 +7,7 @@ const modeClass: Record<AssistantMode, string> = {
   Mixed: "border-[var(--color-rs-border)] text-[var(--color-rs-fg)] bg-[var(--color-rs-subtle)]",
 };
 
+/** Kept for Show details / rare chrome — not default timeline (D11). */
 export function ModeBadge({ mode }: { mode: AssistantMode }) {
   return (
     <span
@@ -17,16 +18,14 @@ export function ModeBadge({ mode }: { mode: AssistantMode }) {
   );
 }
 
-export function ProgressSteps({ steps }: { steps: ProgressStep[] }) {
-  if (!steps.length) return null;
+/** D11: one status line while working — no multi-step checkmarks. */
+export function QuietStatus({ steps }: { steps: ProgressStep[] }) {
+  const active = steps.find((s) => !s.done) ?? steps[steps.length - 1];
+  if (!active || active.done) return null;
   return (
-    <ul className="mt-2 space-y-1 font-mono text-xs text-[var(--color-rs-muted)]">
-      {steps.map((s) => (
-        <li key={s.id} className="flex gap-2">
-          <span className="w-3 shrink-0">{s.done ? "✓" : "·"}</span>
-          <span className={s.done ? "text-[var(--color-rs-fg)]" : ""}>{s.label}</span>
-        </li>
-      ))}
-    </ul>
+    <p className="mt-1 text-sm text-[var(--color-rs-muted)]" aria-live="polite">
+      {active.label}
+      <span className="ml-0.5 inline-block animate-pulse">…</span>
+    </p>
   );
 }

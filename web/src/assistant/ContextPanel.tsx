@@ -83,7 +83,7 @@ export function ContextPanel({
               {context.recentActions.join(" → ")}
             </p>
           ) : (
-            <EmptyHint text="Tool runs in this thread appear here." />
+            <EmptyHint text="Các bước bạn vừa làm trong thread này." />
           )}
         </Section>
       </div>
