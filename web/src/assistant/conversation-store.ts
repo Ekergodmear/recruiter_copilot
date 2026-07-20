@@ -14,7 +14,13 @@ export type ProgressStep = {
 
 export type CandidateCardArtifact = {
   type: "candidate_cards";
-  items: { candidateId: string; name: string; subtitle?: string }[];
+  headline?: string;
+  items: {
+    candidateId: string;
+    name: string;
+    subtitle?: string;
+    score?: number;
+  }[];
 };
 
 export type AnswerArtifact = {
@@ -61,6 +67,10 @@ export type TimelineMessage = {
   progress?: ProgressStep[];
   artifacts?: Artifact[];
   transparency?: Transparency;
+  /** Suggested next intents (chips) — keeps the workspace loop open. */
+  nextActions?: string[];
+  /** Elapsed ms for transparency footer. */
+  elapsedMs?: number;
 };
 
 export type ConversationContext = {

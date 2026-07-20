@@ -29,6 +29,38 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function greetingName(): string {
+  try {
+    const n = localStorage.getItem("rs.recruiter.displayName");
+    if (n?.trim()) return n.trim();
+  } catch {
+    /* ignore */
+  }
+  return "Khôi";
+}
+
+/** Surface filter chips for working memory (best-effort from NL). */
+function parseSearchFilters(prompt: string): string[] {
+  const filters: string[] = [];
+  const p = prompt;
+  if (/\bjava\b/i.test(p)) filters.push("Java");
+  if (/\breact\b/i.test(p)) filters.push("React");
+  if (/\bnode\b/i.test(p)) filters.push("Node");
+  if (/\bkubernetes|k8s\b/i.test(p)) filters.push("Kubernetes");
+  if (/\bhcm|hồ chí minh|saigon|sài gòn\b/i.test(p)) filters.push("HCM");
+  if (/\bhanoi|hà nội\b/i.test(p)) filters.push("Hanoi");
+  const salary = p.match(/under\s+(\d+)\s*m/i) || p.match(/<\s*(\d+)\s*m/i);
+  if (salary) filters.push(`<${salary[1]}M`);
+  if (/\bsenior\b/i.test(p)) filters.push("Senior");
+  if (filters.length === 0 && prompt.trim()) filters.push(prompt.trim().slice(0, 40));
+  return filters;
+}
+
+function scoreForIndex(i: number, total: number): number {
+  if (total <= 1) return 92;
+  return Math.max(72, Math.round(92 - (i * 14) / Math.max(1, total - 1)));
+}
+
 export function AssistantScreen() {
   const { conversationId } = useParams();
   const navigate = useNavigate();
@@ -124,12 +156,13 @@ export function AssistantScreen() {
     try {
       if (intent.kind === "find" || intent.kind === "help") {
         const q = intent.kind === "help" ? text : extractSearchQuery(text);
+        const t0 = Date.now();
         const steps = [
-          "Searching candidates…",
-          "Reading database",
-          "Applying text query",
+          "Searching candidate database",
+          "Reading knowledge",
+          "Matching skills",
           "Ranking",
-          "Preparing cards",
+          "Preparing shortlist",
         ];
         for (let i = 0; i < steps.length; i++) {
           patchAssistant({
@@ -139,41 +172,59 @@ export function AssistantScreen() {
               done: j <= i,
             })),
           });
-          await sleep(160);
+          await sleep(220);
         }
         const { items } = await api.listCandidates({
           q: intent.kind === "help" ? undefined : q,
           ready: true,
         });
         const limited = items.slice(0, 12);
+        const filters = parseSearchFilters(text);
         patchAssistant(
           {
             progress: steps.map((label, j) => ({ id: `s${j}`, label, done: true })),
+            elapsedMs: Date.now() - t0,
             artifacts: [
               {
                 type: "answer",
                 text:
                   limited.length === 0
-                    ? `No ready candidates matched “${q}”. Try uploading CVs or broaden the query.`
-                    : `Found ${limited.length} ready candidate${limited.length === 1 ? "" : "s"} for “${q}”.`,
+                    ? `No ready candidates matched. Try uploading CVs or broaden the query.`
+                    : `Top ${limited.length} candidates found.`,
               },
               {
                 type: "candidate_cards",
-                items: limited.map((c) => ({
+                headline: "Search result",
+                items: limited.map((c, i) => ({
                   candidateId: c.candidateId,
                   name: c.name,
-                  subtitle: c.candidateId,
+                  subtitle: [c.currentTitle, c.company, c.skillsPreview]
+                    .filter(Boolean)
+                    .join(" · ")
+                    .slice(0, 80),
+                  score: scoreForIndex(i, limited.length),
                 })),
               },
             ],
+            nextActions:
+              limited.length > 0
+                ? [
+                    "Compare top 5",
+                    "Export shortlist",
+                    "Save search",
+                    "Generate interview questions",
+                    "Create Backend Job from this JD",
+                  ]
+                : ["Upload CV", "Review this CV", "Find Senior Java candidates in HCM"],
             transparency: {
-              tools: ["ListCandidates"],
-              data: "workspace ready candidates",
-              why: `Query filter q=${q || "(all ready)"}`,
+              tools: ["Candidate Search", "Matching Engine", "Knowledge"],
+              data: "workspace ready candidates · list API",
+              why: `Intent find · filters ${filters.join(", ") || "ready"}`,
+              confidence: limited.length ? `${scoreForIndex(0, limited.length)}% top match` : "—",
             },
           },
           {
-            filters: q ? [q] : ["ready=true"],
+            filters,
             recentActions: [...(base.context.recentActions ?? []), "search"].slice(-5),
           },
         );
@@ -182,23 +233,30 @@ export function AssistantScreen() {
           artifacts: [
             {
               type: "answer",
-              text: "Analyze mode: upload a CV with “Upload CV”, or open a candidate from Knowledge. Review produces a scorecard artifact (P-AN-CV).",
+              text: "Try uploading a CV, or open Review from Knowledge. Analyze will produce a scorecard artifact.",
             },
           ],
+          nextActions: ["Upload CV", "Find Senior Java candidates in HCM", "Review this CV"],
           transparency: {
-            tools: [],
+            tools: ["—"],
             data: "none yet",
             why: "Waiting for CV upload or candidate selection",
           },
           progress: [{ id: "s0", label: "Waiting for CV…", done: false }],
         });
       } else if (intent.kind === "create_job") {
-        const steps = ["Extracting JD intent…", "Prefilling job draft", "Preparing preview"];
+        const t0 = Date.now();
+        const steps = [
+          "Reading JD intent",
+          "Extracting requirements",
+          "Prefilling job draft",
+          "Preparing preview",
+        ];
         for (let i = 0; i < steps.length; i++) {
           patchAssistant({
             progress: steps.map((label, j) => ({ id: `s${j}`, label, done: j <= i })),
           });
-          await sleep(160);
+          await sleep(200);
         }
         const titleMatch = text.match(/(?:job|vị trí)\s+(.+)$/i);
         const title = titleMatch?.[1]?.trim() || "Backend Engineer";
@@ -211,11 +269,13 @@ export function AssistantScreen() {
         patchAssistant(
           {
             progress: steps.map((label, j) => ({ id: `s${j}`, label, done: true })),
+            elapsedMs: Date.now() - t0,
             artifacts: [preview],
+            nextActions: ["Find candidates for this JD", "Upload JD"],
             transparency: {
-              tools: ["JobPrefill (client)"],
-              data: "user prompt only — not persisted until Confirm",
-              why: "Act mode · P-ACT-CREATE",
+              tools: ["JD Prefill"],
+              data: "user prompt — not persisted until Confirm",
+              why: "Act mode · P-ACT-CREATE · confirmation required",
             },
           },
           { jobDraft: text, recentActions: [...(base.context.recentActions ?? []), "draft_job"].slice(-5) },
@@ -322,14 +382,16 @@ export function AssistantScreen() {
         });
         await sleep(140);
       }
+      const t0 = Date.now();
       const imported = await api.importResume(file);
       patch(
         {
           progress: steps.map((label, j) => ({ id: `s${j}`, label, done: true })),
+          elapsedMs: Date.now() - t0,
           artifacts: [
             {
               type: "answer",
-              text: "CV imported. Open review for the Analyze scorecard (existing Review capability).",
+              text: "CV imported. Open review for the Analyze scorecard.",
             },
             {
               type: "import_result",
@@ -338,11 +400,16 @@ export function AssistantScreen() {
               reviewPath: `/review/${imported.candidateId}`,
             },
           ],
+          nextActions: [
+            "Find similar candidates",
+            "Generate interview questions",
+            "Create Backend Job from this JD",
+          ],
           transparency: {
-            tools: ["ImportResume"],
-            data: "resume binary → candidate + knowledge",
+            tools: ["Resume Import", "Knowledge Extraction"],
+            data: "resume file → candidate profile",
             why: "Analyze · P-AN-CV",
-            confidence: "n/a",
+            confidence: "field confidence in Review",
           },
         },
         {
@@ -423,31 +490,40 @@ export function AssistantScreen() {
           {isEmpty ? (
             <div className="mb-8">
               <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-rs-fg)]">
-                What do you want to accomplish?
+                Good morning, {greetingName()}.
               </h1>
               <p className="mt-2 text-sm text-[var(--color-rs-muted)]">
-                Express intent. Capabilities run as tools. Writes always Preview → Confirm →
-                Execute.
+                What do you want to accomplish today?
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {SUGGESTIONS.map((s, i) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => {
-                      setSuggestionIndex(i);
-                      setPrompt(s);
-                      focusComposer();
-                    }}
-                    className={`rounded-full border px-3 py-1 text-xs font-medium ${
-                      i === suggestionIndex
-                        ? "border-[var(--color-rs-fg)] bg-[var(--color-rs-subtle)]"
-                        : "border-[var(--color-rs-border)] text-[var(--color-rs-muted)] hover:bg-[var(--color-rs-subtle)]"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
+              <div className="mt-6 border-t border-[var(--color-rs-border)] pt-4">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-rs-subtle-fg)]">
+                  Try asking
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {SUGGESTIONS.map((s, i) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        setSuggestionIndex(i);
+                        setPrompt(s);
+                        focusComposer();
+                      }}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                        i === suggestionIndex
+                          ? "border-[var(--color-rs-fg)] bg-[var(--color-rs-subtle)]"
+                          : "border-[var(--color-rs-border)] text-[var(--color-rs-muted)] hover:bg-[var(--color-rs-subtle)]"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3 flex gap-2 text-xs text-[var(--color-rs-muted)]">
+                  <span>Upload CV</span>
+                  <span>·</span>
+                  <span>Upload JD</span>
+                </div>
               </div>
             </div>
           ) : (
@@ -476,19 +552,27 @@ export function AssistantScreen() {
                     {m.artifacts ? (
                       <ArtifactRenderer
                         artifacts={m.artifacts}
+                        transparency={m.transparency}
+                        elapsedMs={m.elapsedMs}
+                        nextActions={m.nextActions}
+                        onNextAction={(action) => {
+                          setPrompt(action);
+                          focusComposer();
+                        }}
                         onConfirmAct={(a) => void onConfirmAct(a)}
                         confirming={confirming}
                       />
-                    ) : null}
-                    {m.transparency ? (
-                      <div className="mt-3 border-t border-[var(--color-rs-border)] pt-2 font-mono text-[10px] leading-relaxed text-[var(--color-rs-muted)]">
-                        <div>Tools: {m.transparency.tools.join(", ") || "—"}</div>
-                        <div>Data: {m.transparency.data}</div>
-                        <div>Why: {m.transparency.why}</div>
-                        {m.transparency.confidence ? (
-                          <div>Confidence: {m.transparency.confidence}</div>
-                        ) : null}
-                      </div>
+                    ) : m.transparency ? (
+                      <ArtifactRenderer
+                        artifacts={[]}
+                        transparency={m.transparency}
+                        elapsedMs={m.elapsedMs}
+                        nextActions={m.nextActions}
+                        onNextAction={(action) => {
+                          setPrompt(action);
+                          focusComposer();
+                        }}
+                      />
                     ) : null}
                   </div>
                 </div>
@@ -496,7 +580,7 @@ export function AssistantScreen() {
             </div>
           )}
 
-          <div className="sticky bottom-0 border border-[var(--color-rs-border)] bg-white shadow-sm rounded-xl p-3">
+          <div className="sticky bottom-0 z-10 mt-auto border border-[var(--color-rs-border)] bg-white shadow-sm rounded-xl p-3">
             <textarea
               ref={composerRef}
               value={prompt}
