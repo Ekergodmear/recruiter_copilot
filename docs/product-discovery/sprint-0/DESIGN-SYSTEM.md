@@ -141,6 +141,11 @@ Default surface: short Answer · **primary Artifact** · Next actions — collea
 
 Map work → artifact (Cards, Scorecard, Requirement Summary, Chart, Comparison, Preview, Ingestion Report). Do not bury the result in paragraphs.
 
+### Progressive disclosure (D14)
+
+Default view = summary depth only. Deeper layers (timeline, per-skill reasoning, ingest file errors, tool metadata) appear after Open / Details / Show details — never all at once on the timeline.
+
+
 ### Read vs Write
 
 | Class | Behavior |

@@ -14,8 +14,13 @@ Not: ATS + AI · chatbot-in-ATS · copilot beside ATS.
 
 > **Recruiters should accomplish recruiting work by expressing intent, not navigating software.**
 
+> **Don't make recruiters manage software. Let them recruit.**  
+> **Recruiters express intent. RecruiterSup orchestrates the work.**
+
 **Product name for primary surface:** Recruiter Assistant  
 (Not Command Center · Inbox · Home)
+
+**UX constitution:** D10–D14 — [UX-PRINCIPLES-CORE.md](./UX-PRINCIPLES-CORE.md)
 
 ---
 
@@ -283,7 +288,30 @@ See also Quiet AI (D11) and Artifact-first (D13).
 ```
 
 Workspace feel = Question → Answer (short) → **Artifact** → Next Action.  
-Completes the core set with D10–D12: [UX-PRINCIPLES-CORE.md](./UX-PRINCIPLES-CORE.md).
+Pairs with **D14** (how much of the artifact to show): [UX-PRINCIPLES-CORE.md](./UX-PRINCIPLES-CORE.md).
+
+---
+
+## D14 — Progressive disclosure (LOCKED)
+
+> **Chỉ hiển thị lượng thông tin cần thiết ở từng thời điểm.**
+
+D13 chọn *loại* artifact. D14 chọn *độ sâu* mặc định — phần còn lại sau Open / Details / Show details.
+
+| Surface | Default | On demand |
+|---------|---------|-----------|
+| **Search** | Count + top cards (A/B/C) | Open → timeline · AI summary · notes · activities |
+| **Review CV** | Overall · Strength · Weakness · Missing skills | Details → projects · skills · reasoning |
+| **Ingestion** | Count + % progress / summary totals | Details → duplicate · skipped · ZIP · timing · errors |
+| **Assistant** | Answer · Artifact · Next action | Show details → Intent · Tool · Latency · Confidence · Source |
+
+```
+D13 Artifact-first
+        ↓
+D14 Progressive Disclosure
+```
+
+Không dump toàn bộ Knowledge Object lên timeline. Recruiter đào sâu khi cần.
 
 ---
 
@@ -291,5 +319,7 @@ Completes the core set with D10–D12: [UX-PRINCIPLES-CORE.md](./UX-PRINCIPLES-C
 
 **✅ SIGNED** as UX Foundation — [SPRINT-0-SIGNED.md](./sprint-0/SPRINT-0-SIGNED.md)
 
-**PR #57 Discovery:** Founder **APPROVED** (D10–D12; D13 added pre-merge).  
+**PR #57 Discovery:** Founder **APPROVED FOR MERGE** (D10–D13; D14 added pre-merge, non-blocking).  
 Interaction changes require a Product RFC. Visual polish OK.
+
+**North star copy:** *Don't make recruiters manage software. Let them recruit.* · *Recruiters express intent. RecruiterSup orchestrates the work.*

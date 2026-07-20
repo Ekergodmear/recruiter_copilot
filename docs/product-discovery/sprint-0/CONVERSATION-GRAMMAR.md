@@ -32,6 +32,9 @@ Users never learn “prompts”. `java hcm 60m` ≡ `Tìm Senior Java ở HCM d�
 
 **Artifact-first (D13):** The **artifact** is the response. Text only frames it (one–two sentences). Search → Cards; Review → Scorecard; Write → Preview.
 
+**Progressive disclosure (D14):** Default artifact is *summary depth*. Open / Details / Show details reveal timeline, reasoning, job internals, ingest errors, etc.
+
+
 
 ---
 
