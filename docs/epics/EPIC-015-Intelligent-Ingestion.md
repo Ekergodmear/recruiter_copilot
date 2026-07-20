@@ -1,121 +1,200 @@
-# EPIC-015 — Intelligent Ingestion
+# EPIC-015 — Intelligent Ingestion Engine
 
-| Field             | Value                                                         |
-| ----------------- | ------------------------------------------------------------- |
-| Status            | **DRAFT SPEC** — Founder sign = separate PR before implement  |
-| Type              | Product EPIC (user value)                                     |
-| Vision alignment  | AI Recruiting Workspace — Assistant-first                     |
-| Depends on        | EPIC-001 · single-file import · D10 · D11 · **D12**           |
-| Next EPICs        | 016 Knowledge · 017 Orchestration · 018 Automation            |
-| Foundation Freeze | Intact — extend ingestion capability, no ATS rewrite          |
+| Field             | Value                                                    |
+| ----------------- | -------------------------------------------------------- |
+| Status            | **SPEC** — awaiting Founder sign                         |
+| Type              | Product EPIC (capability)                                |
+| Vision            | AI Recruiting Workspace — Assistant-first                |
+| UX law            | D10–D14 ([UX-PRINCIPLES-CORE](../product-discovery/UX-PRINCIPLES-CORE.md)) |
+| Depends on        | EPIC-001 · single-file import · D12                      |
+| Next              | EPIC-016 Knowledge Workspace                             |
+| Foundation Freeze | Intact — **Ingestion Engine**, not a new ATS screen      |
 
-> **Không gọi đây là “Bulk Upload”.**  
-> Đây là **Intelligent Ingestion**: AI tiếp nhận tri thức tuyển dụng từ bất kỳ nguồn nào.
+---
+
+## Founder review criterion (single)
+
+> **EPIC-015 có đang xây “Ingestion Engine” hay chỉ đang xây “Bulk Upload”?**
+
+**Required answer:** Ingestion Engine.  
+ZIP / folder / multi-file = **MVP SourceAdapters only**.
+
+---
+
+## What this EPIC is / is not
+
+| Is | Is not |
+|----|--------|
+| **Ingestion Engine** — source-agnostic pipeline into Knowledge | “Bulk Upload” feature / ZIP form |
+| Adapter pattern: Source → Engine → Knowledge Objects | One-off upload endpoint forever |
+| Ends when Assistant can **use** ingested knowledge immediately | Ends at “files uploaded” |
+| Quiet + Artifact-first + Progressive disclosure (D11–D14) | AI pipeline theatre |
 
 ---
 
 ## North star
 
-> Ném cả đống tài liệu vào (hoặc nối một nguồn), đi uống cà phê, quay lại Knowledge đã sẵn.
-
-Upload ZIP chỉ là **MVP source**. Cùng một pipeline phục vụ mọi nguồn sau này.
-
----
-
-## Universal pipeline
-
 ```
-Source
-  ↓
-Ingestion
-  ↓
-Classification
-  ↓
-Deduplication
-  ↓
-Extraction
-  ↓
-Knowledge Objects
-  ↓
-Assistant (Quiet outcome + next actions)
+Any Source
+      ↓
+Intelligent Ingestion Engine
+      ↓
+Classifier → Dedup → Extraction
+      ↓
+Candidate / Job / Documents  (Knowledge Objects)
+      ↓
+Knowledge Workspace + Assistant can Ask immediately
 ```
 
-### Sources (horizon)
+> Recruiters express intent. RecruiterSup orchestrates the work.  
+> Don't make recruiters manage software. Let them recruit.
 
-| Phase | Sources |
-|-------|---------|
-| **MVP** | Multi-file · Folder · ZIP |
-| **Next** | Gmail / Outlook attachments · Drive / Dropbox / OneDrive folders |
-| **Later** | LinkedIn export · CSV · ATS export · Webhook |
-
-Mỗi source adapter chỉ biết **đưa bytes + metadata vào Ingestion**. Không fork logic parse theo kênh.
+**Success example:** After ingest completes, recruiter chats *“Có bao nhiêu Java Senior?”* and Assistant answers from freshly ingested Knowledge — without opening an Import screen again.
 
 ---
 
-## Background
+## Principles (LOCKED for this EPIC)
 
-Hôm nay: một PDF/DOCX / request.  
-Thực tế agency VN: ZIP 50–300 CV, folder lồng skill, dump Drive, email đính kèm.
-
----
-
-## Problem Statement
-
-| Today | Needed |
-|-------|--------|
-| “Upload CV” một file | Intelligent Ingestion — mọi nguồn |
-| HTTP sync | Import / Ingestion Job + progress |
-| Không phân loại gói | CV · JD · salary · offer · skip |
-| Không báo cáo | imported · duplicate · error · skipped |
-| AI demo steps | Quiet % (D11) |
+| Principle | Meaning |
+|-----------|---------|
+| **Source-agnostic** | Engine never assumes ZIP. Adapters feed a common job model. |
+| **Bulk-first** | Default path is many documents, not one file. |
+| **Idempotent** | Re-running same package does not create duplicate Knowledge Objects (dedupe rules). |
+| **Async by default** | Large N → Ingestion Job; HTTP accepts + returns job id; chat stays usable. |
+| **Quiet by default** | Progress = count + % (D11/D14). Internals behind Details. |
+| **Confirm before mutation when ambiguous** | Import Preview when package mixes types / scope unclear (Act: Preview → Confirm). |
 
 ---
 
-## Goal
+## Architecture shape (product, not tech fashion)
 
-Một pipeline ingest tạo **Knowledge Objects** hàng loạt; Assistant chỉ báo outcome + next actions.
+```
+Google Drive · Dropbox · OneDrive · Gmail · Outlook
+Folder · ZIP · PDF · DOCX · CSV · ATS Export · Webhook
+                    ↓
+            SourceAdapter (pluggable)
+                    ↓
+         Intelligent Ingestion Engine
+                    ↓
+         Classifier → Deduplication → Knowledge Extraction
+                    ↓
+         Candidate / Job / Documents
+                    ↓
+         Knowledge Workspace ← Assistant tools
+```
+
+**MVP adapters:** Multi-file · Folder · ZIP.  
+All later sources reuse the **same** engine stages.
+
+---
+
+## MVP Scope
+
+### Sources (adapters)
+
+- Multi-file (PDF / DOC / DOCX)
+- Folder (recursive)
+- ZIP (extract + recursive nested folders)
+
+### Pipeline
+
+1. Recursive scan  
+2. Extract (archive → files)  
+3. Classify (CV / JD / salary / other / unsupported)  
+4. **Import Preview** → human Confirm scope (if mixed or ambiguous)  
+5. Skip unsupported (per confirmed scope)  
+6. Deduplicate  
+7. Queue import (async job)  
+8. Progress (Quiet %)  
+9. **Import Report** artifact  
+10. Knowledge Objects ready for Assistant Ask/Analyze/Act  
+
+### Out of Scope (MVP) — do not expand
+
+- Google Drive · Gmail · Outlook · Dropbox · OneDrive  
+- OCR  
+- Virus scan  
+- Distributed queue (product does not require a specific broker in Spec)  
+- Semantic dedup  
+- Auto-merge of duplicate profiles  
+
+---
+
+## Import Preview (required)
+
+Upload `ABC.zip` → **do not mutate Knowledge immediately**.
+
+Assistant (Quiet + Artifact-first):
+
+```
+Đã phát hiện:
+
+183 CV
+1 JD
+2 Salary Sheet
+7 File khác
+
+Bạn muốn:
+○ Chỉ import CV
+○ Import CV + JD
+○ Import tất cả
+
+[Import]
+```
+
+- Write path: Preview → Confirm → Execute (Sprint 0).  
+- Progressive disclosure (D14): summary counts first; file-level list behind Details.  
+- Rationale: client dumps mix CV + Offer + Contract + Salary + JD.
+
+---
+
+## Import Report (required)
+
+Not merely `Done`.
+
+```
+Import completed.
+
+Imported     179
+Duplicate      6
+Skipped        3
+Unsupported    2
+Duration   1m 42s
+```
+
+Next actions:
+
+- Open Imported Candidates  
+- Review Failed Files  
+- Download Report  
+
+Details (D14): per-file errors, duplicate keys, skipped reasons, source adapter, timing.
+
+---
+
+## Interaction (Assistant)
+
+| Stage | Mode | Pattern | Default UI |
+|-------|------|---------|------------|
+| Drop source | — | — | Source chip |
+| Preview | Act | `P-MIX-PACKAGE` / `P-ACT-INGEST-PREVIEW` | Counts + scope radios + Confirm |
+| Running | Act | `P-ACT-INGEST` | `243 CV · 43%` (Quiet) |
+| Done | Ask-facing | report artifact | Import Report + next actions |
+| Status ask | Ask | `P-ASK-INGEST-STATUS` | Short answer + link to report |
+
+Intent (D10): `INGEST` + slots `source`, `scope=cv|cv_jd|all`.
 
 ---
 
 ## User Stories
 
-> As a Recruiter, I drop a client ZIP/folder so candidates land in Knowledge without one-by-one upload.
+> As a Recruiter, I drop a client package and Confirm scope so only the right Knowledge Objects are created.
 
-> As a Recruiter, I get an ingestion report (imported / duplicate / error / skipped) so I know what to fix.
+> As a Recruiter, I see an Import Report with actionable next steps, not a vague “Done”.
 
-> As a Recruiter, when a package mixes JD + CVs + salary, the Assistant asks what to ingest before writing.
+> As a Recruiter, immediately after ingest I can Ask about candidates (e.g. Java Senior count) without re-importing.
 
-> As a Recruiter (later), I connect Drive/email and the **same** pipeline fills Knowledge.
-
----
-
-## MVP Scope (upload sources only)
-
-| # | Capability |
-|---|------------|
-| 1 | Multi-file PDF / DOC / DOCX |
-| 2 | Folder select — recursive |
-| 3 | ZIP — extract + nested walk |
-| 4 | Skip non-CV (unless classified JD/other under Confirm) |
-| 5 | Duplicate — default Skip (or Resume Version by flag) |
-| 6 | Async Ingestion Job when N ≥ threshold |
-| 7 | Quiet progress % (D11); details on demand |
-| 8 | Result report + next actions |
-| 9 | Assistant entry (`INGEST_BULK` / package Confirm) |
-| 10 | Mixed-package detect → Confirm scope |
-
-### Error cases (MVP)
-
-Password PDF · corrupt · unsupported mime · soft/hard N limits — job continues; counts in report.
-
----
-
-## Out of Scope (MVP)
-
-- Live Drive/Dropbox/Gmail OAuth (adapters = later slices of **same** EPIC or follow-ons)
-- OCR image CV
-- Auto-create Job without Confirm
-- Per-file toast spam
+> As a Recruiter (later), I connect Drive/email and the **same** engine fills Knowledge.
 
 ---
 
@@ -123,52 +202,56 @@ Password PDF · corrupt · unsupported mime · soft/hard N limits — job contin
 
 | ID | Criterion |
 |----|-----------|
-| AC-1 | Multi-file → one job → report counts match |
-| AC-2 | ZIP nested → recursive CV import |
-| AC-3 | Folder select → same as ZIP walk |
-| AC-4 | Non-CV → skipped |
-| AC-5 | Duplicates → duplicate count; default no second Candidate |
-| AC-6 | Bad PDF → unreadable row; job does not abort all |
-| AC-7 | Large N → async; chat remains usable |
-| AC-8 | Default UI Quiet % (D11) |
-| AC-9 | Assistant summary + Review / Open / Report actions |
-| AC-10 | Mixed package → Confirm scope before Act write |
-| AC-11 | Single-file import no regression |
-| AC-12 | CI + telemetry job lifecycle |
-| AC-13 | Spec documents source-agnostic pipeline (adapters pluggable) |
+| AC-ENGINE-1 | Spec + design treat ZIP/folder/multi-file as **SourceAdapters**; engine stages are shared and named (scan → classify → dedupe → extract → Knowledge) |
+| AC-PREVIEW-1 | Mixed package → Import Preview with counts by class; **no** Knowledge write until Confirm |
+| AC-PREVIEW-2 | Scope options at least: CV only · CV+JD · All (product may refine labels) |
+| AC-MVP-1 | Multi-file → one Ingestion Job → report counts match |
+| AC-MVP-2 | ZIP nested folders → recursive classify + import per confirmed scope |
+| AC-MVP-3 | Folder select → same walk semantics as ZIP |
+| AC-MVP-4 | Unsupported (out of scope) → Unsupported/Skipped counts; no Candidate |
+| AC-MVP-5 | Duplicates → Duplicate count; idempotent default (no second Candidate) |
+| AC-MVP-6 | Corrupt / password PDF → Failed/unreadable in report; job does not abort entire batch |
+| AC-MVP-7 | N ≥ threshold → async; user can keep chatting |
+| AC-QUIET-1 | Default progress = count + % (D11/D14); multi-step tool list only in Details |
+| AC-REPORT-1 | Completion shows Imported · Duplicate · Skipped · Unsupported · Duration |
+| AC-REPORT-2 | Next actions include Open Imported Candidates · Review Failed Files · Download Report |
+| AC-CLOSE-1 | After successful ingest, Assistant Ask over new Knowledge works without leaving the conversation (e.g. skill/title query returns updated set) |
+| AC-REG-1 | Single-file import path does not regress |
+| AC-OPS-1 | Telemetry: job created / progress / completed / skipped / duplicate; CI green |
+| AC-OOS-1 | MVP does **not** ship Drive/Gmail/OCR/semantic dedup/auto-merge/virus scan |
 
 ---
 
-## Pattern IDs
-
-| Pattern | Mode | Flow |
-|---------|------|------|
-| `P-ACT-INGEST` | Act / Mixed | Source → Job → Quiet progress → Report |
-| `P-ASK-INGEST-STATUS` | Ask | “Job lúc nãy xong chưa?” |
-| `P-MIX-PACKAGE` | Mixed | Detect → Confirm scope → Execute |
-
-Intent (D10): `INGEST` (+ `source`, `scope=cv\|jd\|all`).
-
----
-
-## Technical direction (constraints)
+## Technical direction (constraints for Impl PR)
 
 ```
-Source adapter → IngestionJob → classify → dedupe → extract
-  → CandidateImportService / Job services → Knowledge → Assistant artifact
+SourceAdapter → IngestionJob
+  → classify → (Preview/Confirm if needed)
+  → dedupe → extract
+  → existing CandidateImportService / Job services
+  → Knowledge Objects
+  → Assistant artifacts (Preview, Progress, Report)
 ```
 
-- Reuse per-file import services; do not parse whole ZIP in one HTTP request.
-- ZIP-slip + size limits server-side.
-- Worker tech chosen in **Implementation PR**, not here.
-- `bulk_import` source_type already anticipated on EV-001 — additive only.
+- Do **not** parse an entire ZIP inside one blocking HTTP request for large N.  
+- ZIP-slip protection + size limits.  
+- Worker/queue **implementation** choice belongs in Impl PR (in-proc job table OK for MVP; not “distributed queue” as a product requirement).  
+- Additive events / `bulk_import` (or `ingest`) source_type — Memory Bank FROZEN, no Domain rewrite.
 
 ---
 
 ## Telemetry & quality (ADR-000)
 
-Events: `ingest_job.created` · `progress` · `completed` · `file_skipped` · `file_duplicate`  
-Fixtures: ZIP with known counts. Gate: report matches fixture.
+| Event | When |
+|-------|------|
+| `ingest_job.created` | Accept source |
+| `ingest_job.preview_ready` | Classification summary |
+| `ingest_job.confirmed` | User Confirm scope |
+| `ingest_job.progress` | % |
+| `ingest_job.completed` | Final counts |
+| `ingest_job.file_skipped` / `file_duplicate` / `file_failed` | Per file |
+
+Evaluation: fixture ZIP with known class counts + expected report. Gate: preview counts and final report match fixture within tolerance.
 
 ---
 
@@ -176,20 +259,23 @@ Fixtures: ZIP with known counts. Gate: report matches fixture.
 
 | PR | Content |
 |----|---------|
-| Discovery (D10–D12) | Principles locked — **done in UX triad PR** |
-| **Spec PR** | This document Founder-SIGNED |
-| **Impl PR** | Job API + ZIP/folder + Quiet artifact |
-| **Validation PR** | AC evidence PASS/FAIL |
+| **A** Discovery D10–D14 | ✅ Merged (#57) |
+| **B** This Spec | Founder SIGN → status SPEC SIGNED |
+| **C** Implementation | Engine + MVP adapters + Preview + Report + Quiet UI |
+| **D** Validation | AC evidence PASS/FAIL |
 
 ---
 
 ## Definition of Done
 
-AC-1…AC-13 PASS · single-file OK · D11 respected · CI green · validation report.
+- All AC_\* **PASS**  
+- Founder criterion met: **Ingestion Engine**, not Bulk Upload  
+- Close-the-loop: Assistant can Ask on new Knowledge in-session  
+- D11–D14 respected · single-file OK · `pnpm run ci` PASS · Validation report  
 
 ---
 
 ## Differentiator
 
-Không phải form “Bulk Upload”.  
-Là **AI tiếp nhận tri thức tuyển dụng** — upload hôm nay, Drive/email/ATS ngày mai, cùng một não ingestion.
+ATS: upload files into a grid.  
+RecruiterSup: **ingest client knowledge** → Objects → Assistant works immediately.
