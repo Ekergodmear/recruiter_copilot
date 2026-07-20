@@ -257,7 +257,7 @@ See also Quiet AI (D11) and Artifact-first (D13).
 - Async **Ingestion Job** + Quiet progress % (D11); report = imported / duplicate / error / skipped.
 - Mixed package: detect CV vs JD vs other → Confirm scope before Act.
 
-**EPIC:** [EPIC-015 — Intelligent Ingestion Engine](../epics/EPIC-015-Intelligent-Ingestion.md) (**SPEC** — PR B Founder sign).  
+**EPIC:** [EPIC-015 — Intelligent Ingestion Engine](../epics/EPIC-015-Intelligent-Ingestion.md) (**SPEC SIGNED** · Founder PR #58).  
 **Roadmap:** [ASSISTANT-CAPABILITY-ROADMAP.md](./ASSISTANT-CAPABILITY-ROADMAP.md) (015→018).
 
 **UX constitution freeze:** D10–D14 only. No D15+ unless Product RFC — avoid principle bloat.

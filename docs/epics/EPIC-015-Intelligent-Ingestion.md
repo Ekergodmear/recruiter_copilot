@@ -2,7 +2,7 @@
 
 | Field             | Value                                                    |
 | ----------------- | -------------------------------------------------------- |
-| Status            | **SPEC** — awaiting Founder sign                         |
+| Status            | **SPEC SIGNED** (Founder) — 2026-07-20 · ready for Impl PR C |
 | Type              | Product EPIC (capability)                                |
 | Vision            | AI Recruiting Workspace — Assistant-first                |
 | UX law            | D10–D14 ([UX-PRINCIPLES-CORE](../product-discovery/UX-PRINCIPLES-CORE.md)) |
@@ -194,6 +194,10 @@ Intent (D10): `INGEST` + slots `source`, `scope=cv|cv_jd|all`.
 
 > As a Recruiter, immediately after ingest I can Ask about candidates (e.g. Java Senior count) without re-importing.
 
+> As a Recruiter, if I upload the same ZIP again, I do not get duplicate Candidates — I get a duplicate report (or only new files).
+
+> As a Recruiter, I can Ask what I imported yesterday and get Ingestion Job history — not tribal memory.
+
 > As a Recruiter (later), I connect Drive/email and the **same** engine fills Knowledge.
 
 ---
@@ -216,9 +220,30 @@ Intent (D10): `INGEST` + slots `source`, `scope=cv|cv_jd|all`.
 | AC-REPORT-1 | Completion shows Imported · Duplicate · Skipped · Unsupported · Duration |
 | AC-REPORT-2 | Next actions include Open Imported Candidates · Review Failed Files · Download Report |
 | AC-CLOSE-1 | After successful ingest, Assistant Ask over new Knowledge works without leaving the conversation (e.g. skill/title query returns updated set) |
+| AC-IDEMPOTENT-1 | Re-ingest of the **same package** (e.g. `Recruitment_July.zip` twice) must **not** create a second full set of Candidates when documents are identifiable — expect ~0 imported + N duplicate (or only net-new docs). Idempotent at **package** and **document** level when identity is available |
+| AC-AUDIT-1 | Every Ingestion Job is a **durable, queryable entity** (history): source label · when · counts (imported/duplicate/…). Recruiter can Ask “Hôm qua mình import gì?” — full Jobs UI not required in MVP; persistence + Ask/API sufficient |
 | AC-REG-1 | Single-file import path does not regress |
 | AC-OPS-1 | Telemetry: job created / progress / completed / skipped / duplicate; CI green |
 | AC-OOS-1 | MVP does **not** ship Drive/Gmail/OCR/semantic dedup/auto-merge/virus scan |
+
+### Founder Sign-off (PR #58)
+
+**✅ APPROVED (Spec Sign-off)** — 2026-07-20.
+
+Criterion met: **Ingestion Engine**, not Bulk Upload. No blockers for Implementation.
+
+---
+
+## Implementation anti-patterns (PR C must avoid)
+
+| Forbidden | Required instead |
+|-----------|------------------|
+| Import logic in HTTP Controller | Application / Ingestion Engine service |
+| Synchronous full ZIP parse in the request | Accept → IngestionJob → async process |
+| No Import / Ingestion Job aggregate (or equivalent) | Durable job with status, counts, history (AC-AUDIT-1) |
+| Writing Knowledge while skipping classify → preview/confirm → dedupe | Pipeline stages honored; Confirm when ambiguous |
+
+“Runs” is not enough — Implementation must **reflect this Spec**.
 
 ---
 
@@ -260,15 +285,15 @@ Evaluation: fixture ZIP with known class counts + expected report. Gate: preview
 | PR | Content |
 |----|---------|
 | **A** Discovery D10–D14 | ✅ Merged (#57) |
-| **B** This Spec | Founder SIGN → status SPEC SIGNED |
-| **C** Implementation | Engine + MVP adapters + Preview + Report + Quiet UI |
+| **B** This Spec | ✅ Founder SIGNED (PR #58) |
+| **C** Implementation | Engine + MVP adapters + Preview + Report + Quiet UI + idempotent + job history |
 | **D** Validation | AC evidence PASS/FAIL |
 
 ---
 
 ## Definition of Done
 
-- All AC_\* **PASS**  
+- All AC_\* **PASS** (including AC-IDEMPOTENT-1 · AC-AUDIT-1)  
 - Founder criterion met: **Ingestion Engine**, not Bulk Upload  
 - Close-the-loop: Assistant can Ask on new Knowledge in-session  
 - D11–D14 respected · single-file OK · `pnpm run ci` PASS · Validation report  
