@@ -63,6 +63,6 @@ describePostgres("Prisma persistence (PostgreSQL integration)", () => {
     expect(review.candidateId).toBe(imported.candidateId);
 
     const integrity = await deps.dataIntegrityChecker.check();
-    expect(integrity.ok).toBe(true);
+    expect(integrity.errorCount).toBe(0);
   });
 });
