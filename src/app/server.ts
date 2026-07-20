@@ -84,6 +84,7 @@ import {
 import { registerRequestLogging } from "./request-logging.js";
 import { registerSecurityPlugin } from "./security-plugin.js";
 import { buildHealthBody } from "./health.js";
+import { registerWebSpa } from "./serve-web.js";
 import { registerGracefulShutdown } from "./graceful-shutdown.js";
 import { logStartupReport } from "./startup-report.js";
 
@@ -496,6 +497,9 @@ export async function buildApp(deps?: AppDependencies) {
     resolved.config.defaultWorkspaceId,
     resolved.reviewSessionMetrics,
   );
+
+  // After API routes — SPA assets + HTML fallback for recruiter UI (production image).
+  await registerWebSpa(app);
 
   return app;
 }

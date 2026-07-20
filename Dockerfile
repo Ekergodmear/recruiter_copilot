@@ -18,6 +18,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json pnpm-lock.yaml tsconfig.json tsconfig.build.json ./
 COPY prisma ./prisma
 COPY src ./src
+COPY web ./web
 COPY feature-flags ./feature-flags
 COPY telemetry ./telemetry
 COPY contracts ./contracts
@@ -26,6 +27,7 @@ COPY evaluation ./evaluation
 ENV DATABASE_URL="postgresql://recruiter:recruiter@localhost:5432/recruiter_copilot?schema=public"
 RUN pnpm exec prisma generate \
   && pnpm run build \
+  && pnpm run build:web \
   && pnpm prune --prod
 
 
@@ -47,10 +49,12 @@ COPY --from=build /app/telemetry ./telemetry
 COPY --from=build /app/contracts ./contracts
 COPY prisma/seed.mjs ./prisma/seed.mjs
 COPY scripts/docker-entrypoint.sh /entrypoint.sh
+ENV WEB_STATIC_DIR=/app/dist/web
 RUN chmod +x /entrypoint.sh \
   && PRISMA_CLI="$(find /app/node_modules/.pnpm -path '*/prisma@*/node_modules/prisma/build/index.js' | head -n1)" \
   && test -n "$PRISMA_CLI" \
   && ln -sf "$PRISMA_CLI" /app/prisma-cli.js \
+  && test -f /app/dist/web/index.html \
   && chown -R node:node /app
 
 EXPOSE 3000

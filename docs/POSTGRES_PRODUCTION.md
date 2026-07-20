@@ -13,6 +13,15 @@ Baseline target: persistence via **Prisma → PostgreSQL 16**, restart-safe core
 | Aux stores | JSONL under `STORAGE_PATH` (audit, notifications, saved searches, automation actions, integrations registry) |
 | Files | Resume binaries + telemetry JSONL on volumes |
 
+## Recruiter UI (`/`)
+
+Production image builds the Vite SPA into `dist/web` and Fastify serves it:
+
+- `GET /` → `index.html` (recruiter app)
+- `GET /health`, `/api/*` → API (unchanged)
+
+If the browser shows `Route GET:/ not found`, the running image is API-only — rebuild/redeploy this image.
+
 ## Health contract (production)
 
 ```json
