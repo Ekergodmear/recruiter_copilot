@@ -226,9 +226,7 @@ export function createAppDependencies(
     clock,
     idGenerator,
     jobs: new FileIngestionJobRepository(join(config.storagePath, "ingestion-jobs.json")),
-    fingerprints: new FileFingerprintStore(
-      join(config.storagePath, "ingestion-fingerprints.json"),
-    ),
+    fingerprints: new FileFingerprintStore(join(config.storagePath, "ingestion-fingerprints.json")),
     candidateImport: candidateImportService,
     workspaceId: config.defaultWorkspaceId,
     actorId: "recruiter_alpha",
@@ -484,11 +482,7 @@ export async function buildApp(deps?: AppDependencies) {
     resolved.config.maxFileSizeBytes,
   );
 
-  registerIngestionRoutes(
-    app,
-    resolved.ingestionEngine,
-    resolved.config.maxFileSizeBytes,
-  );
+  registerIngestionRoutes(app, resolved.ingestionEngine, resolved.config.maxFileSizeBytes);
 
   registerKnowledgeRoutes(app, resolved.knowledgeEvolutionService, resolved.clock);
   registerInsightRoutes(app, {

@@ -8,7 +8,11 @@ import {
   InMemoryFingerprintStore,
   InMemoryIngestionJobRepository,
 } from "../../src/modules/ingestion/infrastructure/ingestion-job-repository.js";
-import { classifyDocument, packageFingerprint, contentHash } from "../../src/modules/ingestion/application/stages/classify.js";
+import {
+  classifyDocument,
+  packageFingerprint,
+  contentHash,
+} from "../../src/modules/ingestion/application/stages/classify.js";
 import { ZipSourceAdapter } from "../../src/modules/ingestion/application/source-adapters/zip-adapter.js";
 import { createTestDocx } from "../helpers/create-test-docx.js";
 
@@ -96,8 +100,7 @@ describe("EPIC-015 Ingestion Engine", () => {
       parts: [
         {
           filename: "a.docx",
-          mimeType:
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           buffer: docx,
         },
       ],
@@ -112,8 +115,7 @@ describe("EPIC-015 Ingestion Engine", () => {
       parts: [
         {
           filename: "a.docx",
-          mimeType:
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           buffer: docx,
         },
       ],
@@ -141,8 +143,7 @@ describe("EPIC-015 Ingestion Engine", () => {
       parts: [
         {
           filename: "cv.docx",
-          mimeType:
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           buffer: docx,
         },
         {
@@ -184,8 +185,7 @@ describe("EPIC-015 Ingestion Engine", () => {
       parts: [
         {
           filename: "a.docx",
-          mimeType:
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           buffer: docx,
         },
       ],

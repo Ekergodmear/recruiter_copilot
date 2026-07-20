@@ -25,7 +25,10 @@ export function classifyDocument(file: RawSourceFile): DocumentClass {
   if (["jpg", "jpeg", "png", "gif", "webp", "txt", "md", "exe", "dmg"].includes(ext)) {
     return "unsupported";
   }
-  if (["xlsx", "xls", "csv"].includes(ext) || /salary|compensation|band|payroll/.test(name + path)) {
+  if (
+    ["xlsx", "xls", "csv"].includes(ext) ||
+    /salary|compensation|band|payroll/.test(name + path)
+  ) {
     return "salary";
   }
   if (

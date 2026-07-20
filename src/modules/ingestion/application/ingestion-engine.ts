@@ -357,10 +357,7 @@ export class IngestionEngine {
     }));
   }
 
-  private selectAdapter(
-    parts: SourceAdapterInput["parts"],
-    hint?: SourceKind,
-  ): SourceAdapter {
+  private selectAdapter(parts: SourceAdapterInput["parts"], hint?: SourceKind): SourceAdapter {
     if (hint) {
       const found = this.adapters.find((a) => a.kind === hint);
       if (found) return found;
