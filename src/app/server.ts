@@ -44,6 +44,9 @@ import { registerIntegrationRoutes } from "../modules/integration/presentation/i
 import { AuditService } from "../modules/audit/application/audit-service.js";
 import { FileAuditRepository } from "../modules/audit/infrastructure/audit-repository.js";
 import { registerAuditRoutes } from "../modules/audit/presentation/audit-routes.js";
+import { SearchService } from "../modules/search/application/search-service.js";
+import { FileSavedSearchRepository } from "../modules/search/infrastructure/saved-search-repository.js";
+import { registerSearchRoutes } from "../modules/search/presentation/search-routes.js";
 import { RecruitmentService } from "../modules/recruitment/application/recruitment-service.js";
 import { join } from "node:path";
 import { registerRecruitmentRoutes } from "../modules/recruitment/presentation/recruitment-routes.js";
@@ -97,6 +100,7 @@ export type AppDependencies = {
   notificationService: NotificationService;
   integrationService: IntegrationService;
   auditService: AuditService;
+  searchService: SearchService;
   recruitmentService: RecruitmentService;
   knowledgeEvolutionService: KnowledgeEvolutionService;
   candidateInsightService: CandidateInsightService;
@@ -285,6 +289,19 @@ export function createAppDependencies(
     jobRepository,
   });
 
+  const searchService = new SearchService({
+    clock,
+    idGenerator,
+    candidateRepository,
+    jobRepository,
+    relationshipRepository,
+    matchingService,
+    authorizationService,
+    savedSearchRepository: new FileSavedSearchRepository(
+      join(config.storagePath, "saved-searches.jsonl"),
+    ),
+  });
+
   const copilotService = new CopilotService({
     clock,
     idGenerator,
@@ -369,6 +386,7 @@ export function createAppDependencies(
     notificationService,
     integrationService,
     auditService,
+    searchService,
     recruitmentService,
     knowledgeEvolutionService,
     candidateInsightService,
@@ -448,6 +466,7 @@ export async function buildApp(deps?: AppDependencies) {
   registerNotificationRoutes(app, resolved.notificationService);
   registerIntegrationRoutes(app, resolved.integrationService);
   registerAuditRoutes(app, resolved.auditService);
+  registerSearchRoutes(app, resolved.searchService);
   registerRecruitmentRoutes(app, resolved.recruitmentService);
 
   registerOperationsDashboardRoutes(app, {
